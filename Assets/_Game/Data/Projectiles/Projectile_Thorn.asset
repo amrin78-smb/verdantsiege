@@ -28,6 +28,8 @@ MonoBehaviour:
   bounceRange: 2.2
   freezeAfterHits: 0
   freezeStatus: {fileID: 0}
+  damageMultiplierVsChilled: 1
+  splashSideLanes: 0
   ignitesClouds: 0
   prefab: {fileID: 1700610362925524344, guid: a9b6041f6c1adf9f0ad3d8ec89e891dc, type: 3}
   trailColor: {r: 0.75, g: 1, b: 0.5, a: 1}

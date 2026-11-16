@@ -84,6 +84,7 @@ namespace VerdantSiege.EditorTools
                 Step("Enemies"); Set(lib, Sfx.EnemyGroan, "enemy_groan", EnemyGroan(), 0.4f, 2, 1.2f);
                 Step("Enemies"); Set(lib, Sfx.BruteStomp, "brute_stomp", BruteStomp(), 0.6f, 2, 0.15f);
                 BuildM3Sfx(lib, Step); // Milestone 3 sounds (AudioSynthM3.cs)
+                BuildEvolutionSfx(lib, Step); // Living Evolution sounds (AudioSynthEvolution.cs)
                 lib.victorySting = lib.GetClip(Sfx.Victory);
 
                 Step("Battle music"); lib.battleMusic = Save(MusicDir + "/battle_music.wav", BattleMusic(), Kind.Music);

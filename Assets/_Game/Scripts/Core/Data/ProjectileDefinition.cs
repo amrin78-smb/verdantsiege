@@ -41,6 +41,12 @@ namespace VerdantSiege.Data
         [Min(0)] public int freezeAfterHits = 0;
         public StatusEffectDefinition freezeStatus;
 
+        [Header("Evolution mechanics")]
+        [Tooltip("Damage multiplier against enemies that are slowed or frozen (Glacial Shards).")]
+        [Min(1f)] public float damageMultiplierVsChilled = 1f;
+        [Tooltip("Lobbed impacts also burst in this many lanes on each side (Wildfire).")]
+        [Range(0, 2)] public int splashSideLanes = 0;
+
         [Header("Fire")]
         [Tooltip("Burns away spore clouds where it hits or lands.")]
         public bool ignitesClouds;

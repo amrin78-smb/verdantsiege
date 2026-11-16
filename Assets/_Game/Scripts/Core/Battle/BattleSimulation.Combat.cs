@@ -54,7 +54,7 @@ namespace VerdantSiege.Battle
         {
             float cx = d.Coord.CenterX;
             float range = d.Definition.range;
-            bool air = d.Definition.HitsAir;
+            bool air = HitsAir(d);
             EnemyRuntime best = null;
             for (int i = 0; i < _enemies.Count; i++)
             {
@@ -79,27 +79,55 @@ namespace VerdantSiege.Battle
 
         internal void FireProjectile(DefenderRuntime d)
         {
-            ProjectileDefinition def = d.Definition.projectile;
+            ProjectileDefinition def = ProjectileOf(d);
             if (def == null) return;
-            ProjectileRuntime p = RentProjectile(def);
-            p.lane = p.fromLane = d.Coord.lane;
-            p.startX = p.prevX = p.x = p.hopFromX = d.Coord.CenterX + 0.3f;
-            p.hitsRemaining = Math.Max(1, def.pierceCount);
-            p.bouncesRemaining = def.bounces;
-            p.sourceDefenderId = d.Id;
+            EvolutionDefinition evo = d.evolution;
             if (def.motion == ProjectileMotion.Lobbed)
             {
+                float targetX;
                 EnemyRuntime t = FindTargetAhead(d);
                 if (t != null)
                 {
                     // Lead the target: land where it will be when the seed comes down.
-                    float flight = Math.Max(0f, t.x - p.x) / def.speed;
-                    p.targetX = Math.Max(p.x + 0.25f, t.x + 0.1f - SpeedOf(t) * flight);
+                    float startX = d.Coord.CenterX + 0.3f;
+                    float flight = Math.Max(0f, t.x - startX) / def.speed;
+                    targetX = Math.Max(startX + 0.25f, t.x + 0.1f - SpeedOf(t) * flight);
                 }
-                else p.targetX = BossFrontX;
+                else targetX = BossFrontX;
+                int cluster = evo != null ? Math.Max(1, evo.lobClusterCount) : 1;
+                if (cluster <= 1) SpawnShot(d, def, d.Coord.lane, def.damage, targetX);
+                else
+                    for (int k = 0; k < cluster; k++) // Firestorm: a line of seeds down the lane (the first on the target)
+                        SpawnShot(d, def, d.Coord.lane, def.damage * evo.lobClusterDamageFraction,
+                            Math.Min(targetX + k * evo.lobClusterSpacing, Math.Max(targetX, BossFrontX)));
             }
-            _projectiles.Add(p);
+            else
+            {
+                SpawnShot(d, def, d.Coord.lane, def.damage, 0f);
+                int side = evo != null ? evo.multishotSideLanes : 0;
+                for (int k = 1; k <= side; k++) // Fan: one shot down each neighbouring lane
+                {
+                    float dmg = def.damage * evo.sideShotDamageFraction;
+                    if (d.Coord.lane - k >= 0) SpawnShot(d, def, d.Coord.lane - k, dmg, 0f);
+                    if (d.Coord.lane + k < Lanes) SpawnShot(d, def, d.Coord.lane + k, dmg, 0f);
+                }
+            }
             DefenderActed?.Invoke(d);
+        }
+
+        private void SpawnShot(DefenderRuntime d, ProjectileDefinition def, int lane, float damage, float targetX)
+        {
+            ProjectileRuntime p = RentProjectile(def);
+            p.damage = damage;
+            p.lane = lane;
+            p.fromLane = d.Coord.lane; // fan shots visibly peel off into their lane
+            p.startX = p.prevX = p.x = p.hopFromX = d.Coord.CenterX + 0.3f;
+            p.hitsRemaining = Math.Max(1, def.pierceCount);
+            p.bouncesRemaining = def.bounces;
+            p.sourceDefenderId = d.Id;
+            p.sourceDefender = d;
+            p.targetX = targetX;
+            _projectiles.Add(p);
             ProjectileFired?.Invoke(p);
         }
 
@@ -251,6 +279,8 @@ namespace VerdantSiege.Battle
             float lo = p.targetX - r, hi = p.targetX + r;
             EnemyRuntime primary = null;
             float bestD = float.MaxValue;
+            DefenderRuntime src = SourceOf(p);
+            int side = def.splashSideLanes; // Wildfire: the burst also spills into neighbouring lanes
             for (int i = 0; i < _enemies.Count; i++)
             {
                 EnemyRuntime e = _enemies[i];
@@ -262,21 +292,26 @@ namespace VerdantSiege.Battle
             for (int i = 0; i < _enemies.Count; i++)
             {
                 EnemyRuntime e = _enemies[i];
-                if (!e.alive || e.lane != p.lane || (e.IsFlying && !def.canHitAir) || !OnField(e)) continue;
+                if (!e.alive || Math.Abs(e.lane - p.lane) > side || (e.IsFlying && !def.canHitAir) || !OnField(e)) continue;
                 if (e.BackX < lo || e.x - 0.2f > hi) continue;
                 float dmg = e == primary ? p.damage : p.damage * def.splashDamageFraction;
                 if (e == primary) ProjectileHit?.Invoke(p, e);
-                DamageEnemy(e, dmg, def.damageType);
+                DamageEnemyBy(src, e, dmg, def.damageType);
                 if (def.statusEffect != null && e.alive) ApplyStatus(e, def.statusEffect);
             }
-            if (def.ignitesClouds) BurnClouds(p.lane, lo, hi);
+            if (def.ignitesClouds)
+                for (int l = Math.Max(0, p.lane - side); l <= Math.Min(Lanes - 1, p.lane + side); l++) BurnClouds(l, lo, hi);
         }
 
         private void ApplyProjectileHit(ProjectileRuntime p, EnemyRuntime e)
         {
             ProjectileDefinition def = p.Definition;
+            DefenderRuntime src = SourceOf(p);
             ProjectileHit?.Invoke(p, e);
-            DamageEnemy(e, p.damage, def.damageType);
+            float damage = p.damage;
+            // Glacial Shards: shatter damage against slowed or frozen foes.
+            if (def.damageMultiplierVsChilled > 1f && (e.statuses.SlowFraction() > 0f || e.statuses.Has(StatusKind.Stun))) damage *= def.damageMultiplierVsChilled;
+            DamageEnemyBy(src, e, damage, def.damageType);
             if (def.statusEffect != null && e.alive) ApplyStatus(e, def.statusEffect);
             if (def.freezeAfterHits > 0 && def.freezeStatus != null && e.alive)
             {
@@ -295,7 +330,7 @@ namespace VerdantSiege.Battle
                 {
                     EnemyRuntime o = _enemies[i];
                     if (o == e || !o.alive || o.lane != e.lane || (o.IsFlying && !def.canHitAir)) continue;
-                    if (Math.Abs(o.x - e.x) <= def.splashRadius) DamageEnemy(o, splash, def.damageType); // reaches burrowed enemies
+                    if (Math.Abs(o.x - e.x) <= def.splashRadius) DamageEnemyBy(src, o, splash, def.damageType); // reaches burrowed enemies
                 }
             }
             if (def.ignitesClouds) BurnClouds(e.lane, e.x - Math.Max(0.3f, def.splashRadius), e.x + Math.Max(0.3f, def.splashRadius));
@@ -315,7 +350,7 @@ namespace VerdantSiege.Battle
                     // Mirrorleaf: the glob bounces back at the shooter, stronger.
                     p.hostile = false;
                     p.reflected = true;
-                    p.damage *= d.Definition.reflectMultiplier;
+                    p.damage *= d.evolution != null && d.evolution.reflectMultiplierOverride > 0f ? d.evolution.reflectMultiplierOverride : d.Definition.reflectMultiplier;
                     p.homingEnemyId = p.sourceEnemyId;
                     p.fromLane = p.lane;
                     p.hopFromX = p.x;
@@ -343,12 +378,13 @@ namespace VerdantSiege.Battle
         public EnemyRuntime FindMeleeTarget(DefenderRuntime d)
         {
             float cx = d.Coord.CenterX;
-            float reach = d.Definition.abilityRange;
+            float reach = AbilityRange(d);
+            bool air = HitsAir(d);
             EnemyRuntime best = null;
             for (int i = 0; i < _enemies.Count; i++)
             {
                 EnemyRuntime e = _enemies[i];
-                if (e.lane != d.Coord.lane || !CanTarget(e, false)) continue;
+                if (e.lane != d.Coord.lane || !CanTarget(e, air)) continue;
                 if (e.x < cx - 0.3f || e.x - cx > reach || !OnField(e)) continue;
                 if (best == null || e.x < best.x) best = e;
             }
@@ -361,9 +397,10 @@ namespace VerdantSiege.Battle
             if (e.Definition.devourable)
             {
                 EnemyDevoured?.Invoke(d, e);
+                GrantXp(d, EvolutionXpSource.DamageDealt, e.health + e.armor);
                 KillEnemy(e);
             }
-            else DamageEnemy(e, d.Definition.abilityDamage, d.Definition.abilityDamageType);
+            else DamageEnemyBy(d, e, AbilityDamage(d), d.Definition.abilityDamageType);
         }
 
         internal void RaiseDefenderTelegraph(DefenderRuntime d) => DefenderTelegraphed?.Invoke(d);
@@ -387,15 +424,20 @@ namespace VerdantSiege.Battle
         internal void TriggerTrap(DefenderRuntime d)
         {
             float cx = d.Coord.CenterX;
-            float r = Math.Max(0.5f, d.Definition.abilityRange);
+            float r = Math.Max(0.5f, AbilityRange(d));
+            int side = d.evolution != null ? d.evolution.blastSideLanes : 0; // Bramble Web: bursts in neighbouring lanes too
+            StatusEffectDefinition status = d.evolution != null ? d.evolution.abilityStatusOverride : null;
+            float damage = AbilityDamage(d);
             DefenderActed?.Invoke(d);
             TrapTriggered?.Invoke(d);
+            GrantXp(d, EvolutionXpSource.Triggers, 1f);
             for (int i = 0; i < _enemies.Count; i++)
             {
                 EnemyRuntime e = _enemies[i];
-                if (!e.alive || e.lane != d.Coord.lane || e.IsFlying) continue;
+                if (!e.alive || Math.Abs(e.lane - d.Coord.lane) > side || e.IsFlying) continue;
                 if (e.BackX < cx - r || e.x > cx + r) continue;
-                DamageEnemy(e, d.Definition.abilityDamage, d.Definition.abilityDamageType);
+                DamageEnemyBy(d, e, damage, d.Definition.abilityDamageType);
+                if (status != null && e.alive) ApplyStatus(e, status);
             }
         }
 
@@ -405,22 +447,24 @@ namespace VerdantSiege.Battle
         internal bool MenderPulse(DefenderRuntime m)
         {
             DefenderDefinition def = m.Definition;
-            int r = Math.Max(0, (int)Math.Round(def.abilityRange));
+            int r = Math.Max(0, (int)Math.Round(AbilityRange(m)));
+            float heal = AbilityDamage(m);
             bool any = false;
             for (int i = 0; i < _defenders.Count; i++)
             {
                 DefenderRuntime d = _defenders[i];
                 if (!d.alive) continue;
                 if (Math.Abs(d.Coord.lane - m.Coord.lane) > r || Math.Abs(d.Coord.column - m.Coord.column) > r) continue;
-                bool needsHeal = d.health < d.MaxHealth - 0.5f && def.abilityDamage > 0f;
+                bool needsHeal = d.health < d.MaxHealth - 0.5f && heal > 0f;
                 bool needsCleanse = def.abilityCount > 0 && d.statuses.HasNegative();
                 if (!needsHeal && !needsCleanse) continue;
                 if (!any) DefenderActed?.Invoke(m);
                 any = true;
                 if (needsHeal)
                 {
-                    float amount = Math.Min(def.abilityDamage, d.MaxHealth - d.health);
+                    float amount = Math.Min(heal, d.MaxHealth - d.health);
                     d.health += amount;
+                    GrantXp(m, EvolutionXpSource.HealingDone, amount);
                     DefenderHealed?.Invoke(d, amount);
                 }
                 if (needsCleanse)
@@ -448,37 +492,50 @@ namespace VerdantSiege.Battle
                 ChainPoints[n++] = new ChainPoint { x = BossFrontX + 0.4f, lane = d.Coord.lane, boss = true };
                 DefenderActed?.Invoke(d);
                 ChainCast?.Invoke(d, n);
-                DamageBoss(def.abilityDamage, def.abilityDamageType);
+                DamageBoss(AbilityDamage(d), def.abilityDamageType);
                 return true;
             }
             int hitCount = 0;
-            float damage = def.abilityDamage;
+            float damage = AbilityDamage(d);
+            EvolutionDefinition evo = d.evolution;
+            int count = def.abilityCount;
+            float falloff = def.abilityFalloff;
+            StatusEffectDefinition status = AbilityStatus(d);
+            bool statusOnAll = false;
+            if (evo != null)
+            {
+                count = evo.abilityCountOverride > 0 ? evo.abilityCountOverride : count + evo.abilityCountBonus;
+                if (evo.abilityFalloffOverride > 0f) falloff = evo.abilityFalloffOverride;
+                statusOnAll = evo.abilityStatusOnAll;
+            }
+            bool air = HitsAir(d);
+            float jump = AbilityRange(d);
             EnemyRuntime current = first;
-            int targets = Math.Min(Math.Max(1, def.abilityCount), MaxChainPoints - 1);
+            int targets = Math.Min(Math.Max(1, count), MaxChainPoints - 1);
             DefenderActed?.Invoke(d);
             for (int k = 0; k < targets && current != null; k++)
             {
                 _chainHit[hitCount++] = current.Id;
                 ChainPoints[n++] = new ChainPoint { x = current.x + 0.15f, lane = current.lane, air = current.IsFlying };
-                EnemyRuntime next = NextChainTarget(current, def, hitCount);
+                EnemyRuntime next = NextChainTarget(current, air, jump, hitCount);
                 bool mechanical = current.Definition.HasTag(EnemyTags.Mechanical);
-                DamageEnemy(current, damage, def.abilityDamageType);
-                if (mechanical && def.abilityStatus != null && current.alive) ApplyStatus(current, def.abilityStatus);
-                damage *= def.abilityFalloff;
+                DamageEnemyBy(d, current, damage, def.abilityDamageType);
+                if ((mechanical || statusOnAll) && status != null && current.alive) ApplyStatus(current, status);
+                damage *= falloff;
                 current = next;
             }
             ChainCast?.Invoke(d, n);
             return true;
         }
 
-        private EnemyRuntime NextChainTarget(EnemyRuntime from, DefenderDefinition def, int hitCount)
+        private EnemyRuntime NextChainTarget(EnemyRuntime from, bool hitsAir, float jumpRange, int hitCount)
         {
             EnemyRuntime best = null;
             float bestD = float.MaxValue;
             for (int i = 0; i < _enemies.Count; i++)
             {
                 EnemyRuntime e = _enemies[i];
-                if (e == from || !CanTarget(e, def.HitsAir) || !OnField(e)) continue;
+                if (e == from || !CanTarget(e, hitsAir) || !OnField(e)) continue;
                 bool hit = false;
                 for (int h = 0; h < hitCount; h++) if (_chainHit[h] == e.Id) { hit = true; break; }
                 if (hit) continue;
@@ -486,7 +543,7 @@ namespace VerdantSiege.Battle
                 if (dl > 1) continue;
                 float dx = e.x - from.x;
                 float dist = (float)Math.Sqrt(dx * dx + dl * dl);
-                if (dist > def.abilityRange || dist >= bestD) continue;
+                if (dist > jumpRange || dist >= bestD) continue;
                 bestD = dist;
                 best = e;
             }
@@ -499,13 +556,15 @@ namespace VerdantSiege.Battle
         internal bool TryLure(DefenderRuntime d)
         {
             float cx = d.Coord.CenterX;
-            float reach = d.Definition.abilityRange;
+            float reach = AbilityRange(d);
+            int lanes = d.evolution != null && d.evolution.lureLaneReach > 0 ? d.evolution.lureLaneReach : 1; // Hall of Mirrors
             EnemyRuntime best = null;
             for (int i = 0; i < _enemies.Count; i++)
             {
                 EnemyRuntime e = _enemies[i];
                 if (!e.alive || e.lured || e.laneSwitchTimer > 0f || e.IsFlying || e.underground) continue;
-                if (e.activity != EnemyActivity.Walking || Math.Abs(e.lane - d.Coord.lane) != 1) continue;
+                int dl = Math.Abs(e.lane - d.Coord.lane);
+                if (e.activity != EnemyActivity.Walking || dl < 1 || dl > lanes) continue;
                 if (e.x < cx + 0.3f || e.x > cx + reach || !OnField(e)) continue;
                 if (best == null || e.x < best.x) best = e;
             }

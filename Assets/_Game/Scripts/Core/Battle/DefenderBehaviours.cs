@@ -47,11 +47,11 @@ namespace VerdantSiege.Battle
 
         public void Tick(DefenderRuntime d, BattleSimulation sim, float dt)
         {
-            if (d.attackTimer > 0f) d.attackTimer -= dt * sim.SpeedMultiplierAt(d.Coord);
+            if (d.attackTimer > 0f) d.attackTimer -= dt * sim.ActionRate(d);
             if (d.attackTimer > 0f) return;
             if (!sim.HasTargetAhead(d)) return; // stays ready, fires the moment a target appears
             sim.FireProjectile(d);
-            d.attackTimer = d.Definition.attackInterval;
+            d.attackTimer = sim.AttackInterval(d);
         }
     }
 
@@ -73,13 +73,13 @@ namespace VerdantSiege.Battle
 
         public void Tick(DefenderRuntime d, BattleSimulation sim, float dt)
         {
-            d.generateTimer -= dt * sim.SpeedMultiplierAt(d.Coord);
+            d.generateTimer -= dt * sim.ActionRate(d);
             if (d.generateTimer > 0f) return;
             DefenderDefinition def = d.Definition;
             d.generatePulses++;
             bool burst = def.burstEvery > 0 && d.generatePulses % def.burstEvery == 0;
-            sim.SpawnDefenderPickup(d, burst ? def.burstAmount : def.generateAmount);
-            d.generateTimer += def.generateInterval;
+            sim.GeneratorPulse(d, burst ? def.burstAmount : def.generateAmount);
+            d.generateTimer += sim.GenerateInterval(d);
         }
     }
 
@@ -112,8 +112,8 @@ namespace VerdantSiege.Battle
                     d.abilityTimer -= dt;
                     if (d.abilityTimer > 0f) return;
                     EnemyRuntime target = sim.FindEnemy(d.abilityTargetId);
-                    if (target == null || sim.FindMeleeTarget(d) == null || !BattleSimulation.CanTarget(target, false)
-                        || target.lane != d.Coord.lane || target.x - d.Coord.CenterX > def.abilityRange + 0.2f)
+                    if (target == null || sim.FindMeleeTarget(d) == null || !BattleSimulation.CanTarget(target, sim.HitsAir(d))
+                        || target.lane != d.Coord.lane || target.x - d.Coord.CenterX > sim.AbilityRange(d) + 0.2f)
                     {
                         // Missed (target died, flew or burrowed): snap on whoever is closest, if anyone.
                         target = sim.FindMeleeTarget(d);
@@ -126,7 +126,7 @@ namespace VerdantSiege.Battle
                     }
                     sim.Snap(d, target);
                     d.abilityState = DefenderAbilityState.Recovering;
-                    d.abilityTimer = def.abilityRecharge;
+                    d.abilityTimer = sim.AbilityRecharge(d);
                     sim.RaiseDefenderState(d);
                     return;
                 default:
@@ -169,7 +169,7 @@ namespace VerdantSiege.Battle
             if (!sim.EnemyOnCell(d.Coord)) return;
             sim.TriggerTrap(d);
             d.abilityState = DefenderAbilityState.Recovering;
-            d.abilityTimer = d.Definition.abilityRecharge;
+            d.abilityTimer = sim.AbilityRecharge(d);
             sim.RaiseDefenderState(d);
         }
     }
@@ -181,9 +181,9 @@ namespace VerdantSiege.Battle
 
         public void Tick(DefenderRuntime d, BattleSimulation sim, float dt)
         {
-            if (d.abilityTimer > 0f) d.abilityTimer -= dt;
+            if (d.abilityTimer > 0f) d.abilityTimer -= dt * (1f + d.auraSpeedBonus);
             if (d.abilityTimer > 0f) return;
-            if (sim.MenderPulse(d)) d.abilityTimer = d.Definition.abilityRecharge;
+            if (sim.MenderPulse(d)) d.abilityTimer = sim.AbilityRecharge(d);
         }
     }
 
@@ -194,9 +194,9 @@ namespace VerdantSiege.Battle
 
         public void Tick(DefenderRuntime d, BattleSimulation sim, float dt)
         {
-            if (d.attackTimer > 0f) d.attackTimer -= dt * sim.SpeedMultiplierAt(d.Coord);
+            if (d.attackTimer > 0f) d.attackTimer -= dt * sim.ActionRate(d);
             if (d.attackTimer > 0f) return;
-            if (sim.CastChain(d)) d.attackTimer = d.Definition.attackInterval;
+            if (sim.CastChain(d)) d.attackTimer = sim.AttackInterval(d);
         }
     }
 
@@ -209,7 +209,7 @@ namespace VerdantSiege.Battle
         {
             if (d.abilityTimer > 0f) d.abilityTimer -= dt;
             if (d.abilityTimer > 0f) return;
-            if (sim.TryLure(d)) d.abilityTimer = d.Definition.abilityRecharge;
+            if (sim.TryLure(d)) d.abilityTimer = sim.AbilityRecharge(d);
         }
     }
 }

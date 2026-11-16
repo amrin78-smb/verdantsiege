@@ -109,7 +109,9 @@ namespace VerdantSiege.Battle
                     {
                         e.biteTimer += e.Definition.biteInterval;
                         EnemyBit?.Invoke(e, blocker);
-                        DamageDefender(blocker, e.Definition.biteDamage);
+                        float bite = e.Definition.biteDamage;
+                        DamageDefender(blocker, bite);
+                        OnDefenderBitten(blocker, e, bite); // Evolution: thorns / snares
                     }
                     continue;
                 }

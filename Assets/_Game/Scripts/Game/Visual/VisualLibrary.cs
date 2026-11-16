@@ -20,6 +20,12 @@ namespace VerdantSiege.Visual
         public GameObject sunmote;
         public Mesh quadMesh;
 
+        [Header("Evolution accessories (Art/Models/FX/Evo*; null = glow ring + tint only)")]
+        public GameObject evoSolar;
+        public GameObject evoPrism;
+        public GameObject evoRoot;
+        public GameObject evoBloom;
+
         [Header("Colours")]
         public Color validCell = new Color(0.55f, 1f, 0.55f, 0.55f);
         public Color invalidCell = new Color(1f, 0.35f, 0.3f, 0.65f);

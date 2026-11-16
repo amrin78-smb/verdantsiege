@@ -271,6 +271,7 @@ namespace VerdantSiege.UI
         }
 
         public DefenderRuntime Inspected => _inspected;
+        public RectTransform InspectPanel => _inspect; // Living Evolution: EvolutionChooser docks its growth strip on this panel
 
         // ---------------------------------------------------------------- pause
         private void BuildPause(bool autoCollect, float music, float sfx)

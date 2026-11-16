@@ -12,7 +12,7 @@ namespace VerdantSiege.Battle.View
     /// Missing parts are skipped, so placeholder rigs and final art share this code.
     /// </summary>
     [RequireComponent(typeof(UnitRig))]
-    public sealed class DefenderView : MonoBehaviour, IPooledView
+    public sealed partial class DefenderView : MonoBehaviour, IPooledView
     {
         private UnitRig _rig;
         private DefenderRuntime _d;
@@ -49,11 +49,13 @@ namespace VerdantSiege.Battle.View
             _pulse = 0f;
             _stateTime = 0f;
             if (_rig != null) _rig.ResetPose();
+            ResetEvolution(); // DefenderView.Evolution.cs
         }
 
         public void OnReturn()
         {
             _d = null;
+            ResetEvolution();
             if (_rig != null) _rig.ResetPose();
         }
 
@@ -153,7 +155,7 @@ namespace VerdantSiege.Battle.View
 
             float t = time + _phase;
             float breathe = Mathf.Sin(t * 2.1f) * 0.025f;
-            float s = 1f + _spawn.value;
+            float s = (1f + _spawn.value) * EvolvedScale; // evolved defenders stand ~12% taller
             float sq = _squash.value * 0.06f;
             _rig.SetModelSquash(new Vector3(s * (1f + sq), s * (1f + breathe - sq), s * (1f + sq)));
 
@@ -184,6 +186,7 @@ namespace VerdantSiege.Battle.View
             }
 
             if (_d != null) PoseM3(t, dt);
+            TickEvolution(dt, time); // ring, accessory, ready shimmer, capacitor glow
             UpdateTint(time);
         }
 
@@ -274,6 +277,7 @@ namespace VerdantSiege.Battle.View
                 c = new Color(1f, 0.8f, 0.45f);
                 strength = 0.15f + 0.1f * Mathf.Sin(time * 3f);
             }
+            if (strength <= 0f) EvolutionTint(time, ref c, ref strength); // accent tint when evolved, shimmer when ready
             _rig.SetTint(c, strength);
         }
 
