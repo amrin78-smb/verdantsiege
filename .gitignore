@@ -35,3 +35,7 @@ sysinfo.txt
 /Staging/
 /Docs/screenshots/raw/
 *.blend1
+
+# Blender
+__pycache__/
+*.pyc

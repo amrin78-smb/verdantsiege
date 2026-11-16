@@ -11,11 +11,22 @@ namespace VerdantSiege.Visual
 
         public void Kick(float impulse) => velocity += impulse;
 
+        /// <summary>
+        /// Semi-implicit Euler in fixed sub-steps of at most 1/120 s, so it stays stable at any frame time
+        /// (slow devices, 2x game speed, hitches). Non-finite state is reset.
+        /// </summary>
         public void Tick(float dt, float stiffness = 180f, float damping = 14f)
         {
-            float a = -stiffness * value - damping * velocity;
-            velocity += a * dt;
-            value += velocity * dt;
+            if (dt <= 0f) return;
+            if (dt > 0.25f) dt = 0.25f;
+            int steps = Mathf.CeilToInt(dt * 120f);
+            float h = dt / steps;
+            for (int i = 0; i < steps; i++)
+            {
+                velocity += (-stiffness * value - damping * velocity) * h;
+                value += velocity * h;
+            }
+            if (float.IsNaN(value) || float.IsInfinity(value) || float.IsNaN(velocity)) Reset();
         }
 
         public void Reset() { value = 0f; velocity = 0f; }

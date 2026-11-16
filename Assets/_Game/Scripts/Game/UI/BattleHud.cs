@@ -131,7 +131,8 @@ namespace VerdantSiege.UI
             Image wavePanel = UIKit.Panel("Waves", Root, UIPalette.Panel, true, true);
             UIKit.Place(wavePanel.rectTransform, new Vector2(0.5f, 1f), new Vector2(60f, -16f), new Vector2(620f, 88f));
             _waveText = UIKit.Text("Label", wavePanel.transform, "Prepare your garden", 30f, UIPalette.Parchment, TextAlignmentOptions.Top, true);
-            UIKit.Stretch(_waveText.rectTransform, 8f);
+            UIKit.Stretch(_waveText.rectTransform, 6f);
+            _waveText.rectTransform.offsetMin = new Vector2(6f, 40f);
             Image track = UIKit.Image("Track", wavePanel.transform, UIKit.Lib != null ? UIKit.Lib.uiRound : null, new Color(0f, 0f, 0f, 0.5f));
             _waveTrack = track.rectTransform;
             _waveTrack.anchorMin = new Vector2(0f, 0f);
@@ -153,8 +154,8 @@ namespace VerdantSiege.UI
                 Image flag = UIKit.Image("Flag" + i, track.transform, UIKit.Lib != null ? UIKit.Lib.iconFlag : null, UIPalette.Gold);
                 float at = (i + 0.02f) / total;
                 flag.rectTransform.anchorMin = flag.rectTransform.anchorMax = new Vector2(at, 0.5f);
-                flag.rectTransform.pivot = new Vector2(0.5f, 0.2f);
-                flag.rectTransform.sizeDelta = new Vector2(44f, 44f);
+                flag.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+                flag.rectTransform.sizeDelta = new Vector2(34f, 34f);
                 flag.rectTransform.anchoredPosition = Vector2.zero;
             }
 

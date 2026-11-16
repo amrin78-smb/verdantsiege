@@ -40,8 +40,8 @@ namespace VerdantSiege.EditorTools
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.Linear;
             RenderSettings.fogColor = FogColor;
-            RenderSettings.fogStartDistance = 16f;
-            RenderSettings.fogEndDistance = 42f;
+            RenderSettings.fogStartDistance = 24f;
+            RenderSettings.fogEndDistance = 62f;
             RenderSettings.skybox = null;
             var sun = new GameObject("Sun");
             var l = sun.AddComponent<Light>();
@@ -80,7 +80,8 @@ namespace VerdantSiege.EditorTools
             var env = new GameObject("Environment").transform;
             GroundPlane(env, lib, new Vector3(4.5f, -0.04f, 2.5f), 46f, 32f, 7);
             var heart = (GameObject)PrefabUtility.InstantiatePrefab(heartrootPrefab);
-            heart.transform.position = new Vector3(-1.05f, 0f, 2.5f);
+            heart.transform.position = new Vector3(-1.5f, 0f, 2.6f);
+            heart.transform.localScale = Vector3.one * 0.9f;
 
             DressBattlefield(env, props, 9, 5);
             MarkStatic(env.gameObject);
