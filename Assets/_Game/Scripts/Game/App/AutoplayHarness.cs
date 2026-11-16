@@ -110,6 +110,9 @@ namespace VerdantSiege.App
 
         private static IEnumerator Wait(float seconds) { yield return new WaitForSecondsRealtime(seconds); }
 
+        /// <summary>A screenshot is taken at the end of the frame: wait for it before changing the UI.</summary>
+        private static IEnumerator Settle() { yield return new WaitForEndOfFrame(); yield return null; yield return null; }
+
         private static void Click(string name)
         {
             foreach (Button b in FindObjectsByType<Button>(FindObjectsSortMode.None))
@@ -141,11 +144,13 @@ namespace VerdantSiege.App
             hub.ShowSanctuary();
             yield return Wait(2.5f); // restoration celebration (if any) plays
             Shot(_expectProgress ? "sanctuary_restart" : "sanctuary");
+            yield return Settle(); // capture before the next UI change
 
             // Conservatory: research and mastery.
             Click("Conservatory");
             yield return Wait(1.2f);
             Shot("research");
+            yield return Settle(); // capture before the next UI change
             var cons = hub.CurrentScreen as ConservatoryScreen;
             if (cons != null && app.Progression.Campaign != null)
             {
@@ -157,9 +162,11 @@ namespace VerdantSiege.App
                     }
                 yield return Wait(1.2f);
                 Shot("research_bought");
+                yield return Settle(); // capture before the next UI change
                 cons.Show(ConservatoryScreen.Tab.Defenders);
                 yield return Wait(1f);
                 Shot("mastery");
+                yield return Settle(); // capture before the next UI change
             }
             else Debug.LogError("[VS Autoplay] Conservatory did not open");
             Click("Back");
@@ -169,6 +176,7 @@ namespace VerdantSiege.App
             Click("WorldMap");
             yield return Wait(1.5f);
             Shot("worldmap");
+            yield return Settle(); // capture before the next UI change
             var map = hub.CurrentScreen as WorldMapScreen;
             EncounterDefinition next = app.Progression.NextMission() ?? app.Config.content.FindEncounter(_encounter);
             if (map == null || next == null) { Debug.LogError("[VS Autoplay] world map / next mission missing"); yield break; }
@@ -176,6 +184,7 @@ namespace VerdantSiege.App
             map.ShowBrief(next);
             yield return Wait(1f);
             Shot("mission_brief");
+            yield return Settle(); // capture before the next UI change
             Click("Prepare");
             yield return Wait(1.2f);
             var loadout = hub.CurrentScreen as LoadoutScreen;
@@ -184,6 +193,7 @@ namespace VerdantSiege.App
             foreach (DefenderDefinition d in loadout.Deck) deck.Add(d.id);
             Log($"loadout {next.id}: slots={app.Progression.DeckSlots(next)} deck=[{string.Join(",", deck)}]");
             Shot("loadout");
+            yield return Settle(); // capture before the next UI change
             Click("Begin");
 
             // Battle (played by Update), then the rewards.
@@ -200,15 +210,18 @@ namespace VerdantSiege.App
             }
             yield return Wait(0.6f);
             Shot("result_rewards");
+            yield return Settle(); // capture before the next UI change
             if (res != null) Log("rewards: " + res.Summary);
             Log("save after battle: " + SaveSummary(app.Save.Data));
             Click("WorldMap");
             while (MainMenuController.Instance == null || !(MainMenuController.Instance.CurrentScreen is WorldMapScreen)) yield return null;
             yield return Wait(1.5f);
             Shot("worldmap_after");
+            yield return Settle(); // capture before the next UI change
             MainMenuController.Instance.ShowSanctuary();
             yield return Wait(3.5f); // restoration grows in
             Shot("sanctuary_after");
+            yield return Settle(); // capture before the next UI change
             Finish(_lastSim);
         }
 
@@ -311,7 +324,8 @@ namespace VerdantSiege.App
                     // Boss victory: crest moment and boss panel, then Continue to the campaign results.
                     BossVictoryScreen v = FindAnyObjectByType<BossVictoryScreen>();
                     if (v != null && v.isActiveAndEnabled && !v.PanelShown) { _crestTimer += dt; if (_crestTimer > 0.9f) Shot("boss_victory_crest"); }
-                    if (v != null && v.isActiveAndEnabled && v.PanelShown && (_victoryHold += dt) > 0.8f) { Shot("boss_victory_panel"); v.Continue(); }
+                    if (v != null && v.isActiveAndEnabled && v.PanelShown && (_victoryHold += dt) > 0.8f) Shot("boss_victory_panel");
+                    if (v != null && v.isActiveAndEnabled && _victoryHold > 1.6f) v.Continue(); // later frame: the shot is captured first
                 }
                 MissionResultScreen res = FindAnyObjectByType<MissionResultScreen>();
                 if ((res != null && res.Settled) || _resultTimer <= 0f)
@@ -443,7 +457,7 @@ namespace VerdantSiege.App
         {
             if (_resultLogged) return;
             _resultLogged = true;
-            Shot("result");
+            if (_flow != "campaign") Shot("result"); // campaign flow: result_rewards was taken already
             if (sim == null) { Debug.LogError("[VS Autoplay] no battle was played"); Invoke(nameof(Quit), 1.5f); return; }
             float avg = _frames > 0 ? _frameTimeSum / _frames : 0f;
             var sb = new StringBuilder();

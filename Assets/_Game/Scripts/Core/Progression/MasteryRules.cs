@@ -17,8 +17,8 @@ namespace VerdantSiege.Progression
         /// <summary>Total XP needed for levels 1..4 (index = level - 1).</summary>
         public static readonly int[] Thresholds = { 0, 40, 110, 220 };
 
-        /// <summary>XP for a defender used this battle: planting, repeated use (capped) and evolving count; a loss pays 60%.</summary>
-        public const int UsedXp = 10, PerPlantXp = 3, PlantCap = 6, PerEvolutionXp = 12;
+        /// <summary>XP for a defender used this battle: planting and evolving count (both capped, so one battle gives at most 64); a loss pays 60%.</summary>
+        public const int UsedXp = 10, PerPlantXp = 3, PlantCap = 6, PerEvolutionXp = 12, EvolutionCap = 3;
         public const float LossFraction = 0.6f;
 
         public static int LevelFor(int xp)
@@ -47,7 +47,7 @@ namespace VerdantSiege.Progression
         public static int BattleGain(DefenderUsage u, bool won, float multiplier = 1f)
         {
             if (u == null || u.planted <= 0) return 0;
-            float xp = UsedXp + PerPlantXp * Math.Min(u.planted, PlantCap) + PerEvolutionXp * u.evolved;
+            float xp = UsedXp + PerPlantXp * Math.Min(u.planted, PlantCap) + PerEvolutionXp * Math.Min(u.evolved, EvolutionCap);
             if (!won) xp *= LossFraction;
             return (int)Math.Round(xp * Math.Max(0f, multiplier));
         }
@@ -71,6 +71,10 @@ namespace VerdantSiege.Progression
                 if (e != null && Math.Max(1, e.masteryRequired) == level) list.Add(e);
             return list;
         }
+
+        /// <summary>Two-word perk name for compact badges.</summary>
+        public static string PerkShort(int level) =>
+            level == BattleLoadout.HeadStartLevel ? "Head start" : level == BattleLoadout.ThriftLevel ? "Cheaper evolving" : "";
 
         /// <summary>Plain-language reward for reaching a level (beyond branches): shown in the Conservatory.</summary>
         public static string PerkText(int level)

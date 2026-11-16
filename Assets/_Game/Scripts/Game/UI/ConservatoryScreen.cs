@@ -120,7 +120,7 @@ namespace VerdantSiege.UI
             }
             Image disc = UIKit.Image("Disc", rt, MenuKit.Circle, state == ResearchState.Locked ? MenuKit.LockedGrey : BranchColor(r.branch));
             UIKit.Place(disc.rectTransform, new Vector2(0f, 0.5f), new Vector2(12f, 0f), new Vector2(84f, 84f));
-            TextMeshProUGUI g = UIKit.Text("Glyph", disc.transform, r.glyph, 32f, new Color(0.1f, 0.14f, 0.1f), TextAlignmentOptions.Center, true);
+            TextMeshProUGUI g = UIKit.Text("Glyph", disc.transform, state == ResearchState.Locked ? "" : r.glyph, 32f, new Color(0.1f, 0.14f, 0.1f), TextAlignmentOptions.Center, true);
             UIKit.Stretch(g.rectTransform);
             TextMeshProUGUI n = UIKit.Text("Name", rt, r.displayName, 30f, state == ResearchState.Locked ? UIPalette.TextDim : UIPalette.Parchment, TextAlignmentOptions.TopLeft, true);
             UIKit.Place(n.rectTransform, new Vector2(0f, 1f), new Vector2(108f, -10f), new Vector2(NodeW - 118f, 38f));

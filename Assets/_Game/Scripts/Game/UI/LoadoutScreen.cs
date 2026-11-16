@@ -98,10 +98,10 @@ namespace VerdantSiege.UI
             UIKit.Stretch(_advice.rectTransform, 18f);
             _advice.enableAutoSizing = true; _advice.fontSizeMin = 17f; _advice.fontSizeMax = 25f;
 
-            Button rec = UIKit.Button("Recommended", r, "Recommended", UIPalette.ButtonSecondary, UseRecommended, UIKit.Lib != null ? UIKit.Lib.iconRestart : null, 32f);
-            UIKit.Place((RectTransform)rec.transform, new Vector2(0f, 0f), new Vector2(18f, 24f), new Vector2(262f, 112f));
-            Button begin = UIKit.Button("Begin", r, "Begin Battle", UIPalette.ButtonPrimary, Begin, UIKit.Lib != null ? UIKit.Lib.iconPlay : null, 42f);
-            UIKit.Place((RectTransform)begin.transform, new Vector2(1f, 0f), new Vector2(-18f, 24f), new Vector2(360f, 112f));
+            Button rec = UIKit.Button("Recommended", r, "Recommended", UIPalette.ButtonSecondary, UseRecommended, null, 30f);
+            UIKit.Place((RectTransform)rec.transform, new Vector2(0f, 0f), new Vector2(18f, 24f), new Vector2(244f, 112f));
+            Button begin = UIKit.Button("Begin", r, "Begin Battle", UIPalette.ButtonPrimary, Begin, UIKit.Lib != null ? UIKit.Lib.iconPlay : null, 38f);
+            UIKit.Place((RectTransform)begin.transform, new Vector2(1f, 0f), new Vector2(-18f, 24f), new Vector2(330f, 112f));
             begin.gameObject.AddComponent<Pulse>().amount = 0.03f;
 
             Refresh();
@@ -176,7 +176,7 @@ namespace VerdantSiege.UI
             Button b = UIKit.Button(name, parent, null, bgColor, onTap);
             var rt = (RectTransform)b.transform;
             rt.sizeDelta = new Vector2(w, h);
-            float pd = w * 0.62f;
+            float pd = Mathf.Min(w * 0.62f, h - 104f);
             RectTransform portrait = MenuKit.Portrait(rt, d, pd, locked);
             UIKit.Place(portrait, new Vector2(0.5f, 1f), new Vector2(0f, -10f), new Vector2(pd, pd));
             TextMeshProUGUI n = UIKit.Text("Name", rt, d.displayName, 23f, locked ? UIPalette.TextDim : UIPalette.Parchment, TextAlignmentOptions.Center, true);

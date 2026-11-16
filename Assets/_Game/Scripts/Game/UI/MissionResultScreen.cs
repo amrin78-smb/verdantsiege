@@ -34,6 +34,7 @@ namespace VerdantSiege.UI
             public TextMeshProUGUI level;
             public MasteryGain gain;
             public RectTransform badge;
+            public bool wide;
         }
 
         private Data _d;
@@ -95,9 +96,10 @@ namespace VerdantSiege.UI
                 UIKit.Place(star.rectTransform, new Vector2(0.5f, 1f), Vector2.zero, new Vector2(104f, 104f));
                 if (on) MenuKit.Shadowed(star);
                 if (isNew) { _newStars.Add(star.rectTransform); star.rectTransform.localScale = Vector3.zero; }
-                TextMeshProUGUI l = UIKit.Text("Label", slot, labels[i] + (isNew ? "  <color=#7CD65A>NEW</color>" : ""), 26f,
+                TextMeshProUGUI l = UIKit.Text("Label", slot, labels[i] + (isNew ? "  <color=#7CD65A>NEW</color>" : ""), 27f,
                     on ? UIPalette.Parchment : UIPalette.TextDim, TextAlignmentOptions.Top);
-                UIKit.Place(l.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -108f), new Vector2(360f, 62f));
+                UIKit.Place(l.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -106f), new Vector2(370f, 66f));
+                l.enableAutoSizing = true; l.fontSizeMin = 20f; l.fontSizeMax = 27f;
             }
 
             // ---- left: battle stats
@@ -167,12 +169,14 @@ namespace VerdantSiege.UI
             }
             else
             {
+                // Up to 4 defenders: one wide row each (readable on phones); more: two columns.
                 int n = r.mastery.Count;
-                float rowH = n > 6 ? 54f : 62f;
+                bool wide = n <= 4;
+                float rowH = wide ? 66f : n > 6 ? 54f : 62f, rowW = wide ? 1000f : 495f;
                 for (int i = 0; i < n; i++)
                 {
-                    int col = i % 2, row = i / 2;
-                    _rows.Add(BuildMasteryRow(right, r.mastery[i], new Vector2(col * 505f, y - row * (rowH + 6f)), rowH));
+                    int col = wide ? 0 : i % 2, row = wide ? i : i / 2;
+                    _rows.Add(BuildMasteryRow(right, r.mastery[i], new Vector2(col * 505f, y - row * (rowH + 6f)), rowH, rowW));
                 }
             }
 
@@ -204,31 +208,45 @@ namespace VerdantSiege.UI
             return string.Join("  ·  ", parts);
         }
 
-        private MasteryRow BuildMasteryRow(RectTransform parent, MasteryGain g, Vector2 pos, float h)
+        private MasteryRow BuildMasteryRow(RectTransform parent, MasteryGain g, Vector2 pos, float h, float w)
         {
             DefenderDefinition d = _d.content != null ? _d.content.FindDefender(g.defenderId) : null;
             Image bg = UIKit.Panel("Mastery_" + g.defenderId, parent, new Color(0f, 0f, 0f, 0.22f), false, false);
-            UIKit.Place(bg.rectTransform, new Vector2(0f, 1f), pos, new Vector2(495f, h));
+            UIKit.Place(bg.rectTransform, new Vector2(0f, 1f), pos, new Vector2(w, h));
+            bool wide = w > 600f;
             RectTransform portrait = MenuKit.Portrait(bg.transform, d, h - 10f, false);
             UIKit.Place(portrait, new Vector2(0f, 0.5f), new Vector2(6f, 0f), new Vector2(h - 10f, h - 10f));
             TextMeshProUGUI name = UIKit.Text("Name", bg.transform, d != null ? d.displayName : g.defenderId, 25f, UIPalette.Parchment, TextAlignmentOptions.TopLeft, true);
             UIKit.Place(name.rectTransform, new Vector2(0f, 1f), new Vector2(h + 4f, -4f), new Vector2(250f, 30f));
-            var row = new MasteryRow { gain = g };
-            row.level = UIKit.Text("Level", bg.transform, "Lv " + g.levelBefore, 25f, UIPalette.Gold, TextAlignmentOptions.TopRight, true);
-            UIKit.Place(row.level.rectTransform, new Vector2(1f, 1f), new Vector2(-12f, -4f), new Vector2(170f, 30f));
-            TextMeshProUGUI plus = UIKit.Text("Gain", bg.transform, "+" + g.gained, 22f, UIPalette.Leaf, TextAlignmentOptions.TopRight, true);
-            UIKit.Place(plus.rectTransform, new Vector2(1f, 1f), new Vector2(-88f, -6f), new Vector2(90f, 28f));
-            row.fill = MenuKit.Bar(bg.transform, "Bar", UIPalette.Gold, new Vector2(0f, 0f), new Vector2(h + 4f, 9f), new Vector2(495f - h - 18f, 14f),
+            var row = new MasteryRow { gain = g, wide = w > 600f };
+            float barW = wide ? 380f : w - h - 18f;
+            TextMeshProUGUI plus = UIKit.Text("Gain", bg.transform, "+" + g.gained, wide ? 25f : 22f, UIPalette.Leaf, TextAlignmentOptions.TopRight, true);
+            if (wide)
+            {
+                // name ... +gain over the bar, level to its right, level-up badge in the remaining space.
+                row.level = UIKit.Text("Level", bg.transform, "Lv " + g.levelBefore, 28f, UIPalette.Gold, TextAlignmentOptions.MidlineLeft, true);
+                UIKit.Place(row.level.rectTransform, new Vector2(0f, 0.5f), new Vector2(h + 4f + barW + 14f, 0f), new Vector2(130f, 40f));
+                UIKit.Place(plus.rectTransform, new Vector2(0f, 1f), new Vector2(h + 4f + barW - 90f, -6f), new Vector2(90f, 30f));
+            }
+            else
+            {
+                row.level = UIKit.Text("Level", bg.transform, "Lv " + g.levelBefore, 25f, UIPalette.Gold, TextAlignmentOptions.TopRight, true);
+                UIKit.Place(row.level.rectTransform, new Vector2(1f, 1f), new Vector2(-12f, -4f), new Vector2(170f, 30f));
+                UIKit.Place(plus.rectTransform, new Vector2(1f, 1f), new Vector2(-88f, -6f), new Vector2(90f, 28f));
+            }
+            row.fill = MenuKit.Bar(bg.transform, "Bar", UIPalette.Gold, new Vector2(0f, 0f), new Vector2(h + 4f, 9f), new Vector2(barW, 14f),
                 MasteryRules.LevelProgress(g.xpBefore));
             if (g.LeveledUp)
             {
-                string what = g.branchesUnlocked.Count > 0 ? "New branch: " + g.branchesUnlocked[0].displayName : MasteryRules.PerkText(g.levelAfter);
+                string what = g.branchesUnlocked.Count > 0 ? (wide ? "New branch: " : "") + g.branchesUnlocked[0].displayName
+                    : wide ? MasteryRules.PerkText(g.levelAfter) : MasteryRules.PerkShort(g.levelAfter);
                 Image badge = UIKit.Panel("LevelUp", bg.transform, new Color(0.55f, 0.4f, 0.1f, 0.96f), true, false);
                 badge.raycastTarget = false;
-                UIKit.Place(badge.rectTransform, new Vector2(1f, 0f), new Vector2(-8f, 4f), new Vector2(300f, h * 0.5f));
-                TextMeshProUGUI bt = UIKit.Text("Text", badge.transform, "LEVEL UP!  " + what, 20f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
-                UIKit.Stretch(bt.rectTransform, 6f);
-                bt.enableAutoSizing = true; bt.fontSizeMin = 14f; bt.fontSizeMax = 20f;
+                if (wide) UIKit.Place(badge.rectTransform, new Vector2(1f, 0.5f), new Vector2(-10f, 0f), new Vector2(w - h - barW - 170f, h - 12f));
+                else UIKit.Place(badge.rectTransform, new Vector2(1f, 0f), new Vector2(-8f, 2f), new Vector2(300f, 26f));
+                TextMeshProUGUI bt = UIKit.Text("Text", badge.transform, "LEVEL UP!  " + what, wide ? 24f : 20f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
+                UIKit.Stretch(bt.rectTransform, wide ? 6f : 1f);
+                bt.enableAutoSizing = true; bt.fontSizeMin = wide ? 18f : 12f; bt.fontSizeMax = wide ? 24f : 20f;
                 row.badge = badge.rectTransform;
                 badge.gameObject.SetActive(false);
             }
@@ -255,7 +273,7 @@ namespace VerdantSiege.UI
                 float xp = Mathf.Lerp(g.xpBefore, g.xpAfter, b);
                 int level = MasteryRules.LevelFor(Mathf.RoundToInt(xp));
                 row.fill.fillAmount = MasteryRules.LevelProgress(Mathf.RoundToInt(xp));
-                row.level.text = level >= MasteryRules.MaxLevel ? "Lv 4 MAX" : "Lv " + level;
+                row.level.text = level >= MasteryRules.MaxLevel && row.wide ? "Lv 4 MAX" : "Lv " + level;
                 if (row.badge != null && level > g.levelBefore && !row.badge.gameObject.activeSelf)
                 {
                     row.badge.gameObject.SetActive(true);

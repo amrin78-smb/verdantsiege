@@ -67,13 +67,13 @@ namespace VerdantSiege.EditorTools
                 foreach (string u in unlocks) { DefenderDefinition d = D(u); if (d != null) e.unlocksDefenders.Add(d); }
                 EditorUtility.SetDirty(e);
             }
-            Mission("vh_01", 0.09f, 0.30f, MissionObjectiveKind.EvolveAtLeast, 2, "Evolve 2 defenders", 40, "thorncaster");
-            Mission("vh_02", 0.23f, 0.62f, MissionObjectiveKind.PlantAtMost, 20, "Win planting 20 defenders or fewer", 45, "frost_fern");
-            Mission("vh_03", 0.37f, 0.30f, MissionObjectiveKind.DeckSizeAtMost, 4, "Win with 4 or fewer cards", 50, "ember_lily", "burrowroot", "snapjaw_vine");
-            Mission("vh_04", 0.51f, 0.64f, MissionObjectiveKind.LoseAtMostDefenders, 1, "Lose no more than 1 defender", 55, "whirlseed", "storm_orchid", "mirrorleaf");
-            Mission("vh_05", 0.64f, 0.32f, MissionObjectiveKind.PlantAtMost, 26, "Win planting 26 defenders or fewer", 60, "mender_moss");
-            Mission("vh_06", 0.77f, 0.64f, MissionObjectiveKind.DeckSizeAtMost, 6, "Win with 6 or fewer cards", 65);
-            Mission("vh_07", 0.91f, 0.40f, MissionObjectiveKind.StaggerBossAtLeast, 3, "Stagger the Root Maw 3 times", 80);
+            Mission("vh_01", 0.09f, 0.37f, MissionObjectiveKind.EvolveAtLeast, 2, "Evolve 2 defenders", 40, "thorncaster");
+            Mission("vh_02", 0.23f, 0.66f, MissionObjectiveKind.PlantAtMost, 20, "Win planting 20 defenders or fewer", 45, "frost_fern");
+            Mission("vh_03", 0.37f, 0.37f, MissionObjectiveKind.DeckSizeAtMost, 4, "Win with 4 or fewer cards", 50, "ember_lily", "burrowroot", "snapjaw_vine");
+            Mission("vh_04", 0.51f, 0.68f, MissionObjectiveKind.LoseAtMostDefenders, 1, "Lose no more than 1 defender", 55, "whirlseed", "storm_orchid", "mirrorleaf");
+            Mission("vh_05", 0.64f, 0.38f, MissionObjectiveKind.PlantAtMost, 26, "Win planting 26 defenders or fewer", 60, "mender_moss");
+            Mission("vh_06", 0.77f, 0.68f, MissionObjectiveKind.DeckSizeAtMost, 6, "Win with 6 or fewer cards", 65);
+            Mission("vh_07", 0.90f, 0.46f, MissionObjectiveKind.StaggerBossAtLeast, 3, "Stagger the Root Maw 3 times", 80);
 
             // ---------------------------------------------------------------- regions
             RegionDefinition Region(string file, string id, string name, string tagline, Color accent, Color ground, bool soon, string hint, params string[] missions)

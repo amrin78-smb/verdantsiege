@@ -103,7 +103,8 @@ namespace VerdantSiege.Progression
 
         /// <summary>
         /// Plain-language warnings about a deck for this mission ("Gliders fly over plants: bring anti-air"), naming
-        /// counters from the player's collection where possible. Empty when the deck covers what is coming.
+        /// counters from the player's collection. Threat tips are only given when the collection holds a counter the deck
+        /// lacks (actionable advice; a new player is not told to bring what they cannot own yet). Empty when covered.
         /// </summary>
         public static List<string> Advice(EncounterDefinition e, IList<DefenderDefinition> deck, IEnumerable<DefenderDefinition> collection)
         {
@@ -120,14 +121,16 @@ namespace VerdantSiege.Progression
             if (!Any(IsAttacker)) tips.Add("Nothing in this deck shoots down a lane." + Counters(IsAttacker));
             if (!Any(d => d.behaviour == DefenderBehaviourKind.Generator)) tips.Add("No generator: Vitality will only fall from the sky." + Counters(d => d.behaviour == DefenderBehaviourKind.Generator));
             List<EnemyDefinition> threats = Threats(e);
-            EnemyDefinition flyer = threats.Find(x => x.IsFlying);
-            if (flyer != null && !Any(d => d.HitsAir)) tips.Add($"{flyer.displayName}s fly over plants: only anti-air hits them." + Counters(d => d.HitsAir));
-            EnemyDefinition armoured = threats.Find(x => x.armorHealth > 0f || x.elite);
-            if (armoured != null && !Any(Pierces)) tips.Add($"{armoured.displayName}s are armoured: piercing shots ignore plating." + Counters(Pierces));
-            EnemyDefinition spores = threats.Find(x => x.ability == EnemyAbilityKind.SporeCloud);
-            if (spores != null && !Any(BurnsClouds)) tips.Add($"{spores.displayName}s leave choking clouds: fire burns them away." + Counters(BurnsClouds));
-            EnemyDefinition burrower = threats.Find(x => x.ability == EnemyAbilityKind.Burrow);
-            if (burrower != null && !Any(d => d.behaviour == DefenderBehaviourKind.Trap)) tips.Add($"{burrower.displayName}s tunnel past the front line: traps catch them." + Counters(d => d.behaviour == DefenderBehaviourKind.Trap));
+            void Threat(EnemyDefinition enemy, string text, Func<DefenderDefinition, bool> counter)
+            {
+                if (enemy == null || Any(counter)) return;
+                string names = Counters(counter);
+                if (names.Length > 0) tips.Add(text + names);
+            }
+            Threat(threats.Find(x => x.IsFlying), $"{threats.Find(x => x.IsFlying)?.displayName}s fly over plants: only anti-air hits them.", d => d.HitsAir);
+            Threat(threats.Find(x => x.armorHealth > 0f || x.elite), $"{threats.Find(x => x.armorHealth > 0f || x.elite)?.displayName}s are armoured: piercing shots ignore plating.", Pierces);
+            Threat(threats.Find(x => x.ability == EnemyAbilityKind.SporeCloud), $"{threats.Find(x => x.ability == EnemyAbilityKind.SporeCloud)?.displayName}s leave choking clouds: fire burns them away.", BurnsClouds);
+            Threat(threats.Find(x => x.ability == EnemyAbilityKind.Burrow), $"{threats.Find(x => x.ability == EnemyAbilityKind.Burrow)?.displayName}s tunnel past the front line: traps catch them.", d => d.behaviour == DefenderBehaviourKind.Trap);
             return tips;
         }
 

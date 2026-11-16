@@ -352,6 +352,7 @@ namespace VerdantSiege.Tests
             Assert.AreEqual(0, MasteryRules.BattleGain(new DefenderUsage { planted = 0, evolved = 0 }, true), "unused defenders gain nothing");
             Assert.AreEqual(10 + 3 * 2 + 12, MasteryRules.BattleGain(new DefenderUsage { planted = 2, evolved = 1 }, true));
             Assert.AreEqual(10 + 3 * 6, MasteryRules.BattleGain(new DefenderUsage { planted = 30 }, true), "plants are capped: no grinding by spam");
+            Assert.AreEqual(10 + 3 * 6 + 12 * 3, MasteryRules.BattleGain(new DefenderUsage { planted = 9, evolved = 9 }, true), "evolutions are capped too");
             Assert.AreEqual(Mathf.RoundToInt((10 + 3 * 2) * 0.6f), MasteryRules.BattleGain(new DefenderUsage { planted = 2 }, false));
             Assert.AreEqual(Mathf.RoundToInt((10 + 3 * 2) * 1.5f), MasteryRules.BattleGain(new DefenderUsage { planted = 2 }, true, 1.5f));
 
@@ -639,6 +640,9 @@ namespace VerdantSiege.Tests
             Assert.IsTrue(tips.Exists(t => t.Contains("Glider") && t.Contains("Skyshot")), "anti-air gap, counter named");
             tips = LoadoutRules.Advice(_m2, new List<DefenderDefinition> { _c.generator, _flyerKiller }, collection);
             Assert.AreEqual(0, tips.Count, string.Join(" | ", tips));
+            _m2.waves = new List<WaveDefinition> { _c.Wave(_c.armored, 1, 2) };
+            tips = LoadoutRules.Advice(_m2, new List<DefenderDefinition> { _c.generator, _c.shooter }, collection);
+            Assert.AreEqual(0, tips.Count, "no piercing defender owned yet: nothing actionable to say");
         }
     }
 }

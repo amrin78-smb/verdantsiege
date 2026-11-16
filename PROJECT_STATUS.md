@@ -1,6 +1,6 @@
 # Verdant Siege: Project Status
 
-_Last updated: 2026-11-16 · Version 0.1.0 (versionCode 1) + Milestone 3 branch · Unity 6000.3.27f2 · URP 17.3_
+_Last updated: 2026-11-17 · Version 0.4.1 + Milestone 4 branch (campaign and progression) · Unity 6000.3.27f2 · URP 17.3_
 
 Evidence labels: **Verified (automated test)**, **Verified (Linux player autoplay)**, **Verified (APK inspection)**,
 **Pending device validation**. Nothing below is claimed beyond its label.
@@ -147,6 +147,43 @@ All seven encounters still 8/8 wins; average Heartroot unchanged (5.0, vh_05 4.5
 Tuning (bot, `BalanceReport`, 8 seeds): vh_07 8/8 wins, avg **5.1 min** (4.5-5.4; was ~3.3), avg Heartroot 5.0, 36 specials of which 28 staggered (78%), ~39 plants uprooted per fight (50% refund each). Root Maw: 42000 HP (was 12500), guarded x0.4 / exposed x2.2 / staggered x3, attack intervals 7.5 / 7 / 6.5 s, entrance 4.5 s. Economy unchanged.
 
 Known limitations: no new SFX (reuses roar/rumble/root strike/armour break); Essence has no sink yet; the death/victory sequence adds ~4 s before the result; the intel card can touch the far lane's border at 1600x720 (lead's notification rework); slow motion and shake strength are untested on a phone.
+
+## Milestone 4: campaign and progression (implemented on branch; device validation pending)
+
+Scope (master prompt): world map, campaign missions, persistent rewards, research, defender mastery, evolution choices, Sanctuary. Acceptance: progress survives an application restart and unlocks meaningful options. Design and rules: TD-30..TD-35.
+
+| Feature | Status |
+|---|---|
+| Save v3 (mastery, research, loadouts, stars, Sanctuary tier) with v2 -> v3 and v1 -> v3 migration, legacy mastery grant for returning players, newer-version protection kept | Verified (automated test) |
+| Progress survives a relaunch: run 1 (new save) won vh_01 and bought research; run 2 relaunched the player on the same save, found seeds/research/mastery/last deck intact (`restart persistence: OK`) and continued to vh_02; run 3 relaunched again and played vh_03 | Verified (Linux player autoplay, 3 consecutive launches) |
+| Sanctuary hub over the 3D diorama: Continue (next mission), World Map, Conservatory (badge when research is affordable), Settings; currency chips; restoration card. Rot below tier 2, four generated prop groups at 1/3/5/7 wins, warmer light per tier, newly reached tier grows in with a toast; defenders join the diorama when unlocked | Verified (autoplay screenshots: tier 0, 1 and 2) |
+| World Map: Verdant Heartlands painted map, 7 mission nodes on a dotted path (gold when walked), stars per node, Root Maw finale, Emberwild and Frostveil as locked "coming soon" region cards; mission briefing with threats + counter hints, three objectives with rewards (replay share shown), first-win defender unlocks, Prepare | Verified (autoplay screenshots) |
+| Loadout: deck slots = mission roster size (+ Seed Satchel, max 8), collection with locked cards ("Win <mission>"), mastery pips and costs, mission intel, actionable advice ("Try Thorncaster"), Recommended, Begin; deck saved per mission and as last used | Rules verified (automated test); UI verified (autoplay screenshots) |
+| Missions: stars for Victory / Flawless / challenge (vh_01 evolve 2, vh_02 plant at most 20, vh_03 4 cards, vh_04 lose at most 1, vh_05 plant at most 26, vh_06 6 cards, vh_07 stagger 3x); defender unlocks as first-win rewards (whole roster earned in the Heartlands) | Verified (automated test; challenges achievable by a bot that respects them, not met by default play) |
+| Rewards: first clear full Seeds, replays 35% (boss bonus too), each star bonus once, challenge stars +1 Essence, boss Essence first/repeat; losses pay mastery only | Verified (automated test + autoplay reports) |
+| Defender mastery: XP from planting/evolving (capped per battle, 60% on a loss), 4 levels; levels open evolution branches (one branch at level 1, specialists at 2-3), perks: 25% head-start growth (L3), 25% cheaper evolutions (L4); locked branches shown in the chooser | Verified (automated test + autoplay screenshot of a locked branch) |
+| Seed Conservatory: 14 research nodes in 3 branches (Seeds for basic, Essence for advanced), atomic purchase; Defenders tab with mastery path per defender | Verified (automated test + autoplay screenshots, purchase made through the screen) |
+| Results: new stars pop in, Seeds/Essence with breakdown, unlocks, mastery bars with LEVEL UP badges naming the branch or perk; boss victory crest continues into it | Verified (autoplay screenshots, normal and boss results) |
+
+### Balance with progression (shared bot)
+- Default/no progression: `ShippedContentTests` unchanged and passing (bot wins all 7 encounters on 5 seeds, undefended loses).
+- Fresh profile (owns all defenders, mastery 1 so only one branch each, no research): wins all 7 missions on seeds 1 and 42 (3.1-4.0 min; vh_07 6.0 min on seed 42).
+- Full research + max mastery: undefended still loses every mission; bot fights stay 3.0-3.9 min (no trivial wins).
+- Seeds: a full-star first pass pays about 1,600 Seeds against ~1,150 for all Seed research; Essence: 3 (first boss) + 7 (challenges) against 10 for all Essence research. Nothing requires replays; replays help.
+
+### Test results (Milestone 4, 2026-11-16)
+- EditMode: **178 total, 176 passed, 0 failed, 2 explicit** (`BalanceReport`, `ChallengeReport`) via `Tools/run_tests.sh EditMode`. New: 29 CampaignProgressionTests, 12 CampaignContentTests (incl. 4 challenge cases and 2 fresh-profile seeds). Changed: `BossRewardSaveTests.CurrentVersion_IsAtLeastTwo` (was "IsTwo").
+- Linux autoplay, campaign flow through the menu buttons, all **PASS, 0 errors**: 1920x1080 new save (vh_01 won 5/5, +115 Seeds +1 Essence, 3 new stars, Thorncaster unlocked, 2 level-ups); 1600x720 relaunch (persistence OK, vh_02 won 5/5, Frost Fern unlocked); 2400x1080 with 90 px notch relaunch (persistence OK, 5-card deck, vh_03 won 5/5, 3 defenders unlocked, Sanctuary tier 2); 2048x1536 (4:3) relaunch (persistence OK, 8-card deck, vh_04 won 5/5 with all 3 stars, Whirlseed/Storm Orchid/Mirrorleaf unlocked). Direct mode (authored roster) vh_07 boss at 1920x1080: won 5/5, 3 staggers, crest and boss panel then Continue into the campaign results (+530 Seeds = 200 + 100 flawless + 80 challenge + 150 boss bonus; +4 Essence = 3 first defeat + 1 challenge).
+- Screenshots reviewed (Logs/AutoPilot/): sanctuary (tiers 0/1/2), research, research_bought, mastery, worldmap, mission_brief, loadout, battle + evolve_chooser (locked branch), result_rewards, worldmap_after, sanctuary_after at 1920x1080, 1600x720 and 2400x1080:90. Fixes from the review: screenshots were taken one UI step late (harness now waits for the frame), "COMING SOON" overlapped region names, the first node's stars sat on the stream, loadout tile cost overlapped names, "Recommended" wrapped, threat advice suggested cards the player could not own, level-up badges were unreadable at 1600x720 (now one wide row per defender when up to 4) and blank in the 8-defender two-column layout (badge too short for its font), "Lv 4 MAX" collided with the gain, loadout buttons touched at 4:3, joining defenders stood off-screen, the boss panel screenshot was taken after Continue.
+
+### Known limitations (M4)
+- No device run: touch comfort of map nodes/loadout cards, text size on a 6.5" phone and the Android back button on the new screens are unverified (the on-screen Home/Back buttons work in autoplay).
+- Pacing and challenge difficulty are tuned against the scripted bot, which never loses defenders; a human play-test is needed.
+- Evolution choices are made in battle; there is no pre-battle "preferred branch" or respec (mastery widens the options instead).
+- The World Map shows one region; Emberwild/Frostveil are teasers only. Sanctuary restoration reuses Heartlands props (no new models).
+- `BattleHud.ShowResult` (old plain result) is no longer called; left in place.
+- Autoplay and the editor share the save path `~/.config/unity3d/Nocvault/Verdant Siege/` with every checkout of the project.
+- Version not bumped (owner's call); no Android build made for this milestone.
 
 ## Next actions
 1. Pair the S23 Ultra over wireless debugging, install the APK, run `Docs/ANDROID_TEST_CHECKLIST.md`; TCL Tab 10 after 21:00; Redmi A3 when available.

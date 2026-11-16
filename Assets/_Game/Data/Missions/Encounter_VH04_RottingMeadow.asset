@@ -52,7 +52,7 @@ MonoBehaviour:
   bossArrivesAtWave: 0
   seedReward: 110
   flawlessBonus: 50
-  mapPosition: {x: 0.51, y: 0.64}
+  mapPosition: {x: 0.51, y: 0.68}
   challenge:
     kind: 2
     value: 1

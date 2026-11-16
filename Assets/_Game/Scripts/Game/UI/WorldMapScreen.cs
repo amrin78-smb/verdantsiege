@@ -110,11 +110,11 @@ namespace VerdantSiege.UI
             }
             for (int i = 0; i < 14; i++) Blob(new Vector2(R(0.02f, 0.98f), R(0.05f, 0.9f)), R(140f, 300f), new Color(light.r, light.g, light.b, 0.35f));
             for (int i = 0; i < 8; i++) Blob(new Vector2(R(0.02f, 0.98f), R(0.05f, 0.9f)), R(100f, 220f), new Color(dark.r, dark.g, dark.b, 0.3f));
-            // Stream across the lower third.
-            for (int i = 0; i <= 40; i++)
+            // Stream along the bottom edge, under the path.
+            for (int i = 0; i <= 44; i++)
             {
-                float t = i / 40f;
-                Blob(new Vector2(t, 0.1f + 0.06f * Mathf.Sin(t * 7f)), 38f, new Color(0.45f, 0.72f, 0.85f, 0.55f));
+                float t = i / 44f;
+                Blob(new Vector2(0.02f + t * 0.96f, 0.055f + 0.025f * Mathf.Sin(t * 7f)), 30f, new Color(0.45f, 0.72f, 0.85f, 0.5f));
             }
             // Groves: leaf clusters near the edges, away from the path.
             Sprite leaf = UIKit.Lib != null ? UIKit.Lib.iconLeaf : null;
@@ -206,7 +206,8 @@ namespace VerdantSiege.UI
                 Image swatch = UIKit.Image("Swatch", card.transform, MenuKit.Round, open ? r.accentColor : new Color(r.accentColor.r * 0.45f, r.accentColor.g * 0.45f, r.accentColor.b * 0.45f));
                 UIKit.Place(swatch.rectTransform, new Vector2(0f, 0.5f), new Vector2(14f, 0f), new Vector2(14f, (open ? 200f : 190f) - 36f));
                 TextMeshProUGUI n = UIKit.Text("Name", card.transform, r.displayName, 36f, open ? UIPalette.Parchment : new Color(1f, 1f, 1f, 0.6f), TextAlignmentOptions.TopLeft, true);
-                UIKit.Place(n.rectTransform, new Vector2(0f, 1f), new Vector2(44f, -14f), new Vector2(RegionColumnWidth - 60f, 46f));
+                UIKit.Place(n.rectTransform, new Vector2(0f, 1f), new Vector2(44f, -14f), new Vector2(RegionColumnWidth - (open ? 60f : 110f), 46f));
+                n.enableAutoSizing = true; n.fontSizeMin = 26f; n.fontSizeMax = 36f;
                 string body;
                 if (open)
                 {
@@ -223,8 +224,8 @@ namespace VerdantSiege.UI
                     Image lk = UIKit.Image("Lock", card.transform, UIKit.Lib != null ? UIKit.Lib.iconLock : null, new Color(1f, 1f, 1f, 0.45f));
                     lk.preserveAspect = true;
                     UIKit.Place(lk.rectTransform, new Vector2(1f, 1f), new Vector2(-16f, -16f), new Vector2(44f, 44f));
-                    TextMeshProUGUI soon = UIKit.Text("Soon", card.transform, r.comingSoon ? "COMING SOON" : "LOCKED", 20f, r.accentColor, TextAlignmentOptions.TopRight, true);
-                    UIKit.Place(soon.rectTransform, new Vector2(1f, 1f), new Vector2(-70f, -24f), new Vector2(200f, 30f));
+                    TextMeshProUGUI soon = UIKit.Text("Soon", card.transform, r.comingSoon ? "COMING SOON" : "LOCKED", 22f, r.accentColor, TextAlignmentOptions.BottomRight, true);
+                    UIKit.Place(soon.rectTransform, new Vector2(1f, 0f), new Vector2(-18f, 12f), new Vector2(240f, 30f));
                 }
                 y -= (open ? 200f : 190f) + 16f;
             }
@@ -246,7 +247,7 @@ namespace VerdantSiege.UI
             Image dim = _brief.AddComponent<Image>();
             dim.color = UIPalette.Dim;
             dim.raycastTarget = true;
-            Image panel = UIKit.Panel("Panel", _brief.transform, UIPalette.Panel, true, true);
+            Image panel = UIKit.Panel("Panel", _brief.transform, new Color(0.09f, 0.165f, 0.133f, 0.985f), true, true);
             RectTransform p = panel.rectTransform;
             UIKit.Place(p, new Vector2(0.5f, 0.5f), new Vector2(0f, -30f), new Vector2(1360f, 860f));
             EncounterRecord rec = Save.Find(e.id);

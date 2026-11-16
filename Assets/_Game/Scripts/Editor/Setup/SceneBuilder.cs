@@ -309,15 +309,15 @@ namespace VerdantSiege.EditorTools
                 go.transform.SetPositionAndRotation(pos, Quaternion.Euler(0f, yaw, 0f));
                 go.AddComponent<SanctuaryGuardian>().defenderId = id;
             }
-            Joiner("Thorncaster", "thorncaster", new Vector3(5.3f, 0f, 0.3f), -35f);
-            Joiner("FrostFern", "frost_fern", new Vector3(2.6f, 0f, -0.7f), -15f);
-            Joiner("EmberLily", "ember_lily", new Vector3(5.9f, 0f, 1.9f), -40f);
-            Joiner("Burrowroot", "burrowroot", new Vector3(4.1f, 0f, -0.4f), -20f);
-            Joiner("SnapjawVine", "snapjaw_vine", new Vector3(6.5f, 0f, 0.6f), -45f);
-            Joiner("Whirlseed", "whirlseed", new Vector3(1.4f, 0f, 3.1f), 0f);
-            Joiner("StormOrchid", "storm_orchid", new Vector3(4.9f, 0f, 3.3f), -30f);
-            Joiner("Mirrorleaf", "mirrorleaf", new Vector3(6.9f, 0f, 3.0f), -50f);
-            Joiner("MenderMoss", "mender_moss", new Vector3(3.6f, 0f, 3.9f), -20f);
+            Joiner("Thorncaster", "thorncaster", new Vector3(4.6f, 0f, 2.5f), -35f);
+            Joiner("FrostFern", "frost_fern", new Vector3(0.7f, 0f, 2.1f), -10f);
+            Joiner("EmberLily", "ember_lily", new Vector3(5.5f, 0f, 3.6f), -40f);
+            Joiner("Burrowroot", "burrowroot", new Vector3(1.5f, 0f, 3.3f), -20f);
+            Joiner("SnapjawVine", "snapjaw_vine", new Vector3(3.7f, 0f, 3.7f), -30f);
+            Joiner("Whirlseed", "whirlseed", new Vector3(0.1f, 0f, 3.8f), 0f);
+            Joiner("StormOrchid", "storm_orchid", new Vector3(6.3f, 0f, 4.8f), -40f);
+            Joiner("Mirrorleaf", "mirrorleaf", new Vector3(4.6f, 0f, 5.0f), -35f);
+            Joiner("MenderMoss", "mender_moss", new Vector3(1.6f, 0f, 5.0f), -15f);
 
             var controllerGo = new GameObject("MainMenu");
             var mm = controllerGo.AddComponent<MainMenuController>();
