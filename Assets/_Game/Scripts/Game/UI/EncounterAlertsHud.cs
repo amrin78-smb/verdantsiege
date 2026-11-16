@@ -129,13 +129,15 @@ namespace VerdantSiege.UI
             _heraldPill.gameObject.SetActive(false);
         }
 
-        /// <summary>Two-line "new foe" card above the toast: name + counter hint (the one-line toast is too short).</summary>
+        /// <summary>Two-line "new foe" card under the top bars: name + counter hint (the one-line toast is too short).</summary>
         private void BuildIntel(RectTransform root)
         {
             Image p = UIKit.Panel("FoeIntel", root, new Color(0.1f, 0.06f, 0.12f, 0.92f), true, true);
             p.raycastTarget = false;
             _intel = p.rectTransform;
-            UIKit.Place(_intel, new Vector2(0.5f, 0f), new Vector2(BattleHud.RailWidth * 0.5f, 136f), new Vector2(1060f, 110f));
+            // Sits in the scenery band under the top bars (boss bar / herald slot) so it never covers a lane.
+            float intelY = (_sim.Boss != null ? -112f - BarHeight - 10f : -112f) - 72f;
+            UIKit.Place(_intel, new Vector2(0.5f, 1f), new Vector2(BattleHud.RailWidth * 0.5f, intelY), new Vector2(1060f, 110f));
             _intelTitle = UIKit.Text("Title", p.transform, "", 34f, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
             UIKit.Place(_intelTitle.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -8f), new Vector2(1010f, 42f));
             _intelBody = UIKit.Text("Body", p.transform, "", 27f, UIPalette.Parchment, TextAlignmentOptions.TopLeft);

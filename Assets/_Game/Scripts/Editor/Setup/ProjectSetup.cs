@@ -107,7 +107,7 @@ namespace VerdantSiege.EditorTools
             cfg.visuals = lib;
             cfg.audio = audio;
             cfg.firstEncounterId = "vh_01";
-            cfg.versionLabel = ProjectConfigurator.AppVersion + " prototype (Milestone 1)";
+            cfg.versionLabel = ProjectConfigurator.AppVersion + " prototype (Milestone 3)";
             EditorUtility.SetDirty(cfg);
             AssetDatabase.SaveAssets();
 

@@ -106,6 +106,8 @@ namespace VerdantSiege.Battle
             sunGo.AddComponent<SunlightView>().Init(Sim, Layout, _lib, _vfx);
             var barsGo = new GameObject("HealthBars");
             barsGo.AddComponent<EnemyHealthBars>().Init(Sim, Layout, battleCamera, Hud.Canvas.transform);
+            if (settings.showDamageNumbers)
+                barsGo.AddComponent<DamageNumbers>().Init(Sim, Layout, battleCamera, Hud.Canvas.transform);
             if (!settings.tutorialSeen && _app.Config.content.encounters.IndexOf(_encounter) == 0)
                 TutorialController.Create(this, Hud);
             _shakeEnabled = !settings.reducedShake;

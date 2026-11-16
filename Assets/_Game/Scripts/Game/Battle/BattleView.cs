@@ -204,6 +204,12 @@ namespace VerdantSiege.Battle.View
             bool armor = e.armor > 0f && p.Definition.damageType != DamageType.Piercing;
             Color spark = p.Definition.damageType == DamageType.Physical ? _lib.hitSpark : p.Definition.trailColor;
             _vfx.Burst(VfxKind.HitSpark, pos, armor ? _lib.armorDebris : spark, armor ? 6 : 8, 2.2f, 0.12f, 0.3f);
+            // Impact flash scaled by hit weight, tinted by element (combat feel; budgeted by VfxSystem quality).
+            float weight = Mathf.Clamp(p.Definition.damage / 25f, 0.6f, 2.2f);
+            Color flash = armor ? new Color(1f, 0.95f, 0.8f, 0.8f) : new Color(spark.r, spark.g, spark.b, 0.85f);
+            _vfx.Pulse(VfxKind.MuzzleFlash, pos + Vector3.left * 0.08f, flash, 0.32f + 0.18f * weight, 0.09f);
+            if (p.Definition.splashRadius > 0f)
+                _vfx.Burst(VfxKind.HitSpark, pos, spark, 14, 3.2f, 0.16f, 0.45f);
             Play(armor ? Sfx.ArmorHit : p.Definition.damageType == DamageType.Frost ? Sfx.FrostHit : Sfx.Hit, 0.8f);
         }
 

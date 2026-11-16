@@ -131,7 +131,7 @@ namespace VerdantSiege.UI
         private void BuildSettings(Transform canvas)
         {
             SettingsData s = _app.Settings;
-            _settings = Overlay(canvas, "Settings", new Vector2(900f, 940f), "Settings", out RectTransform p);
+            _settings = Overlay(canvas, "Settings", new Vector2(900f, 1020f), "Settings", out RectTransform p);
             float y = -140f;
             void SliderRow(string label, float value, System.Action<float> set)
             {
@@ -152,6 +152,7 @@ namespace VerdantSiege.UI
             }
             ToggleRow("Auto-collect Vitality", s.autoCollect, v => s.autoCollect = v);
             ToggleRow("Reduce flashes and shake", s.reducedFlashes, v => { s.reducedFlashes = v; s.reducedShake = v; });
+            ToggleRow("Show damage numbers", s.showDamageNumbers, v => s.showDamageNumbers = v);
 
             Button q = UIKit.Button("Quality", p, "", UIPalette.ButtonSecondary, CycleQuality, null, 36f);
             UIKit.Place((RectTransform)q.transform, new Vector2(0.5f, 1f), new Vector2(0f, y), new Vector2(740f, 90f));
