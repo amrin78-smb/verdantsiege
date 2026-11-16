@@ -29,6 +29,7 @@ namespace VerdantSiege.Battle.View
         private float _seed;
         private bool _armorVisible;
         private int _legCount;
+        private bool _holdsProp;
         private float _dustTimer;
         private float _windupTime;
         private EnemyActivity _lastActivity;
@@ -57,6 +58,8 @@ namespace VerdantSiege.Battle.View
             _rig.SetActive("Armor", _armorVisible);
             _legCount = 0;
             foreach (string l in SkitterLegs) if (_rig.Has(l)) _legCount++;
+            // Warden Shield / Herald Banner are children of the root at the hand grip: keep arm motion small so the hand stays on them.
+            _holdsProp = _rig.Has("Shield") || _rig.Has("Banner");
             _spawn.value = -0.5f;
             _lastActivity = e.activity;
             if (e.IsElite) EnsureBar();
@@ -233,6 +236,7 @@ namespace VerdantSiege.Battle.View
             float armAmp = attacking ? 0f : 22f;
             float armAttack = attacking ? Mathf.Clamp(_lunge.value * 6f, -40f, 40f) + 20f + Mathf.Sin(t * 9f) * 8f : 0f;
             if (act == EnemyActivity.Ranged) armAttack = 35f + _ability.value * 6f; // throwing arm
+            if (_holdsProp) { armAmp *= 0.2f; armAttack *= 0.25f; }
             if (_rig.Has("ArmL")) _rig.Pose("ArmL", new Vector3(0f, 0f, -swing * armAmp + armAttack));
             if (_rig.Has("ArmR")) _rig.Pose("ArmR", new Vector3(0f, 0f, swing * armAmp + armAttack * 0.85f));
             if (_legCount > 0)

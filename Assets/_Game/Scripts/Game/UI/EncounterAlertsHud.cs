@@ -27,6 +27,10 @@ namespace VerdantSiege.UI
         private RectTransform _heraldPill;
         private CanvasGroup _heraldGroup;
         private TextMeshProUGUI _heraldText;
+        private RectTransform _intel;
+        private CanvasGroup _intelGroup;
+        private TextMeshProUGUI _intelTitle, _intelBody;
+        private float _intelTimer;
         private float _trail = 1f;
         private float _bossShow;
         private bool _eruptionHinted, _uprootHinted, _coreHinted;
@@ -39,6 +43,7 @@ namespace VerdantSiege.UI
             RectTransform root = hud.Root;
             if (sim.Boss != null) BuildBossBar(root, sim.Boss);
             BuildHeraldPill(root);
+            BuildIntel(root);
             sim.EnemySpawned += OnEnemySpawned;
             sim.HeraldCommandChanged += OnHerald;
             sim.BossArrived += OnBossArrived;
@@ -124,6 +129,33 @@ namespace VerdantSiege.UI
             _heraldPill.gameObject.SetActive(false);
         }
 
+        /// <summary>Two-line "new foe" card above the toast: name + counter hint (the one-line toast is too short).</summary>
+        private void BuildIntel(RectTransform root)
+        {
+            Image p = UIKit.Panel("FoeIntel", root, new Color(0.1f, 0.06f, 0.12f, 0.92f), true, true);
+            p.raycastTarget = false;
+            _intel = p.rectTransform;
+            UIKit.Place(_intel, new Vector2(0.5f, 0f), new Vector2(BattleHud.RailWidth * 0.5f, 136f), new Vector2(1060f, 110f));
+            _intelTitle = UIKit.Text("Title", p.transform, "", 34f, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
+            UIKit.Place(_intelTitle.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -8f), new Vector2(1010f, 42f));
+            _intelBody = UIKit.Text("Body", p.transform, "", 27f, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
+            UIKit.Place(_intelBody.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -48f), new Vector2(1010f, 58f));
+            _intelBody.textWrappingMode = TextWrappingModes.Normal;
+            _intelBody.enableAutoSizing = true;
+            _intelBody.fontSizeMin = 20f;
+            _intelBody.fontSizeMax = 27f;
+            _intelGroup = UIKit.Group(p.gameObject);
+            _intelGroup.alpha = 0f;
+            _intelGroup.blocksRaycasts = false;
+        }
+
+        private void ShowIntel(string title, string body, float seconds)
+        {
+            _intelTitle.text = title;
+            _intelBody.text = body;
+            _intelTimer = seconds;
+        }
+
         // ---------------------------------------------------------------- events
         private void OnEnemySpawned(EnemyRuntime e)
         {
@@ -131,11 +163,12 @@ namespace VerdantSiege.UI
             if (!_seen.Add(d)) return;
             if (d.elite)
             {
-                _hud.ShowBanner(d.displayName, "Elite! " + d.counterHint, UIPalette.Danger, 3.2f);
+                _hud.ShowBanner(d.displayName, "An elite joins the Blight", UIPalette.Danger, 3f);
+                ShowIntel("Elite: " + d.displayName, d.counterHint, 6f);
                 return;
             }
             bool special = d.ability != EnemyAbilityKind.None || d.movement != EnemyMovementKind.Ground;
-            if (special && e.waveIndex >= 0) _hud.ShowToast($"{d.displayName}: {d.counterHint}", 4.5f);
+            if (special && e.waveIndex >= 0) ShowIntel("New foe: " + d.displayName, d.counterHint, 5f);
         }
 
         private void OnHerald(bool active)
@@ -148,7 +181,8 @@ namespace VerdantSiege.UI
         {
             _bossShow = 0f;
             if (_bossBar != null) _bossBar.gameObject.SetActive(true);
-            _hud.ShowBanner(b.Definition.displayName, b.Definition.counterHint, UIPalette.Blight, 4f);
+            _hud.ShowBanner(b.Definition.displayName, "The ground splits open", UIPalette.Blight, 3.5f);
+            ShowIntel(b.Definition.displayName, b.Definition.counterHint, 7f);
         }
 
         private void OnBossPhase(BossRuntime b, int phase)
@@ -186,6 +220,11 @@ namespace VerdantSiege.UI
             if (_sim == null) return;
             float dt = Time.unscaledDeltaTime;
             float time = Time.unscaledTime;
+            if (_intelGroup != null)
+            {
+                _intelTimer -= dt;
+                _intelGroup.alpha = Mathf.Clamp01(_intelTimer / 0.4f);
+            }
             if (_heraldPill != null && _heraldPill.gameObject.activeSelf)
             {
                 bool on = _sim.HeraldBonus > 0f && _sim.State == BattleState.Running;

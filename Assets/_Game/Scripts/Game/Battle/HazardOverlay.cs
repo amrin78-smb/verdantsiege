@@ -12,9 +12,9 @@ namespace VerdantSiege.Battle.View
     public sealed class HazardOverlay : MonoBehaviour
     {
         private static readonly int ColorId = Shader.PropertyToID("_BaseColor");
-        private static readonly Color Warning = new Color(1f, 0.22f, 0.2f, 0.75f);
-        private static readonly Color Roots = new Color(0.32f, 0.16f, 0.24f, 0.8f);
-        private static readonly Color Cloud = new Color(0.62f, 0.85f, 0.3f, 0.5f);
+        private static readonly Color Warning = new Color(1f, 0.12f, 0.1f, 0.95f);
+        private static readonly Color Roots = new Color(0.3f, 0.08f, 0.22f, 0.92f);
+        private static readonly Color Cloud = new Color(0.7f, 0.95f, 0.2f, 0.8f);
 
         private MeshRenderer[,] _cells;
         private MaterialPropertyBlock _mpb;
@@ -37,7 +37,7 @@ namespace VerdantSiege.Battle.View
             {
                 var go = new GameObject($"Hazard_{l}_{c}");
                 go.transform.SetParent(transform, false);
-                go.transform.position = layout.CellCenter(new GridCoord(l, c)) + Vector3.up * 0.07f;
+                go.transform.position = layout.CellCenter(new GridCoord(l, c)) + Vector3.up * 0.165f; // just above the ground tile tops (0.15 m)
                 go.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
                 go.transform.localScale = new Vector3(layout.CellWidth * 0.98f, layout.LaneDepth * 0.98f, 1f);
                 go.AddComponent<MeshFilter>().sharedMesh = lib.quadMesh;
@@ -106,7 +106,7 @@ namespace VerdantSiege.Battle.View
                 {
                     float pulse = 0.5f + 0.5f * Mathf.Sin(time * (8f + urgency * 14f));
                     col = Warning;
-                    col.a = Mathf.Lerp(0.35f, 0.9f, urgency) * (0.65f + 0.35f * pulse);
+                    col.a = Mathf.Lerp(0.6f, 1f, urgency) * (0.7f + 0.3f * pulse);
                     show = true;
                 }
                 else if (_sim.Grid.GetTerrain(coord) == CellTerrain.Blocked && _sim.IsRootBlocked(coord))
@@ -125,7 +125,7 @@ namespace VerdantSiege.Battle.View
                         show = true;
                         if (puff && _vfx != null)
                             _vfx.Burst(VfxKind.SporePuff, _layout.CellCenter(coord) + new Vector3(Random.Range(-0.3f, 0.3f), 0.25f, Random.Range(-0.3f, 0.3f)),
-                                new Color(0.6f, 0.85f, 0.3f), 2, 0.35f, 0.3f, 1.1f);
+                                new Color(0.65f, 0.9f, 0.3f), 4, 0.45f, 0.38f, 1.2f);
                     }
                 }
                 if (mr.enabled != show) mr.enabled = show;
