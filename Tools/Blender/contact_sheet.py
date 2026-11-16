@@ -2,7 +2,7 @@
 import sys, os, glob
 from PIL import Image, ImageDraw
 root = os.path.join(os.path.dirname(__file__), "..", "..", "Art", "Previews")
-files = sorted(glob.glob(os.path.join(root, "*.png")))
+files = sorted(f for f in glob.glob(os.path.join(root, "*.png")) if not os.path.basename(f).startswith("_"))
 cols, cell = 6, 256
 rows = (len(files) + cols - 1) // cols
 sheet = Image.new("RGB", (cols * cell, rows * (cell + 18)), (240, 242, 238))

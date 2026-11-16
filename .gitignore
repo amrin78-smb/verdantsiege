@@ -42,3 +42,6 @@ __pycache__/
 
 # Tester builds are committed on purpose
 !/Releases/*.apk
+
+# Agent worktrees
+/.claude/

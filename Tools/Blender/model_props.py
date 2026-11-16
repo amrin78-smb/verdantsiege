@@ -16,8 +16,8 @@ FLOWERS = [hexc("#FF7A9A"), hexc("#FFD447"), hexc("#B48CFF"), hexc("#FFF3E6"), h
 def stone_paint(moss_k=0.75, base=None):
     lo, hi = (C_STONE0, C_STONE2) if base is None else base
     def fn(p, n, fc, fi):
-        c = mix(lo, hi, 0.35 + 0.5 * hash01(fc.x * 2.1, fc.y * 1.3, fc.z * 0.7))
-        c = mix(c, mix(C_MOSS0, C_MOSS1, hash01(fc.x, fc.z)), smoothstep(moss_k - 0.1, moss_k + 0.1, n.z) * 0.9)
+        c = mix(lo, hi, 0.55 + 0.35 * vnoise(p, 2.2, 1.0) + 0.12 * vnoise(p, 7.0, 5.0))
+        c = mix(c, mix(C_MOSS0, C_MOSS1, 0.5 + 0.5 * vnoise(p, 5.0, 2.0)), smoothstep(moss_k - 0.12, moss_k + 0.12, n.z) * 0.9)
         return c
     return fn
 
@@ -69,12 +69,10 @@ def model(fn):
 # ------------------------------------------------------------------ rocks
 def rock(name, radii, seed, extra=()):
     root = new_scene(name)
-    g = icorock((0, 0, radii[2] * 0.75), radii, subdiv=3 if radii[0] > 0.3 else 2, seed=seed, rough=0.28)
-    g.paint(stone_paint(0.7), per_face=True)
-    for (c, r, s) in extra:
-        e = icorock(c, r, subdiv=1, seed=s, rough=0.3)
-        e.paint(stone_paint(0.7), per_face=True)
-        g.extend(e)
+    g = pebble((0, 0, radii[2] * 0.62), radii, seed=seed, lump=0.12)
+    for (c, r, s_) in extra:
+        g.extend(pebble(c, r, seed=s_, lump=0.12))
+    paint_vertex_normals(g, stone_paint(0.72))
     part("Mesh", clamp_ground(g), root)
     finish(root, "Props")
 
@@ -92,8 +90,8 @@ def bush(name, blobs, seed, berries=None, flowers_=0):
     rnd = random.Random(seed)
     g = Geo()
     for k, (c, r) in enumerate(blobs):
-        b = icorock(c, r, subdiv=3 if r[0] > 0.3 else 2, seed=seed * 10 + k, rough=0.25, flatten_bottom=False)
-        b.paint(foliage_paint(0.95 + 0.1 * k / len(blobs)), per_face=True)
+        b = soft_blob(c, r, seed=seed * 10 + k, lump=0.15, freq=1.8, sides=11 if r[0] > 0.3 else 8, rings=7 if r[0] > 0.3 else 5)
+        paint_vertex_normals(b, foliage_soft(C_LEAF0, C_LEAF1, C_LEAF2, var=0.12, seed=k))
         g.extend(b)
     if berries:
         for k in range(berries[1]):
@@ -187,15 +185,15 @@ def oak(name, seed, height, spread, n_br=4, warm=0.0):
         br = bezier(p0, p0 + d * 0.3 + Vector((0, 0, 0.35)), p2, n=4)
         wood.extend(tube(br, taper(len(br), tr_r * 0.6, tr_r * 0.25), sides=6, cap0=False, cap1=True))
         tips.append(p2)
-    wood.paint(lambda p, n, fc, fi: shade(mix(C_WOOD0, C_WOOD1, smoothstep(0, height, p.z)), 0.85 + 0.3 * hash01(fc.x, fc.y, fc.z)), per_face=True)
+    paint_vertex_normals(wood, lambda p, n, fc, fi: shade(mix(C_WOOD0, C_WOOD1, smoothstep(0, height, p.z)), 0.92 + 0.15 * vnoise(p, 6)))
     part("Trunk", clamp_ground(wood), root)
     can = Geo()
     for k, t in enumerate(tips):
         r = (0.75 if k == 0 else rnd.uniform(0.55, 0.7))
-        b = icorock((t.x, t.y, t.z + 0.15), (r * 1.1, r * 1.05, r * 0.72), subdiv=2, seed=seed * 7 + k, rough=0.3,
-                    flatten_bottom=False)
-        tint = 0.9 + 0.2 * hash01(k, seed)
-        b.paint(lambda p, n, fc, fi, tint=tint: shade(foliage_paint(1.0, warm)(p, n, fc, fi), tint), per_face=True)
+        b = soft_blob((t.x, t.y, t.z + 0.15), (r * 1.1, r * 1.05, r * 0.72), seed=seed * 7 + k, lump=0.16, freq=1.7,
+                      sides=11, rings=7)
+        tint = 0.92 + 0.16 * hash01(k, seed)
+        paint_vertex_normals(b, lambda p, n, fc, fi, tint=tint: shade(foliage_soft(C_LEAF0, C_LEAF1, C_LEAF2, 0.12, k)(p, n, fc, fi), tint))
         can.extend(b)
     part("Canopy", can, root, (0, 0, height * 0.75))
     finish(root, "Props")
@@ -206,7 +204,7 @@ def pine(name, seed, height, base_r):
     trunk = tube([(0, 0, 0), (0, 0, height * 0.35)], [0.13, 0.1], sides=7, cap0=False)
     trunk.extend(lathe([(0.0, 0.0), (0.24, 0.0), (0.15, 0.08), (0.12, 0.2), (0, 0.21)], sides=7,
                        jitter=lambda pi, si, a: 1 + 0.2 * math.sin(a * 3)))
-    trunk.paint(lambda p, n, fc, fi: shade(C_WOOD0, 0.9 + 0.3 * hash01(fc.x, fc.z)), per_face=True)
+    paint_vertex_normals(trunk, lambda p, n, fc, fi: shade(C_WOOD0, 1.0 + 0.15 * vnoise(p, 6)))
     part("Trunk", trunk, root)
     tiers = Geo()
     n = 4
@@ -215,7 +213,7 @@ def pine(name, seed, height, base_r):
         r = base_r * (1 - k / (n + 0.6))
         h = (height - z) / (n - k) * 1.45
         prof = [(0.0, 0.05), (r, -0.06), (r * 0.86, h * 0.1), (r * 0.5, h * 0.45), (0.0, h)]
-        tier = lathe(prof, sides=14, smooth=False,
+        tier = lathe(prof, sides=14, round_profile=1,
                      jitter=lambda pi, si, a, k=k: (1 + 0.2 * ((si + k) % 2) - 0.06) if pi in (1, 2) else 1 + 0.06 * math.sin(a * 5))
         tier.transform(T(0, 0, z))
         tiers.extend(tier)
@@ -223,8 +221,8 @@ def pine(name, seed, height, base_r):
     def pp(p, n_, fc, fi):
         c = mix(hexc("#1A4A2E"), hexc("#3E8A48"), smoothstep(-0.6, 0.6, n_.z))
         c = mix(c, hexc("#7FBF5A"), smoothstep(0.6, 0.9, n_.z) * 0.5)
-        return shade(c, 0.9 + 0.2 * hash01(fc.x * 2, fc.y * 3, fc.z))
-    tiers.paint(pp, per_face=True)
+        return shade(c, 1.0 + 0.1 * vnoise(p, 5))
+    paint_vertex_normals(tiers, pp)
     part("Canopy", tiers, root, (0, 0, height * 0.22))
     finish(root, "Props")
 
@@ -236,7 +234,8 @@ def TreeB(): pine("TreeB", 2, 3.9, 1.25)
 
 # ------------------------------------------------------------------ ruins & rustic structures
 def stone_block(c, s, seed, chip=0.02, bevel=True):
-    g = box(c, s, bevel=min(s) * 0.12 if bevel else 0.0, segments=1)
+    # rounded (2-segment bevel, smooth shaded) so ruins read soft, not blocky
+    g = box(c, s, bevel=min(s) * 0.2 if bevel else 0.0, segments=1, smooth=bevel)
     rnd = random.Random(seed)
     g.displace(lambda p: Vector((rnd.uniform(-chip, chip), rnd.uniform(-chip, chip), rnd.uniform(-chip, chip) * 0.5)))
     return g
@@ -262,7 +261,7 @@ def RuinWall():
     # fallen blocks
     for k, (px, py) in enumerate(((0.75, 0.45), (0.95, -0.1), (0.4, 0.55))):
         g.extend(stone_block((px, py, 0.1), (0.3, 0.25, 0.2), 50 + k).transform(Matrix()))
-    g.paint(stone_paint(0.8), per_face=True)
+    paint_vertex_normals(g, stone_paint(0.8))
     ivy = Geo()
     for k in range(10):
         a = rnd.uniform(-0.9, 0.2)
@@ -304,11 +303,11 @@ def StonePath():
                                           (0.25, 0.26, 0.21, 0.21), (0.02, 0.02, 0.13, 0.12))):
         n = 7
         prof = []
-        slab = lathe([(0.0, 0.0), (1.0, 0.0), (0.93, 0.05), (0.0, 0.055)], sides=n,
-                     jitter=lambda pi, si, a, k=k: 1 + 0.18 * hash01(si, k) - 0.09, smooth=False)
+        slab = lathe([(0.0, 0.0), (1.0, 0.0), (0.97, 0.03), (0.88, 0.052), (0.0, 0.058)], sides=10,
+                     jitter=lambda pi, si, a, k=k: 1 + 0.1 * math.sin(a * 3 + k) + 0.05 * math.sin(a * 5 - k))
         slab.transform(T(cx, cy, 0.0) @ rot(0, 0, rnd.uniform(0, 60)) @ S(rx, ry, 1))
         g.extend(slab)
-    g.paint(stone_paint(1.5, (hexc("#8A7F6E"), hexc("#CFC2A4"))), per_face=True)
+    paint_vertex_normals(g, stone_paint(1.5, (hexc("#8A7F6E"), hexc("#CFC2A4"))))
     part("Mesh", g, root)
     finish(root, "Props", view=(30, 50))
 
@@ -340,7 +339,7 @@ def RuinArch():
     g.extend(keystone_fallen)
     for k in range(5):
         g.extend(stone_block((rnd.uniform(0.6, 1.45), rnd.uniform(-0.45, 0.45), 0.1), (0.28, 0.24, 0.2), 90 + k))
-    g.paint(stone_paint(0.75), per_face=True)
+    paint_vertex_normals(g, stone_paint(0.75))
     vine_pts = bezier((-R - 0.3, -0.31, 0.15), (-R - 0.35, -0.32, 1.3), (-0.9, -0.32, 2.75), (0.1, -0.31, 2.85), n=10)
     vine = tube(vine_pts, 0.025, sides=4, smooth=False).fill(C_LEAF0)
     leaves = Geo()
@@ -380,7 +379,7 @@ def Cottage():
                 if side == 2 and 1 <= k <= 2 and row <= 3:
                     continue      # doorway in the front wall (-Y)
                 g.extend(stone_block(c, s, rnd.random() * 999, 0.035, bevel=False))
-    g.paint(stone_paint(0.85, (hexc("#857865"), hexc("#D9CCAE"))), per_face=True)
+    paint_vertex_normals(g, stone_paint(0.85, (hexc("#857865"), hexc("#D9CCAE"))))
     # door frame + window
     wood = Geo()
     wood.extend(box((-W / 6 + 0.02, -D / 2, 1.22), (0.7, 0.36, 0.1), bevel=0.02))
@@ -403,11 +402,11 @@ def Cottage():
     # chimney
     chim = Geo()
     for k in range(4):
-        chim.extend(stone_block((-W / 2 + 0.35, 0.35, H + 0.6 + k * 0.28), (0.42, 0.42, 0.26), 300 + k))
-    chim.paint(stone_paint(0.85), per_face=True)
+        chim.extend(stone_block((-W / 2 + 0.35, 0.35, H + 0.6 + k * 0.28), (0.42, 0.42, 0.26), 300 + k, bevel=False))
+    paint_vertex_normals(chim, stone_paint(0.85))
     # moss mounds and flowers around
     deco = Geo()
-    for k in range(6):
+    for k in range(4):
         a = rnd.uniform(0, 2 * math.pi)
         deco.extend(grass_clump((math.cos(a) * 1.5, math.sin(a) * 1.2, 0), n=5, h=0.3, seed=k, spread=0.15))
     for k in range(4):
@@ -419,43 +418,62 @@ def Cottage():
 
 # ------------------------------------------------------------------ battlefield pieces
 def ground_tile(name, lo, hi, seed):
+    """Soft lawn tile: gently domed 6x6 top, rounded rolled edge (<= 0.06 m at the rim), smooth per-vertex
+    colour variation, a little clover and a couple of tiny flowers."""
     root = new_scene(name)
     rnd = random.Random(seed)
-    # bevelled slab, slightly domed: 3x3 top grid
     g = Geo()
-    N = 3
-    top = {}
+    N = 6
+    H_EDGE, H_MID, INSET = 0.05, 0.062, 0.035
+    idx = {}
     for i in range(N + 1):
         for j in range(N + 1):
-            x = -0.5 + i / N; y = -0.5 + j / N
-            edge = i in (0, N) or j in (0, N)
-            inset = 0.035
-            xx = max(-0.5 + inset, min(0.5 - inset, x)); yy = max(-0.5 + inset, min(0.5 - inset, y))
-            z = 0.05 if edge else 0.06 + rnd.uniform(-0.004, 0.004)
-            top[(i, j)] = len(g.v); g.v.append(Vector((xx, yy, z)))
+            u = -0.5 + i / N; v = -0.5 + j / N
+            x = u * (1 - 2 * INSET); y = v * (1 - 2 * INSET)
+            d = max(abs(u), abs(v)) * 2      # 0 centre .. 1 rim
+            z = H_MID - (H_MID - H_EDGE) * d ** 3 + 0.002 * math.sin(i * 1.7 + j * 2.3 + seed)
+            idx[(i, j)] = len(g.v); g.v.append(Vector((x, y, z)))
     for i in range(N):
         for j in range(N):
-            g.add_face([top[(i, j)], top[(i + 1, j)], top[(i + 1, j + 1)], top[(i, j + 1)]], True)
-    ring = [top[(i, 0)] for i in range(N + 1)] + [top[(N, j)] for j in range(1, N + 1)] + \
-           [top[(i, N)] for i in range(N - 1, -1, -1)] + [top[(0, j)] for j in range(N - 1, 0, -1)]
-    bot = []
-    for idx in ring:
-        p = g.v[idx]
-        q = Vector((max(-0.5, min(0.5, p.x * 1.07)), max(-0.5, min(0.5, p.y * 1.07)), 0.0))
-        bot.append(len(g.v)); g.v.append(q)
-    for k in range(len(ring)):
-        a, b = ring[k], ring[(k + 1) % len(ring)]
-        g.add_face([a, bot[k], bot[(k + 1) % len(ring)], b], False)
+            g.add_face([idx[(i, j)], idx[(i + 1, j)], idx[(i + 1, j + 1)], idx[(i, j + 1)]], True)
+    ring = [idx[(i, 0)] for i in range(N + 1)] + [idx[(N, j)] for j in range(1, N + 1)] + \
+           [idx[(i, N)] for i in range(N - 1, -1, -1)] + [idx[(0, j)] for j in range(N - 1, 0, -1)]
+    # rolled edge: two rings stepping out and down (rounded profile)
+    prev = ring
+    for (grow, zf) in ((0.55, 0.62), (1.0, 0.0)):
+        nxt = []
+        for k in ring:
+            p = g.v[k]
+            sx = 0.5 if abs(p.x) >= 0.5 * (1 - 2 * INSET) - 1e-6 else abs(p.x)
+            out = Vector((p.x, p.y, 0))
+            ox = math.copysign(INSET * grow, p.x) if abs(abs(p.x) - 0.5 * (1 - 2 * INSET)) < 1e-6 else 0.0
+            oy = math.copysign(INSET * grow, p.y) if abs(abs(p.y) - 0.5 * (1 - 2 * INSET)) < 1e-6 else 0.0
+            nxt.append(len(g.v)); g.v.append(Vector((p.x + ox, p.y + oy, p.z * zf)))
+        for k in range(len(ring)):
+            a_, b_ = prev[k], prev[(k + 1) % len(ring)]
+            c_, d_ = nxt[(k + 1) % len(ring)], nxt[k]
+            g.add_face([a_, d_, c_, b_], True)
+        prev = nxt
     def tp(p, n, fc, fi):
-        if n.z < 0.6:
-            return shade(C_DIRT, 0.9)
-        return shade(mix(lo, hi, 0.4 + 0.4 * hash01(fc.x * 3, fc.y * 5)), 1.0)
-    g.paint(tp)
-    for k in range(3):
+        base = mix(lo, hi, 0.5 + 0.45 * vnoise(p, 3.2, seed) + 0.15 * vnoise(p, 9, seed + 4))
+        if n.z < 0.75:
+            base = mix(base, shade(lo, 0.78), smoothstep(0.75, 0.2, n.z))
+        return base
+    paint_vertex_normals(g, tp)
+    # clover patches (three round leaflets) and a couple of tiny flowers
+    deco = Geo()
+    for k in range(2):
+        c = Vector((rnd.uniform(-0.33, 0.33), rnd.uniform(-0.33, 0.33), 0.058))
+        for j in range(3):
+            a = 2 * math.pi * j / 3 + k
+            lf = leaf(length=0.045, width=0.045, segs=2, across=1, curl=0.2, fold=0.1, thick=0.006, tip_power=0.6)
+            lf.transform(T(*(c + Vector((0, 0, 0.01)))) @ rot(0, 0, math.degrees(a)) @ rot(0, -12, 0))
+            deco.extend(lf)
+    deco.paint(lambda p, n, fc, fi: shade(mix(lo, hi, 0.3), 0.85))
+    for k in range(1):
         c = (rnd.uniform(-0.35, 0.35), rnd.uniform(-0.35, 0.35), 0.055)
-        bl = grass_clump(c, n=3, h=0.08, seed=seed * 10 + k, spread=0.03)
-        bl.paint(lambda p, n_, fc, fi: mix(shade(lo, 0.9), shade(hi, 1.15), smoothstep(0.05, 0.13, p.z)))
-        g.extend(bl)
+        deco.extend(flower(c, FLOWERS[(seed + k * 2) % 4], size=0.028, petals=5, stem=0.035))
+    g.extend(deco)
     part("Mesh", g, root)
     finish(root, "Battlefield", view=(30, 45))
 
@@ -478,7 +496,7 @@ def LaneEdge():
         b = stone_block((x + w / 2, rnd.uniform(-0.03, 0.03), h / 2), (w - 0.025, 0.3, h), 500 + k, 0.015)
         g.extend(b)
         x += w; k += 1
-    g.paint(stone_paint(0.8, (hexc("#7F7462"), hexc("#CDBF9F"))), per_face=True)
+    paint_vertex_normals(g, stone_paint(0.8, (hexc("#7F7462"), hexc("#CDBF9F"))))
     g.extend(grass_clump((-0.3, 0.17, 0), n=4, h=0.16, seed=2, spread=0.05))
     g.extend(grass_clump((0.25, -0.18, 0), n=4, h=0.14, seed=3, spread=0.05))
     part("Mesh", clamp_ground(g), root)
@@ -506,9 +524,8 @@ def SeedBolt():
 @model
 def Sunmote():
     root = new_scene("Sunmote")
-    orb = ellipsoid((0, 0, 0), (0.1, 0.1, 0.1), sides=10, rings=6, smooth=False,
-                    jitter=lambda pi, si, a: 1 + 0.06 * ((si + pi) % 2))
-    orb.paint(lambda p, n, fc, fi: mix(hexc("#FFB42A", 1.0), hexc("#FFF8C8", 1.0), smoothstep(-0.1, 0.1, p.z + p.x * 0.4)), per_face=True)
+    orb = ellipsoid((0, 0, 0), (0.1, 0.1, 0.1), sides=9, rings=6)
+    orb.paint(lambda p, n, fc, fi: mix(hexc("#FFB42A", 1.0), hexc("#FFF8C8", 1.0), smoothstep(-0.1, 0.1, p.z + p.x * 0.4)))
     part("Orb", orb, root)
     rays = Geo()
     for k in range(8):

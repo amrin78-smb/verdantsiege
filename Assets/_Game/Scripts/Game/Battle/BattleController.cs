@@ -145,7 +145,7 @@ namespace VerdantSiege.Battle
             if (rig == null) rig = battleCamera.gameObject.AddComponent<BattleCameraRig>();
             Bounds b = Layout.FieldBounds;
             // Include the Heartroot (left), the enemy entry (right) and unit height.
-            b.Encapsulate(new Vector3(-0.9f, 0f, b.center.z));
+            b.Encapsulate(new Vector3(-1.6f, 0f, b.center.z)); // keep the Heartroot's glowing core in view
             b.Encapsulate(new Vector3(Layout.Columns + 0.9f, 0f, b.center.z));
             b.Encapsulate(new Vector3(b.center.x, 1.0f, Layout.Lanes * Layout.LaneDepth + 0.15f));
             b.Encapsulate(new Vector3(b.center.x, 0f, -0.1f));

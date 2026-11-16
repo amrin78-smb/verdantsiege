@@ -32,8 +32,8 @@ def skin(p, n, fc, fi):
 torso = ellipsoid((0, 0, 0), (0.27, 0.32, 0.36), sides=16, rings=10,
                   jitter=lambda pi, si, a: 1 + 0.04 * math.sin(a * 4 + pi))
 torso.transform(T(0.0, 0, 0.92) @ rot(0, -22, 0))
-torso.paint(skin)
-pelvis = ellipsoid((HIP.x, 0, HIP.z + 0.04), (0.2, 0.26, 0.16), sides=12, rings=6).paint(skin)
+torso.vpaint(skin)
+pelvis = ellipsoid((HIP.x, 0, HIP.z + 0.04), (0.2, 0.26, 0.16), sides=12, rings=6).vpaint(skin)
 hump = Geo()
 for k, (x, y, z, r) in enumerate(((0.16, 0.0, 1.12, 0.17), (0.2, 0.14, 1.0, 0.12), (0.2, -0.13, 1.02, 0.13), (0.12, 0.08, 1.24, 0.1))):
     hump.extend(soft_blob((x, y, z), (r, r, r * 0.85), seed=k, lump=0.18, sides=10, rings=7))
@@ -46,8 +46,8 @@ B = part("Body", part_body, root, HIP)
 
 # ---------------- head: low-slung, tusked, small glowing eyes
 hc = NECK + Vector((-0.08, 0, 0.0))
-skull = ellipsoid(hc, (0.14, 0.15, 0.12), sides=12, rings=7).paint(skin)
-jaw = ellipsoid(hc + Vector((-0.05, 0, -0.08)), (0.12, 0.15, 0.07), sides=10, rings=5).paint(skin)
+skull = ellipsoid(hc, (0.14, 0.15, 0.12), sides=12, rings=7).vpaint(skin)
+jaw = ellipsoid(hc + Vector((-0.05, 0, -0.08)), (0.12, 0.15, 0.07), sides=10, rings=5).vpaint(skin)
 eyes = Geo()
 for side in (1, -1):
     eyes.extend(ellipsoid(hc + Vector((-0.125, 0.06 * side, 0.03)), (0.02, 0.028, 0.018), sides=6, rings=4).fill(C_EYE))
@@ -65,14 +65,14 @@ def arm(side):
     wr = Vector((-0.17, 0.34 * side, 0.36))
     up = tube(bezier(sh, sh + Vector((-0.03, 0.08 * side, -0.18)), el, n=4), taper(5, 0.13, 0.1), sides=8, cap0=True, cap1=True)
     fo = tube(bezier(el, el + Vector((-0.05, 0.01 * side, -0.16)), wr, n=4), taper(5, 0.1, 0.11), sides=8, cap0=True, cap1=True)
-    g = merge(up, fo).paint(skin)
-    deltoid = sphere(sh, 0.15, sides=9, rings=5).paint(skin)
-    fist = ellipsoid(wr + Vector((-0.04, 0, -0.1)), (0.14, 0.13, 0.13), sides=9, rings=5).paint(skin)
+    g = merge(up, fo).vpaint(skin)
+    deltoid = sphere(sh, 0.15, sides=9, rings=5).vpaint(skin)
+    fist = ellipsoid(wr + Vector((-0.04, 0, -0.1)), (0.14, 0.13, 0.13), sides=9, rings=5).vpaint(skin)
     g.extend(deltoid); g.extend(fist)
     for k in range(4):
         y = (k - 1.5) * 0.055
         b = wr + Vector((-0.14, y, -0.13))
-        g.extend(ellipsoid(b, (0.04, 0.03, 0.035), sides=6, rings=4).paint(skin))
+        g.extend(ellipsoid(b, (0.04, 0.03, 0.035), sides=6, rings=4).vpaint(skin))
         g.extend(cone(b + Vector((-0.03, 0, 0)), b + Vector((-0.06, 0, -0.02)), 0.016, sides=4).fill(C_NAIL))
     return g, sh
 
@@ -85,9 +85,9 @@ def legg(side):
     hip = Vector((HIP.x, 0.15 * side, HIP.z))
     knee = Vector((HIP.x - 0.06, 0.18 * side, 0.27))
     ank = Vector((HIP.x - 0.02, 0.19 * side, 0.08))
-    g = tube(bezier(hip, knee, ank, n=4), taper(5, 0.13, 0.09), sides=9, cap0=True, cap1=True).paint(skin)
+    g = tube(bezier(hip, knee, ank, n=4), taper(5, 0.13, 0.09), sides=9, cap0=True, cap1=True).vpaint(skin)
     foot = ellipsoid((ank.x - 0.06, ank.y, 0.06), (0.15, 0.11, 0.07), sides=10, rings=5)
-    foot.paint(skin)
+    foot.vpaint(skin)
     g.extend(foot)
     for k in range(3):
         b = Vector((ank.x - 0.19, ank.y + (k - 1) * 0.05, 0.035))

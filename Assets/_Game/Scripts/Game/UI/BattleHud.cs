@@ -94,7 +94,11 @@ namespace VerdantSiege.UI
             _vitalityText = UIKit.Text("Amount", badge.transform, "0", 64f, UIPalette.Vitality, TextAlignmentOptions.MidlineRight, true);
             UIKit.Stretch(_vitalityText.rectTransform);
             _vitalityText.rectTransform.offsetMax = new Vector2(-22f, 0f);
-            _vitalityText.rectTransform.offsetMin = new Vector2(100f, 0f);
+            _vitalityText.rectTransform.offsetMin = new Vector2(104f, 0f);
+            _vitalityText.enableAutoSizing = true;
+            _vitalityText.fontSizeMax = 64f;
+            _vitalityText.fontSizeMin = 36f;
+            _vitalityText.textWrappingMode = TextWrappingModes.NoWrap;
 
             float cardH = 150f, gap = 14f, y = -136f;
             for (int i = 0; i < sim.Deck.Count; i++)

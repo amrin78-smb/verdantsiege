@@ -29,8 +29,8 @@ def body_paint(p, n, fc, fi):
     if n.x < -0.35 and p.z < 0.72:                     # lighter belly on the front
         c = mix(c, C_BELLY, smoothstep(-0.35, -0.8, n.x) * 0.8)
     return shade(c, 1 + 0.08 * (hash01(fc.x, fc.y, fc.z) - 0.5))
-torso.paint(body_paint)
-pelvis = ellipsoid((HIP.x, 0, HIP.z + 0.02), (0.15, 0.19, 0.11), sides=12, rings=6).paint(body_paint)
+torso.vpaint(body_paint)
+pelvis = ellipsoid((HIP.x, 0, HIP.z + 0.02), (0.15, 0.19, 0.11), sides=12, rings=6).vpaint(body_paint)
 # shelf-fungus brackets growing on the back (+X): flattened half-discs, pale peach tops, lilac undersides
 frills = Geo()
 for k, (x, y, z, s_) in enumerate(((0.17, -0.08, 0.5, 1.0), (0.14, 0.1, 0.62, 1.2), (0.1, -0.04, 0.76, 0.95),
@@ -49,7 +49,7 @@ part("Body", merge(torso, pelvis, frills, nod), root, HIP)
 
 # ---------------- head: bell-hood with tendrils, single great eye, jagged maw
 hc = NECK + Vector((-0.06, 0, 0.09))
-skull = ellipsoid(hc, (0.14, 0.15, 0.13), sides=12, rings=8).paint(body_paint)
+skull = ellipsoid(hc, (0.14, 0.15, 0.13), sides=12, rings=8).vpaint(body_paint)
 hood_prof = [(0.0, 0.17), (0.08, 0.16), (0.14, 0.11), (0.18, 0.03), (0.2, -0.04), (0.17, -0.05)]
 hood = lathe(hood_prof[::-1], sides=14, jitter=lambda pi, si, a: 1 + (0.14 * math.sin(a * 6) + 0.05 * math.sin(a * 11) if pi <= 1 else 0.02 * math.sin(a * 3)),
              cap_bottom=False, cap_top=False)
@@ -102,14 +102,14 @@ def arm(side):
     pts = bezier(sh, el + Vector((0.03, 0, 0.04)), wr, n=6)
     g = tube(pts, taper(len(pts), 0.065, 0.04), sides=7, cap0=True, cap1=False)
     g.paint(lambda p, n, fc, fi: mix(C_BODY0, C_BODY1, smoothstep(0.3, 0.75, p.z)))
-    hand = ellipsoid(wr + Vector((0, 0, -0.02)), (0.055, 0.05, 0.05), sides=8, rings=5).paint(body_paint)
+    hand = ellipsoid(wr + Vector((0, 0, -0.02)), (0.055, 0.05, 0.05), sides=8, rings=5).vpaint(body_paint)
     g.extend(hand)
     for k in range(3):
         a = math.radians(-35 + 35 * k)
         d = Vector((-math.cos(a) * 0.55, math.sin(a) * 0.5 * side, -0.85)).normalized()
         b = wr + Vector((-0.02, 0, -0.04)) + Vector((d.x, d.y, 0)) * 0.03
         g.extend(cone(b, b + d * 0.09, 0.016, sides=4).fill(C_CLAW))
-    sp = sphere(sh + Vector((0.0, 0.02 * side, 0.03)), 0.075, sides=8, rings=5).paint(body_paint)
+    sp = sphere(sh + Vector((0.0, 0.02 * side, 0.03)), 0.075, sides=8, rings=5).vpaint(body_paint)
     g.extend(sp)
     return g, sh
 

@@ -151,6 +151,10 @@ class Geo:
     def fill(self, col):
         return self.paint(lambda p, n, fc, fi: col)
 
+    def vpaint(self, fn):
+        """Paint with smooth per-vertex normals (no facet seams on smooth surfaces)."""
+        return paint_vertex_normals(self, fn)
+
     def set_smooth(self, s):
         self.s = [s] * len(self.f)
         return self
@@ -873,7 +877,9 @@ def shell(az, span, e0, e1, radii, thick=0.04, nu=4, nv=4, center=(0, 0, 0), poi
 
 
 def soft_blob(center, radii, seed=0, lump=0.14, freq=1.6, sides=14, rings=9, flatten_bottom=False):
-    """Smooth, rounded, lumpy foliage/moss mass (smooth shaded, low-frequency noise)."""
+    """Smooth, rounded, lumpy foliage/moss mass (smooth shaded, low-frequency noise). Small masses get fewer segments."""
+    if max(radii) < 0.08:
+        sides, rings = max(6, sides // 2), max(4, rings // 2)
     g = ellipsoid((0, 0, 0), (1, 1, 1), sides=sides, rings=rings)
     off = Vector((seed * 1.37, seed * 2.11, seed * 0.73))
     g.displace(lambda p: p * (lump * noise.noise(p * freq + off)))
@@ -887,7 +893,9 @@ def soft_blob(center, radii, seed=0, lump=0.14, freq=1.6, sides=14, rings=9, fla
 
 def pebble(center, radii, seed=0, lump=0.09):
     """Smooth river-stone / boulder: rounded, gently irregular, flat-ish bottom."""
-    g = soft_blob(center, radii, seed, lump=lump, freq=1.3, sides=14, rings=9)
+    big = max(radii)
+    sides, rings = (14, 9) if big > 0.3 else (10, 7) if big > 0.1 else (7, 5)
+    g = soft_blob(center, radii, seed, lump=lump, freq=1.3, sides=sides, rings=rings)
     for p in g.v:
         if p.z < 0:
             p.z = 0.0
