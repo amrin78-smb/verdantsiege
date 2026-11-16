@@ -44,5 +44,14 @@
   "Warden": {"category": "Enemies", "tris": 4500, "max": [1.0, 1.05, 1.6], "facing": "-X", "parts": ["Body", "Head", "ArmL", "ArmR", "LegL", "LegR", "Shield", "Aura"]},
   "BlightHerald": {"category": "Enemies", "tris": 4500, "max": [1.0, 1.0, 2.0], "facing": "-X", "parts": ["Body", "Head", "ArmL", "ArmR", "LegL", "LegR", "Banner"]},
   "Mimic": {"category": "Enemies", "tris": 4500, "max": [1.0, 1.0, 1.1], "facing": "-X", "parts": ["Body", "Eyes", "Tendrils"]},
-  "RootMaw": {"category": "Bosses", "tris": 14000, "max": [3.0, 5.0, 3.4], "facing": "-X", "parts": ["Body", "Jaw", "RootL", "RootR", "Eye", "Core"]}
+  "RootMaw": {"category": "Bosses", "tris": 14000, "max": [3.0, 5.0, 3.4], "facing": "-X", "parts": ["Body", "Jaw", "RootL", "RootR", "Eye", "Core", "WeakPoint0", "WeakPoint1", "WeakPoint2"]},
+  "Thorn": {"category": "FX", "tris": 200, "max": [0.38, 0.15, 0.15], "grounded": false, "parts": ["Mesh"]},
+  "FrostShard": {"category": "FX", "tris": 200, "max": [0.33, 0.12, 0.12], "grounded": false, "parts": ["Mesh"]},
+  "EmberSeed": {"category": "FX", "tris": 200, "max": [0.36, 0.14, 0.14], "grounded": false, "parts": ["Mesh"]},
+  "WhirlSeed": {"category": "FX", "tris": 200, "max": [0.15, 0.33, 0.1], "grounded": false, "parts": ["Mesh"]},
+  "SapperSpit": {"category": "FX", "tris": 200, "max": [0.35, 0.2, 0.18], "grounded": false, "parts": ["Mesh"]},
+  "EvoSolar": {"category": "FX", "tris": 600, "max": [0.4, 0.4, 0.15], "parts": ["Mesh"]},
+  "EvoPrism": {"category": "FX", "tris": 600, "max": [0.3, 0.3, 0.28], "parts": ["Mesh"]},
+  "EvoRoot": {"category": "FX", "tris": 600, "max": [0.8, 0.8, 0.1], "parts": ["Mesh"]},
+  "EvoBloom": {"category": "FX", "tris": 600, "max": [0.45, 0.45, 0.15], "parts": ["Mesh"]}
 }

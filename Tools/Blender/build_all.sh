@@ -5,7 +5,7 @@ set -u
 cd "$(dirname "$0")/../.."
 B="${BLENDER:-blender}"
 fail=0
-for s in sunspore bulwarkbloom glowcap drifter skitter platedbrute heartroot props roster_defenders roster_enemies rootmaw; do
+for s in sunspore bulwarkbloom glowcap drifter skitter platedbrute heartroot props roster_defenders roster_enemies rootmaw fx; do
   echo "== model_$s.py"
   out=$("$B" -b --factory-startup --python-exit-code 1 --python "Tools/Blender/model_$s.py" 2>&1); rc=$?
   echo "$out" | grep -E "^\[VS\] [A-Za-z]+ +[0-9]+ tris|self-check failed|^  [a-z0-9]|Error:|Traceback"

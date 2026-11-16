@@ -4,6 +4,7 @@ root arms, pivot at the shoulders; L = -Y), Eye (magenta weak point), Core (thro
 import sys, os, math, random
 sys.path.insert(0, os.path.dirname(__file__))
 from vskit import *
+import vskit; vskit.RES = 1.3  # keeps the boss (with 3 weak-point pods) inside 14000
 
 C_BARK0, C_BARK1 = hexc("#2E1E22"), hexc("#8A6A5E")
 C_BARKHI = hexc("#A88A74")
@@ -97,7 +98,26 @@ for k, (ang, ln) in enumerate(((90, 1.6), (-90, 1.65), (50, 1.1), (-50, 1.1), (1
     pts = [Vector((max(-1.3, min(1.25, p.x)), max(-2.3, min(2.3, p.y)), p.z)) for p in pts]
     groots.extend(tube(pts, taper(len(pts), 0.26, 0.06), sides=9, round1=True))
 paint_vertex_normals(groots, bark)
-B = part("Body", clamp_ground(merge(body, brow, upper_teeth, crown, fungus, veins, groots)), root, (0.35, 0, 0))
+# raised root knuckles at the near / far lanes (Y = -2 / +2) that carry the side weak-point pods
+WP = [Vector((-0.72, -2.0, 0.78)), Vector((-0.78, 0.0, 0.66)), Vector((-0.72, 2.0, 0.78))]
+knuckles = Geo()
+for side in (-1, 1):
+    base = Vector((0.15, 1.15 * side, 0.3))
+    pod = WP[0] if side < 0 else WP[2]
+    pts = bezier(base, Vector((-0.2, 1.7 * side, 0.95)), pod + Vector((0.12, -0.05 * side, 0.12)), Vector((pod.x + 0.05, pod.y, 0.05)), n=7)
+    knuckles.extend(tube(pts, taper(len(pts), 0.24, 0.12), sides=10, round1=True))
+    for k in range(3):                       # cradle tendrils around the pod
+        a = math.radians(120 * k + 30)
+        c = pod + Vector((0.08, math.cos(a) * 0.2, math.sin(a) * 0.2))
+        knuckles.extend(tube(bezier(pod + Vector((0.18, 0, 0.0)), c + Vector((0.1, 0, 0)), c + Vector((-0.12, 0, 0)), n=3),
+                             [0.045, 0.02], sides=6, round1=True))
+for k in range(3):                           # cradle for the centre pod under the jaw
+    a = math.radians(120 * k + 30)
+    c = WP[1] + Vector((0.08, math.cos(a) * 0.2, math.sin(a) * 0.18))
+    knuckles.extend(tube(bezier(WP[1] + Vector((0.25, 0, 0.0)), c + Vector((0.1, 0, 0)), c + Vector((-0.12, 0, 0)), n=3),
+                         [0.05, 0.02], sides=6, round1=True))
+paint_vertex_normals(knuckles, bark)
+B = part("Body", clamp_ground(merge(body, brow, upper_teeth, crown, fungus, veins, groots, knuckles)), root, (0.35, 0, 0))
 
 # ---------------- jaw: heavy lower mandible hinged at the back of the maw
 hinge = Vector((-0.05, 0, 1.0))
@@ -162,5 +182,22 @@ for side, nm in ((-1, "RootL"), (1, "RootR")):
     vein = tube([p + Vector((0, 0, 0.16 - 0.015 * i)) for i, p in enumerate(pts[1:-1])], 0.022, sides=4, smooth=False).fill(C_VEIN)
     g.extend(vein)
     part(nm, clamp_ground(g), root, sh, parent=B)
+
+# ---------------- weak-point pods: bulbous glowing blight sacs at the near / middle / far lanes
+for k, c in enumerate(WP):
+    pod = ellipsoid(c, (0.2, 0.24, 0.26), sides=14, rings=9, jitter=lambda pi, si, a, k=k: 1 + 0.06 * math.sin(a * 5 + k))
+    pod.paint(lambda p, n, fc, fi, c=c: mix(hexc("#A0186E", 0.55), hexc("#FF5AD8", 1.0),
+                                             smoothstep(-0.3, 0.8, -n.x * 0.8 + n.z * 0.4 - (p - c).length * 0.5)))
+    spots = Geo()
+    for j in range(6):
+        a = 2 * math.pi * j / 6 + k
+        q = c + Vector((-0.17, math.cos(a) * 0.14, math.sin(a) * 0.16))
+        spots.extend(sphere(q, 0.035, sides=6, rings=4).fill(hexc("#D4FF5A", 1.0)))
+    veins_ = Geo()
+    for j in range(4):
+        a = 2 * math.pi * j / 4 + 0.4
+        pts = [c + Vector((0.05 - 0.07 * t, math.cos(a) * 0.245 * math.sin(math.pi * (0.15 + 0.7 * t)), math.sin(a) * 0.265 * math.sin(math.pi * (0.15 + 0.7 * t)))) for t in [i / 4 for i in range(5)]]
+        veins_.extend(tube(pts, 0.012, sides=4, smooth=False).fill(hexc("#3A0A28")))
+    part(f"WeakPoint{k}", merge(pod, spots, veins_), root, c, parent=B)
 
 finish(root, "Bosses", icon=True, view=(150, 20))
