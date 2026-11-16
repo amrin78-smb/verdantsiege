@@ -139,7 +139,7 @@ namespace VerdantSiege.Battle
                 case Storm: return Branch(d, "tempest");
                 case Mirror: return _seenSapper ? Branch(d, "prism_guard") : Branch(d, "hall_of_mirrors");
                 case Snapjaw: return Branch(d, "quick_digest");
-                default: return 0;
+                default: return Branch(d, "");
             }
         }
 
@@ -150,11 +150,13 @@ namespace VerdantSiege.Battle
             return n;
         }
 
-        private static int Branch(DefenderRuntime d, string id)
+        /// <summary>The preferred branch if mastery has unlocked it, else the first unlocked one (-1 if none).</summary>
+        private int Branch(DefenderRuntime d, string id)
         {
             var list = d.Definition.evolutions;
-            for (int i = 0; i < list.Count; i++) if (list[i] != null && list[i].id == id) return i;
-            return list.Count > 0 ? 0 : -1;
+            for (int i = 0; i < list.Count; i++) if (list[i] != null && list[i].id == id && _sim.BranchUnlocked(d, i)) return i;
+            for (int i = 0; i < list.Count; i++) if (list[i] != null && _sim.BranchUnlocked(d, i)) return i;
+            return -1;
         }
 
         private int Neighbours(DefenderRuntime d)

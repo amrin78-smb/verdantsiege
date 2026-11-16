@@ -49,3 +49,14 @@ MonoBehaviour:
   bossArrivesAtWave: 0
   seedReward: 100
   flawlessBonus: 45
+  mapPosition: {x: 0.37, y: 0.3}
+  challenge:
+    kind: 3
+    value: 4
+    text: Win with 4 or fewer cards
+  challengeSeeds: 50
+  challengeEssence: 1
+  unlocksDefenders:
+  - {fileID: 11400000, guid: 63bc41917237a0a629d82284c0803a66, type: 2}
+  - {fileID: 11400000, guid: a13dcc71bf478158398ee811022c8e98, type: 2}
+  - {fileID: 11400000, guid: 17431560443e675f7aa77f7f947b52e8, type: 2}

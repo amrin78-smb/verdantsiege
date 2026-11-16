@@ -25,9 +25,9 @@ namespace VerdantSiege.Tests
         }
 
         [Test]
-        public void CurrentVersion_IsTwo()
+        public void CurrentVersion_IsAtLeastTwo()
         {
-            Assert.AreEqual(2, SaveData.CurrentVersion, "Essence bumped the save to v2");
+            Assert.GreaterOrEqual(SaveData.CurrentVersion, 2, "Essence bumped the save to v2 (Milestone 4: v3)");
             Assert.AreEqual(0, new SaveData().essence);
         }
 

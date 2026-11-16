@@ -46,3 +46,12 @@ MonoBehaviour:
   bossArrivesAtWave: 0
   seedReward: 50
   flawlessBonus: 25
+  mapPosition: {x: 0.09, y: 0.3}
+  challenge:
+    kind: 1
+    value: 2
+    text: Evolve 2 defenders
+  challengeSeeds: 40
+  challengeEssence: 1
+  unlocksDefenders:
+  - {fileID: 11400000, guid: 6cac50c27aad97b2fb132988b0bf3098, type: 2}

@@ -51,3 +51,11 @@ MonoBehaviour:
   bossArrivesAtWave: 1
   seedReward: 200
   flawlessBonus: 100
+  mapPosition: {x: 0.91, y: 0.4}
+  challenge:
+    kind: 5
+    value: 3
+    text: Stagger the Root Maw 3 times
+  challengeSeeds: 80
+  challengeEssence: 1
+  unlocksDefenders: []

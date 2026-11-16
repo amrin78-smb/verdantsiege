@@ -131,6 +131,7 @@ namespace VerdantSiege.EditorTools
             db.encounters.AddRange(m3.encounters); // M3
             db.bosses = new List<BossDefinition>(m3.bosses); // M3
             ContentBuilderEvolution.Build(db.defenders, burn); // Living Evolution branches (ContentBuilderEvolution.cs)
+            ContentBuilderCampaign.Build(db); // Milestone 4: campaign, objectives, unlocks, research, branch mastery (ContentBuilderCampaign.cs)
             EditorUtility.SetDirty(db);
             AssetDatabase.SaveAssets();
             return db;

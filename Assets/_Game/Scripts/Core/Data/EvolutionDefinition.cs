@@ -41,6 +41,8 @@ namespace VerdantSiege.Data
         public EvolutionAccessory accessory = EvolutionAccessory.Bloom;
         [Tooltip("Short glyph drawn on the chooser icon (1-2 characters).")]
         public string glyph = "";
+        [Tooltip("Defender mastery level that makes this branch available in battle (1 = always; Milestone 4).")]
+        [Range(1, 4)] public int masteryRequired = 1;
 
         [Header("Shooter")]
         [Tooltip("Replaces the defender's projectile (charge shots, deep freeze, ricochet storms...).")]

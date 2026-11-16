@@ -183,10 +183,13 @@ namespace VerdantSiege.UI
                 y -= RowHeight + 10f;
                 r.disc.color = e.accentColor;
                 r.glyph.text = string.IsNullOrEmpty(e.glyph) ? e.displayName.Substring(0, 1) : e.glyph;
-                r.name.text = e.displayName;
-                r.name.color = Color.Lerp(UIPalette.Parchment, e.accentColor, 0.35f);
-                r.desc.text = e.description;
-                r.cost.text = e.cost.ToString();
+                bool unlocked = _sim.BranchUnlocked(d, i);
+                r.name.text = unlocked ? e.displayName : e.displayName + "  <size=70%><color=#C9D8C4>LOCKED</color></size>";
+                r.name.color = unlocked ? Color.Lerp(UIPalette.Parchment, e.accentColor, 0.35f) : UIPalette.TextDim;
+                // Milestone 4: specialist branches open with defender mastery (earned by using it in battle).
+                r.desc.text = unlocked ? e.description : $"Reach mastery {e.masteryRequired} with {d.Definition.displayName} to unlock.";
+                r.cost.text = _sim.EvolutionCost(d, i).ToString();
+                r.disc.color = unlocked ? e.accentColor : new Color(0.35f, 0.37f, 0.35f);
             }
             float height = HeaderHeight + n * (RowHeight + 10f) + 6f;
             Vector3 sp = _cam.WorldToScreenPoint(_ctrl.Layout.CellCenter(d.Coord) + Vector3.up * 0.6f);
@@ -289,9 +292,10 @@ namespace VerdantSiege.UI
             for (int i = 0; i < _rows.Count && i < evos.Count; i++)
             {
                 if (evos[i] == null) continue;
-                bool afford = vit >= evos[i].cost;
+                bool afford = vit >= _sim.EvolutionCost(State.Target, i);
+                bool unlocked = _sim.BranchUnlocked(State.Target, i);
                 _rows[i].cost.color = afford ? UIPalette.Vitality : UIPalette.Danger;
-                _rows[i].group.alpha = afford ? 1f : 0.7f;
+                _rows[i].group.alpha = !unlocked ? 0.45f : afford ? 1f : 0.7f;
             }
             if (_shake > 0f)
             {

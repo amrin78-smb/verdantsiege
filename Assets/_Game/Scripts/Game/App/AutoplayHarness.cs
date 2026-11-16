@@ -1,12 +1,16 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using VerdantSiege.Battle;
 using VerdantSiege.Data;
 using VerdantSiege.Grid;
+using VerdantSiege.Progression;
+using VerdantSiege.Save;
 using VerdantSiege.UI;
 
 namespace VerdantSiege.App
@@ -15,6 +19,10 @@ namespace VerdantSiege.App
     /// Test-player autoplay (command line: -vs-autoplay). Plays an encounter through the same input paths as a
     /// player (card select + screen-space taps mapped through the camera), takes screenshots, writes a report
     /// and quits with exit code 0 when no exception/error was logged. Inactive in normal play.
+    /// Modes: direct (default; -vs-encounter, authored roster, no research/mastery) or -vs-flow campaign (Milestone 4:
+    /// Sanctuary -> Conservatory (buys research) -> World Map -> briefing -> Loadout -> battle -> rewards -> World Map ->
+    /// Sanctuary, all through the menu buttons, with the player's real save). -vs-expect-progress fails the run unless
+    /// the save loaded at start already holds progress (restart persistence check).
     /// </summary>
     public sealed class AutoplayHarness : MonoBehaviour
     {
@@ -37,6 +45,12 @@ namespace VerdantSiege.App
         private bool _pausedTested;
         private float _bossDeadTimer, _crestTimer, _victoryHold;
         private readonly ScriptedPlayer _player = new ScriptedPlayer();
+        private string _flow = "direct";
+        private bool _expectProgress;
+        private int _grantSeeds, _grantEssence;
+        private bool _battleFinished;
+        private BattleSimulation _lastSim;
+        private readonly StringBuilder _flowLog = new StringBuilder();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Boot()
@@ -60,12 +74,142 @@ namespace VerdantSiege.App
                     case "-vs-strategy": _strategy = a[i + 1]; break;
                     case "-vs-speed": float.TryParse(a[i + 1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out _speed); break;
                     case "-vs-safe-inset": float.TryParse(a[i + 1], out ScreenSafe.SimulatedInsetPx); break;
+                    case "-vs-flow": _flow = a[i + 1]; break;
+                    case "-vs-grant-seeds": int.TryParse(a[i + 1], out _grantSeeds); break;
+                    case "-vs-grant-essence": int.TryParse(a[i + 1], out _grantEssence); break;
                 }
             }
+            _expectProgress = Array.IndexOf(a, "-vs-expect-progress") >= 0;
             Directory.CreateDirectory(_shots);
             Application.logMessageReceived += OnLog;
-            Debug.Log($"[VS Autoplay] tag={_tag} encounter={_encounter} strategy={_strategy} speed={_speed} {Screen.width}x{Screen.height}");
-            Invoke(nameof(MenuShot), 2.5f);
+            Debug.Log($"[VS Autoplay] tag={_tag} flow={_flow} encounter={_encounter} strategy={_strategy} speed={_speed} {Screen.width}x{Screen.height}");
+            if (_flow == "campaign") StartCoroutine(CampaignFlow());
+            else
+            {
+                AppRoot.Ensure().ForceNeutralLoadout = true; // direct mode: the encounter's authored roster, no research or mastery
+                Invoke(nameof(MenuShot), 2.5f);
+            }
+        }
+
+        // ================================================================ campaign flow (Milestone 4)
+        private static string SaveSummary(SaveData d)
+        {
+            int done = 0;
+            foreach (EncounterRecord r in d.encounters) if (r.completed) done++;
+            int masteryXp = 0;
+            foreach (MasteryRecord m in d.mastery) masteryXp += m.xp;
+            return $"v{d.version} seeds={d.seeds} essence={d.essence} completed={done} research=[{string.Join(",", d.research)}] " +
+                   $"defenders={d.unlockedDefenders.Count} masteryXp={masteryXp} lastLoadout=[{string.Join(",", d.lastLoadout)}] sanctuaryTierSeen={d.sanctuaryTierSeen}";
+        }
+
+        private void Log(string line)
+        {
+            _flowLog.AppendLine(line);
+            Debug.Log("[VS Autoplay] " + line);
+        }
+
+        private static IEnumerator Wait(float seconds) { yield return new WaitForSecondsRealtime(seconds); }
+
+        private static void Click(string name)
+        {
+            foreach (Button b in FindObjectsByType<Button>(FindObjectsSortMode.None))
+                if (b.name == name && b.isActiveAndEnabled && b.interactable) { b.onClick.Invoke(); return; }
+            Debug.LogError("[VS Autoplay] no clickable button named " + name);
+        }
+
+        private IEnumerator CampaignFlow()
+        {
+            AppRoot app = AppRoot.Ensure();
+            while (MainMenuController.Instance == null) yield return null;
+            yield return Wait(2f);
+            SaveData save = app.Save.Data;
+            Log("save at start: " + SaveSummary(save));
+            if (_expectProgress)
+            {
+                bool ok = save.IsCompleted(app.Config.firstEncounterId) && save.mastery.Count > 0 && save.lastLoadout.Count > 0;
+                if (!ok) Debug.LogError("[VS Autoplay] restart persistence: expected progress from the previous run, found " + SaveSummary(save));
+                else Log("restart persistence: OK (progress survived the relaunch)");
+            }
+            if (_grantSeeds > 0 || _grantEssence > 0)
+            {
+                // Screenshot aid only (logged): lets the research screen show a purchase on a fresh save.
+                save.seeds += _grantSeeds;
+                save.essence += _grantEssence;
+                Log($"test grant: +{_grantSeeds} Seeds +{_grantEssence} Essence");
+            }
+            MainMenuController hub = MainMenuController.Instance;
+            hub.ShowSanctuary();
+            yield return Wait(2.5f); // restoration celebration (if any) plays
+            Shot(_expectProgress ? "sanctuary_restart" : "sanctuary");
+
+            // Conservatory: research and mastery.
+            Click("Conservatory");
+            yield return Wait(1.2f);
+            Shot("research");
+            var cons = hub.CurrentScreen as ConservatoryScreen;
+            if (cons != null && app.Progression.Campaign != null)
+            {
+                foreach (ResearchDefinition r in app.Progression.Campaign.research)
+                    if (ResearchRules.StateOf(save, r) == ResearchState.Available)
+                    {
+                        Log($"research {r.id}: {cons.Buy(r)}");
+                        break;
+                    }
+                yield return Wait(1.2f);
+                Shot("research_bought");
+                cons.Show(ConservatoryScreen.Tab.Defenders);
+                yield return Wait(1f);
+                Shot("mastery");
+            }
+            else Debug.LogError("[VS Autoplay] Conservatory did not open");
+            Click("Back");
+            yield return Wait(0.8f);
+
+            // World map -> briefing -> loadout.
+            Click("WorldMap");
+            yield return Wait(1.5f);
+            Shot("worldmap");
+            var map = hub.CurrentScreen as WorldMapScreen;
+            EncounterDefinition next = app.Progression.NextMission() ?? app.Config.content.FindEncounter(_encounter);
+            if (map == null || next == null) { Debug.LogError("[VS Autoplay] world map / next mission missing"); yield break; }
+            _encounter = next.id;
+            map.ShowBrief(next);
+            yield return Wait(1f);
+            Shot("mission_brief");
+            Click("Prepare");
+            yield return Wait(1.2f);
+            var loadout = hub.CurrentScreen as LoadoutScreen;
+            if (loadout == null) { Debug.LogError("[VS Autoplay] loadout did not open"); yield break; }
+            var deck = new List<string>();
+            foreach (DefenderDefinition d in loadout.Deck) deck.Add(d.id);
+            Log($"loadout {next.id}: slots={app.Progression.DeckSlots(next)} deck=[{string.Join(",", deck)}]");
+            Shot("loadout");
+            Click("Begin");
+
+            // Battle (played by Update), then the rewards.
+            while (!_battleFinished) yield return null;
+            float guard = 60f;
+            MissionResultScreen res = null;
+            while (guard > 0f && (res == null || !res.Settled))
+            {
+                BossVictoryScreen v = FindAnyObjectByType<BossVictoryScreen>();
+                if (v != null && v.PanelShown) v.Continue();
+                res = FindAnyObjectByType<MissionResultScreen>();
+                guard -= Time.unscaledDeltaTime;
+                yield return null;
+            }
+            yield return Wait(0.6f);
+            Shot("result_rewards");
+            if (res != null) Log("rewards: " + res.Summary);
+            Log("save after battle: " + SaveSummary(app.Save.Data));
+            Click("WorldMap");
+            while (MainMenuController.Instance == null || !(MainMenuController.Instance.CurrentScreen is WorldMapScreen)) yield return null;
+            yield return Wait(1.5f);
+            Shot("worldmap_after");
+            MainMenuController.Instance.ShowSanctuary();
+            yield return Wait(3.5f); // restoration grows in
+            Shot("sanctuary_after");
+            Finish(_lastSim);
         }
 
         private void OnLog(string msg, string stack, LogType type)
@@ -91,6 +235,7 @@ namespace VerdantSiege.App
 
         private void Update()
         {
+            if (_battleFinished) return;
             if (_battle == null)
             {
                 if (SceneManager.GetActiveScene().name != AppRoot.BattleScene) return;
@@ -158,19 +303,22 @@ namespace VerdantSiege.App
 
             if (sim.State != BattleState.Running)
             {
+                _lastSim = sim;
+                if (_resultTimer < 0f) _resultTimer = 45f; // software GL can run at 1-3 FPS
+                _resultTimer -= dt;
                 if (boss != null && boss.state == BossState.Defeated)
                 {
-                    // Boss victory: wait for the crest moment and the result panel (fallback after 14 s).
+                    // Boss victory: crest moment and boss panel, then Continue to the campaign results.
                     BossVictoryScreen v = FindAnyObjectByType<BossVictoryScreen>();
-                    if (v != null && !v.PanelShown) { _crestTimer += dt; if (_crestTimer > 0.9f) Shot("boss_victory_crest"); }
-                    if (_resultTimer < 0f) _resultTimer = 40f; // software GL can run at 1-3 FPS
-                    _resultTimer -= dt;
-                    if (((v != null && v.PanelShown && (_victoryHold += dt) > 0.8f) || _resultTimer <= 0f) && !_resultLogged) Finish(sim);
-                    return;
+                    if (v != null && v.isActiveAndEnabled && !v.PanelShown) { _crestTimer += dt; if (_crestTimer > 0.9f) Shot("boss_victory_crest"); }
+                    if (v != null && v.isActiveAndEnabled && v.PanelShown && (_victoryHold += dt) > 0.8f) { Shot("boss_victory_panel"); v.Continue(); }
                 }
-                if (_resultTimer < 0f) _resultTimer = 3f;
-                _resultTimer -= dt;
-                if (_resultTimer <= 0f && !_resultLogged) Finish(sim);
+                MissionResultScreen res = FindAnyObjectByType<MissionResultScreen>();
+                if ((res != null && res.Settled) || _resultTimer <= 0f)
+                {
+                    if (_flow == "campaign") { _battleFinished = true; return; }
+                    if (!_resultLogged) Finish(sim);
+                }
                 return;
             }
 
@@ -293,17 +441,23 @@ namespace VerdantSiege.App
 
         private void Finish(BattleSimulation sim)
         {
+            if (_resultLogged) return;
             _resultLogged = true;
             Shot("result");
+            if (sim == null) { Debug.LogError("[VS Autoplay] no battle was played"); Invoke(nameof(Quit), 1.5f); return; }
             float avg = _frames > 0 ? _frameTimeSum / _frames : 0f;
             var sb = new StringBuilder();
             sb.AppendLine($"Verdant Siege autoplay report  {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-            sb.AppendLine($"tag={_tag} resolution={Screen.width}x{Screen.height} inset={ScreenSafe.SimulatedInsetPx} encounter={_encounter} strategy={_strategy} speed={_speed}");
+            sb.AppendLine($"tag={_tag} flow={_flow} resolution={Screen.width}x{Screen.height} inset={ScreenSafe.SimulatedInsetPx} encounter={_encounter} strategy={_strategy} speed={_speed}");
             sb.AppendLine($"quality={QualityManager.Names[QualityManager.CurrentLevel]} gpu={SystemInfo.graphicsDeviceName} api={SystemInfo.graphicsDeviceType}");
             sb.AppendLine($"frames={_frames} avgFps={(avg > 0 ? 1f / avg : 0):0.0} worstFrame={_worstFrame * 1000f:0}ms (software GL: not representative of phones)");
             BattleStats st = sim.Stats;
             sb.AppendLine($"stats: elapsed={st.elapsed:0.0}s defeated={st.enemiesDefeated} planted={st.defendersPlanted} lost={st.defendersLost} vitality={st.vitalityCollected} breaches={st.breaches}");
             sb.AppendLine($"evolutions={_evolutions}");
+            MissionResultScreen mr = FindAnyObjectByType<MissionResultScreen>();
+            if (mr != null) sb.AppendLine("rewards: " + mr.Summary);
+            sb.AppendLine("save: " + SaveSummary(AppRoot.Ensure().Save.Data));
+            if (_flowLog.Length > 0) sb.Append("flow:\n").Append(_flowLog);
             if (sim.Boss != null)
                 sb.AppendLine($"boss: state={sim.Boss.state} phase={sim.Boss.phase + 1}/{sim.Boss.PhaseCount} staggers={sim.Boss.staggerCount} specialsLanded={sim.Boss.specialsLanded} " +
                               $"victoryScreen={(FindAnyObjectByType<BossVictoryScreen>() != null)} rewards=[{(FindAnyObjectByType<BossVictoryScreen>() != null ? FindAnyObjectByType<BossVictoryScreen>().RewardText : "")}] essence={AppRoot.Ensure().Save.Data.essence}");

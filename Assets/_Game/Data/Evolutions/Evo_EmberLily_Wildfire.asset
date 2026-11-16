@@ -19,6 +19,7 @@ MonoBehaviour:
   cost: 75
   accessory: 1
   glyph: WF
+  masteryRequired: 1
   projectileOverride: {fileID: 11400000, guid: d68f02f80feef445f86305ef1168930a, type: 2}
   attackIntervalMultiplier: 1
   multishotSideLanes: 0

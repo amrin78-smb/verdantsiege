@@ -19,6 +19,7 @@ MonoBehaviour:
   cost: 50
   accessory: 1
   glyph: SC
+  masteryRequired: 2
   projectileOverride: {fileID: 11400000, guid: 7dcd86da21e692c109f19c0419b5e255, type: 2}
   attackIntervalMultiplier: 2.2
   multishotSideLanes: 0

@@ -236,7 +236,7 @@ namespace VerdantSiege.Battle
 
         private void Uproot(DefenderRuntime d)
         {
-            int refund = (int)Math.Round(d.Definition.cost * Boss.Definition.uprootRefund);
+            int refund = (int)Math.Round(d.Definition.cost * Math.Min(1f, Boss.Definition.uprootRefund + Math.Max(0f, Modifiers.uprootRefundBonus)));
             if (refund > 0) Vitality.Add(refund);
             _stats.defendersLost++;
             DefenderUprooted?.Invoke(d, refund);

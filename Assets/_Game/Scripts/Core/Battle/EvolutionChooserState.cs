@@ -58,7 +58,7 @@ namespace VerdantSiege.Battle
             if (!Validate()) return EvolveResult.NoDefender;
             EvolveResult r = _sim.TryEvolve(Target, option);
             if (r == EvolveResult.Ok) Close();
-            else if (r == EvolveResult.NotEnoughVitality || r == EvolveResult.InvalidOption) Denied?.Invoke(r);
+            else if (r == EvolveResult.NotEnoughVitality || r == EvolveResult.InvalidOption || r == EvolveResult.Locked) Denied?.Invoke(r);
             else Close();
             return r;
         }
