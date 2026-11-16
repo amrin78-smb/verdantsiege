@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95d76948a58ca70eb8857667267cc27c, type: 3}
+  m_Name: Wave_VH03_W4
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.WaveDefinition
+  label: The Pack Leaps
+  major: 1
+  maxDuration: 60
+  groups:
+  - enemy: {fileID: 11400000, guid: 5dd373e17643edeca9b22dfaca752e17, type: 2}
+    count: 4
+    lane: -1
+    startDelay: 0
+    interval: 4.5
+  - enemy: {fileID: 11400000, guid: 86b594bec1ee484e4bef3a81e794ccf6, type: 2}
+    count: 2
+    lane: -1
+    startDelay: 8
+    interval: 4
+  - enemy: {fileID: 11400000, guid: 8c2b3a2b460f6a58ba3e4eb69d95c839, type: 2}
+    count: 3
+    lane: -1
+    startDelay: 3
+    interval: 5

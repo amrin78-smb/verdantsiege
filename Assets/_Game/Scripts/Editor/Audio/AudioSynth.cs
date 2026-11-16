@@ -12,7 +12,7 @@ namespace VerdantSiege.EditorTools
     /// Deterministic: every generator uses a fixed seed, so reruns write byte-identical WAVs.
     /// Output: 16-bit mono 22050 Hz WAVs under Assets/_Game/Audio/, plus Assets/_Game/Data/Audio/AudioLibrary.asset.
     /// </summary>
-    public static class AudioSynth
+    public static partial class AudioSynth
     {
         private const int Rate = 22050;
         private const double TwoPi = Math.PI * 2.0;
@@ -83,6 +83,7 @@ namespace VerdantSiege.EditorTools
                 Step("Stings"); Set(lib, Sfx.Defeat, "defeat", Defeat(), 0.85f, 1, 1f);
                 Step("Enemies"); Set(lib, Sfx.EnemyGroan, "enemy_groan", EnemyGroan(), 0.4f, 2, 1.2f);
                 Step("Enemies"); Set(lib, Sfx.BruteStomp, "brute_stomp", BruteStomp(), 0.6f, 2, 0.15f);
+                BuildM3Sfx(lib, Step); // Milestone 3 sounds (AudioSynthM3.cs)
                 lib.victorySting = lib.GetClip(Sfx.Victory);
 
                 Step("Battle music"); lib.battleMusic = Save(MusicDir + "/battle_music.wav", BattleMusic(), Kind.Music);

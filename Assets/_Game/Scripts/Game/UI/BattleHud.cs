@@ -101,6 +101,14 @@ namespace VerdantSiege.UI
             _vitalityText.textWrappingMode = TextWrappingModes.NoWrap;
 
             float cardH = 150f, gap = 14f, y = -136f;
+            // M3: up to 8 cards. Shrink cards (and gaps) so the whole rail fits the 1080-high reference canvas.
+            int n = Mathf.Max(1, sim.Deck.Count);
+            float avail = 1080f - 136f - 16f;
+            if (n * cardH + (n - 1) * gap > avail)
+            {
+                gap = 8f;
+                cardH = Mathf.Floor((avail - (n - 1) * gap) / n);
+            }
             for (int i = 0; i < sim.Deck.Count; i++)
             {
                 DefenderCardView card = DefenderCardView.Create(rail, i, sim.Deck[i], new Vector2(RailWidth - 28f, cardH));
@@ -364,8 +372,9 @@ namespace VerdantSiege.UI
             UIKit.Place((RectTransform)toggle.transform, new Vector2(1f, 0.5f), new Vector2(-16f, 60f), new Vector2(100f, 64f));
             Image panel = UIKit.Panel("DebugPanel", Root, new Color(0.12f, 0.05f, 0.14f, 0.92f), false, true);
             _debugPanel = panel.gameObject;
-            UIKit.Place(panel.rectTransform, new Vector2(1f, 0.5f), new Vector2(-130f, 60f), new Vector2(360f, 560f));
-            string[] cmds = { "+100 Vitality", "-100 Vitality", "Next wave", "Reset cooldowns", "Spawn Drifter", "Spawn Skitter", "Spawn Brute", "Defeat all", "Grid debug" };
+            UIKit.Place(panel.rectTransform, new Vector2(1f, 0.5f), new Vector2(-130f, 60f), new Vector2(360f, 860f)); // M3: taller for more commands
+            string[] cmds = { "+100 Vitality", "-100 Vitality", "Next wave", "Reset cooldowns", "Spawn Drifter", "Spawn Skitter", "Spawn Brute",
+                "Spawn Vaultling", "Spawn Glider", "Spawn Burrower", "Spawn Warden", "Boss now", "Defeat all", "Grid debug" }; // M3 entries
             for (int i = 0; i < cmds.Length; i++)
             {
                 string c = cmds[i];

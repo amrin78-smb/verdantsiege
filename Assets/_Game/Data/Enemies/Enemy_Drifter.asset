@@ -16,14 +16,27 @@ MonoBehaviour:
   displayName: Drifter
   description: A shambling husk of Blight. Slow, steady and hungry for roots.
   counterHint: Any steady lane damage stops it.
+  tags: 0
+  elite: 0
   maxHealth: 150
   armorHealth: 0
   resistances: []
+  devourable: 1
+  movement: 0
   moveSpeed: 0.22
   speedMultiplierAfterArmorBreak: 1
   bodyLength: 0.5
   biteDamage: 30
   biteInterval: 1
+  ability: 0
+  abilityWindup: 0.8
+  abilityInterval: 8
+  abilityRange: 2
+  abilityMagnitude: 0.25
+  abilityDuration: 4
+  abilityStatus: {fileID: 0}
+  abilityDamage: 20
+  abilityProjectile: {fileID: 0}
   breachDamage: 1
   vitalityDrop: 15
   threatCost: 1

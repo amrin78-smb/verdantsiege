@@ -1,6 +1,6 @@
 # Verdant Siege: Project Status
 
-_Last updated: 2026-11-16 · Version 0.1.0 (versionCode 1) · Unity 6000.3.27f2 · URP 17.3_
+_Last updated: 2026-11-16 · Version 0.1.0 (versionCode 1) + Milestone 3 branch · Unity 6000.3.27f2 · URP 17.3_
 
 Evidence labels: **Verified (automated test)**, **Verified (Linux player autoplay)**, **Verified (APK inspection)**,
 **Pending device validation**. Nothing below is claimed beyond its label.
@@ -59,6 +59,33 @@ See `BUILD_VALIDATION.md` for the latest APK and its verification (ABIs, PowerVR
 - Ground tiles are flat colour; no sunlight pools (Verdant Heartlands feature, M2).
 - The APK is debug-signed (no release keystore).
 - Quality Low/Medium/High differ in render scale, MSAA and particle budget only; no profiling-based tuning yet.
+
+## Milestone 3: content expansion (implemented on branch; device validation pending)
+
+### What works
+| Feature | Status |
+|---|---|
+| 9 new defenders (Appendix A costs/cooldowns): Thorncaster (piercing, pierce 2, anti-air), Snapjaw Vine (telegraphed devour, long digest; elites take a 900 bite), Frost Fern (stacking chill, freeze on every 4th hit), Ember Lily (lobbed area burn, burns spore clouds), Whirlseed (3 ricochets across adjacent lanes, anti-air), Mender Moss (3x3 heal + cleanse one harmful status), Burrowroot (hidden trap, erupts on step, edible while rearming, hits burrowers), Storm Orchid (chain lightning to 4 across lanes, stuns Mechanical foes, anti-air), Mirrorleaf (decoy: lures from adjacent lanes, preferred by Sappers, reflects spit x2) | Verified (automated test); placeholder art in the branch |
+| 9 new enemies: Vaultling (crouch telegraph, vaults the first defender once), Spore Carrier (cloud on death: slows/damages the plant; fire burns it), Burrower (tunnels untargetable with a dust trail, surfaces 4.6 columns in), Howler (sac-inflate telegraph, area haste), Sapper (stops at 2.5 columns, glowing canister telegraph, corrosive spit), Glider (flies over plants, anti-air only, breach 1), Mimic (shimmer telegraph, copies speed + armour once), Warden ELITE (35% damage-reduction aura for allies), Blight Herald ELITE (+15% speed for every other foe while alive, HUD banner) | Verified (automated test) |
+| Elites: world-space health bar, arrival banner with counter hint, arrival sound; first sighting of every special enemy shows a counter-hint toast | Verified (autoplay screenshots, vh_07) |
+| Boss framework + The Root Maw: arrival with an escort wave, 3 phases (thresholds 100/66/33%), telegraphed Root Eruptions on the most crowded column (red cell warnings, then uproots plants with a 50% refund and blocks the cells for 8-10 s), summons, Core vulnerability windows (x2.2 damage vs x0.4 guarded), invulnerable phase-change roar, boss bar with phase pips and state, phase banners; defeat wins and withers the Blight | Verified (automated test + Linux autoplay vh_07) |
+| Encounters vh_03 Briar Gate, vh_04 Rotting Meadow, vh_05 Windborne, vh_06 The Warden's Vigil, vh_07 The Root Maw; rosters grow 5 → 8 cards | Bot wins all on 8 seeds (BalanceReport) and the test's 5 seeds; undefended loses (automated) |
+| Card rail fits 8 cards (cards shrink); cards without art show a monogram | Verified (autoplay screenshot) |
+| Presentation: part animation for all new units by Blender part name, status tints, lob arcs, ricochet lane hops, lightning arcs, hazard decals (warnings, roots, clouds), boss rise/telegraph/slam/Core glow, 15 new procedural SFX | Verified visually in autoplay; SFX not yet listened to on device |
+
+### Balance (scripted player, 8 seeds; `BalanceReport`)
+vh_01..vh_04: 8/8 wins, avg Heartroot 4.0-5.0, 3.8-4.4 min. vh_05: 8/8 (4.4). vh_06: 8/8 (4.3). vh_07 boss: 8/8 (4.9), ~3.3 min. Tuned for humans (owner found 0.1.0 too hard): generous starting Vitality (200-250), sky drops every 8 s, 50% refund on uprooted plants. Human play-testing is still needed.
+
+### Test results (Milestone 3)
+- EditMode: **87/87 passed** (+1 explicit `BalanceReport`).
+- Linux autoplay (real UI taps, shared ScriptedPlayer), all **PASS** with 0 errors: vh_07 boss 1920x1080 Won 5/5 and 2400x1080 with 90 px notch Won 5/5; vh_05 Windborne 1920x1080 Won 4/5; vh_06 Warden's Vigil 1920x1080 Won 5/5. Screenshots reviewed: boss arrival/telegraph/roots/phases, Core exposed, elite bar and intel card, glider, spore cloud, burrow trail, 8-card rail. Fixes from the review: hazard decals raised above the tile tops and strengthened; new-foe/elite hints moved from the one-line toast to a two-line intel card.
+
+### Known limitations (M3)
+- All 24 new models/projectiles are labelled placeholders in this branch (`Placeholders (24)` in the setup log); the lead's Blender models drop in on merge (part names match). Card portraits for new defenders are monograms until `Art/Icons/<Name>_icon.png` exist.
+- No pre-battle roster choice yet (each encounter fixes its roster; M4).
+- Boss retry restarts the encounter (no mid-fight checkpoint; fight is ~3-5 min).
+- Enemy health bars only on elites; lure applies once per enemy; Herald affects all enemies on the field, not just its wave.
+- Linux autoplay runs at ~2-3 FPS under software GL; says nothing about phone performance. New VFX budgets not yet profiled on device.
 
 ## Next actions
 1. Pair the S23 Ultra over wireless debugging, install the APK, run `Docs/ANDROID_TEST_CHECKLIST.md`; TCL Tab 10 after 21:00; Redmi A3 when available.

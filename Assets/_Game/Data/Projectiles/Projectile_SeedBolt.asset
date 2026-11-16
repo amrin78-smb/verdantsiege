@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Projectile_SeedBolt
   m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.ProjectileDefinition
   id: seed_bolt
+  motion: 0
   speed: 7.5
   damage: 25
   damageType: 0
@@ -21,5 +22,12 @@ MonoBehaviour:
   splashDamageFraction: 0.5
   knockback: 0
   statusEffect: {fileID: 0}
+  canHitAir: 0
+  bounces: 0
+  bounceFalloff: 0.75
+  bounceRange: 2.2
+  freezeAfterHits: 0
+  freezeStatus: {fileID: 0}
+  ignitesClouds: 0
   prefab: {fileID: 3357296160163067545, guid: 3f0498d1deca28602bea6c788a0d2570, type: 3}
   trailColor: {r: 1, g: 0.85, b: 0.35, a: 1}

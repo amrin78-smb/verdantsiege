@@ -16,7 +16,8 @@ namespace VerdantSiege.Combat
     {
         Slow = 0,           // magnitude = speed reduction fraction (0..1), also slows attack rate
         DamageOverTime = 1, // magnitude = damage per tick
-        Stun = 2            // no movement/attacks
+        Stun = 2,           // no movement/attacks
+        Haste = 3           // magnitude = speed bonus fraction (enemy buffs, e.g. Howler)
     }
 
     public enum StatusStacking

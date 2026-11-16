@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8f696e84ecdf685aa31a986e17d92f7, type: 3}
+  m_Name: Defender_SnapjawVine
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.DefenderDefinition
+  id: snapjaw_vine
+  displayName: Snapjaw Vine
+  role: 4
+  description: Lurks low, then swallows the first foe within reach whole. Elites
+    take a crushing bite instead. Needs a long time to digest.
+  strengths: Removes one big threat
+  weaknesses: Defenceless while digesting
+  accentColor: {r: 0.85, g: 0.3, b: 0.35, a: 1}
+  cost: 150
+  cooldown: 18
+  startingCooldown: 0
+  maxHealth: 400
+  behaviour: 3
+  projectile: {fileID: 0}
+  attackInterval: 1.4
+  firstAttackDelay: 0.5
+  range: 0
+  generateInterval: 12
+  generateFirstDelay: 5
+  generateAmount: 25
+  burstEvery: 4
+  burstAmount: 50
+  abilityDamage: 900
+  abilityDamageType: 0
+  abilityRange: 1.2
+  abilityRecharge: 14
+  abilityWindup: 0.35
+  abilityCount: 1
+  abilityFalloff: 0.8
+  abilityStatus: {fileID: 0}
+  canHitAir: 0
+  reflectsProjectiles: 0
+  reflectMultiplier: 1.5
+  taunts: 0
+  prefab: {fileID: 231171207267269389, guid: 997156a2c2d9d9e7a9ea06deef089cb5, type: 3}
+  icon: {fileID: 21300000, guid: faf73aa4e63f74b79962ba191964b932, type: 3}

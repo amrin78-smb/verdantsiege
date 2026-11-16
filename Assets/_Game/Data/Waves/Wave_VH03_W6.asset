@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95d76948a58ca70eb8857667267cc27c, type: 3}
+  m_Name: Wave_VH03_W6
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.WaveDefinition
+  label: Briar Breakers
+  major: 1
+  maxDuration: 90
+  groups:
+  - enemy: {fileID: 11400000, guid: fa46ea961417ef74687c52c49cabfd0e, type: 2}
+    count: 2
+    lane: -1
+    startDelay: 0
+    interval: 12
+  - enemy: {fileID: 11400000, guid: 8472ee3970d2cb52988cc5b38a0a51d5, type: 2}
+    count: 2
+    lane: -1
+    startDelay: 6
+    interval: 14
+  - enemy: {fileID: 11400000, guid: 5dd373e17643edeca9b22dfaca752e17, type: 2}
+    count: 3
+    lane: -1
+    startDelay: 4
+    interval: 5
+  - enemy: {fileID: 11400000, guid: 8c2b3a2b460f6a58ba3e4eb69d95c839, type: 2}
+    count: 6
+    lane: -1
+    startDelay: 2
+    interval: 3.2

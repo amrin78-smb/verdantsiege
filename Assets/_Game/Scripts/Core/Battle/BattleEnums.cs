@@ -31,7 +31,20 @@ namespace VerdantSiege.Battle
     public enum EnemyActivity
     {
         Walking = 0,
-        Attacking = 1
+        Attacking = 1,  // biting a defender in contact
+        Windup = 2,     // telegraphing an ability (crouch, sac inflate, shimmer); stands still
+        Leaping = 3,    // Vaultling in the air over a defender
+        Burrowed = 4,   // tunnelling: untargetable except by traps and splash
+        Surfacing = 5,  // Burrower emerging (still untargetable, stands still)
+        Ranged = 6      // stopped at range, attacking with projectiles (Sapper)
+    }
+
+    /// <summary>Defender ability state for presentation (shooters/blockers stay Ready).</summary>
+    public enum DefenderAbilityState
+    {
+        Ready = 0,
+        Windup = 1,     // Snapjaw opening its jaws, trap trembling
+        Recovering = 2  // Snapjaw digesting, trap rearming
     }
 
     public static class DeployResultText

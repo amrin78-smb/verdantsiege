@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8f696e84ecdf685aa31a986e17d92f7, type: 3}
+  m_Name: Defender_EmberLily
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.DefenderDefinition
+  id: ember_lily
+  displayName: Ember Lily
+  role: 0
+  description: Lobs blazing seeds over defenders. They burst on impact, burning every
+    foe nearby and burning away spore clouds.
+  strengths: Area burn; clears spores
+  weaknesses: Slow; cannot hit Gliders
+  accentColor: {r: 1, g: 0.5, b: 0.2, a: 1}
+  cost: 175
+  cooldown: 14
+  startingCooldown: 0
+  maxHealth: 300
+  behaviour: 0
+  projectile: {fileID: 11400000, guid: a3de9f30a81d6c40783defedb4ad6377, type: 2}
+  attackInterval: 3
+  firstAttackDelay: 1
+  range: 0
+  generateInterval: 12
+  generateFirstDelay: 5
+  generateAmount: 25
+  burstEvery: 4
+  burstAmount: 50
+  abilityDamage: 0
+  abilityDamageType: 0
+  abilityRange: 1.2
+  abilityRecharge: 10
+  abilityWindup: 0.3
+  abilityCount: 1
+  abilityFalloff: 0.8
+  abilityStatus: {fileID: 0}
+  canHitAir: 0
+  reflectsProjectiles: 0
+  reflectMultiplier: 1.5
+  taunts: 0
+  prefab: {fileID: 2825441558424731802, guid: 0a4b3678a9a8a9203aaf6baf958a15f6, type: 3}
+  icon: {fileID: 21300000, guid: 6bb56e446cc711bb6b6de90ecfafff3a, type: 3}

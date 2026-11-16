@@ -114,10 +114,22 @@ namespace VerdantSiege.EditorTools
 
             foreach (Object o in new Object[] { chill, burn, seedBolt, sunspore, bulwark, glowcap, drifter, skitter, brute, field, e1, e2 }) EditorUtility.SetDirty(o);
 
+            // ---- Milestone 3 content (ContentBuilderM3.cs) ------------------------------------------------
+            ContentBuilderM3.Result m3 = ContentBuilderM3.Build(new ContentBuilderM3.Base
+            {
+                glowcap = glowcap, sunspore = sunspore, bulwark = bulwark, drifter = drifter, skitter = skitter, brute = brute,
+                burn = burn, field = field
+            }, prefabs, icons);
+            // ---- end Milestone 3 ----------------------------------------------------------------------------
+
             var db = EditorAssets.LoadOrCreateSO<ContentDatabase>(Data + "ContentDatabase.asset");
             db.defenders = new List<DefenderDefinition> { sunspore, bulwark, glowcap };
             db.enemies = new List<EnemyDefinition> { drifter, skitter, brute };
             db.encounters = new List<EncounterDefinition> { e1, e2 };
+            db.defenders.AddRange(m3.defenders);   // M3
+            db.enemies.AddRange(m3.enemies);       // M3
+            db.encounters.AddRange(m3.encounters); // M3
+            db.bosses = new List<BossDefinition>(m3.bosses); // M3
             EditorUtility.SetDirty(db);
             AssetDatabase.SaveAssets();
             return db;

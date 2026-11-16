@@ -35,6 +35,7 @@ namespace VerdantSiege.App
         private bool _resultLogged;
         private float _resultTimer = -1f;
         private bool _pausedTested;
+        private readonly ScriptedPlayer _player = new ScriptedPlayer();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Boot()
@@ -107,6 +108,26 @@ namespace VerdantSiege.App
             if (t > 45f) Shot("battle_mid");
             if (sim.Waves.CurrentWave >= 2 && sim.AliveEnemyCount >= 3) Shot("battle_combat");
             if (sim.Waves.CurrentWave == sim.Waves.TotalWaves - 1 && sim.AliveEnemyCount >= 4) Shot("battle_final_wave");
+            // Milestone 3 moments.
+            BossRuntime boss = sim.Boss;
+            if (boss != null)
+            {
+                if (boss.state == BossState.Idle && boss.phase == 0) Shot("boss_arrived");
+                if (boss.state == BossState.Telegraph && boss.targetCells.Count > 0 && boss.stateTimer < 1.2f) Shot("boss_telegraph");
+                if (boss.CoreExposed) Shot("boss_core_exposed");
+                if (boss.phase >= 1 && boss.state == BossState.Idle) Shot("boss_phase2");
+                if (boss.phase >= 2 && boss.state == BossState.Idle) Shot("boss_phase3");
+                if (sim.RootBlockedCount > 0) Shot("boss_roots");
+            }
+            foreach (EnemyRuntime e in sim.Enemies)
+            {
+                if (!e.alive) continue;
+                if (e.IsElite && e.x < sim.Columns - 1f) Shot("elite");
+                if (e.activity == EnemyActivity.Windup && e.Definition.ability == EnemyAbilityKind.Vault) Shot("vault_crouch");
+                if (e.underground && e.x < sim.Columns - 1f) Shot("burrow_trail");
+                if (e.IsFlying && e.x < sim.Columns - 2f) Shot("glider");
+            }
+            if (sim.Clouds.Count > 0) Shot("spore_cloud");
 
             if (sim.State != BattleState.Running)
             {
@@ -157,45 +178,10 @@ namespace VerdantSiege.App
             return -1;
         }
 
+        /// <summary>Same planting policy as the balance tests (ScriptedPlayer), executed through real card + cell taps.</summary>
         private void Plant(BattleSimulation sim)
         {
-            int glow = Slot(sim, "glowcap"), shoot = Slot(sim, "sunspore"), wall = Slot(sim, "bulwark_bloom");
-            int lanes = sim.Lanes;
-            // Emergency: a lane with an enemy on the field but no shooter.
-            for (int l = 0; l < lanes; l++)
-            {
-                bool threat = false;
-                foreach (EnemyRuntime e in sim.Enemies) if (e.alive && e.lane == l && e.x < sim.Columns) threat = true;
-                if (threat && !LaneHas(sim, l, "sunspore") && TryPlace(sim, shoot, l, 1, 2, 0)) return;
-            }
-            // Economy then firepower then walls.
-            int glowCount = Count(sim, "glowcap");
-            if (glowCount < 2 || (glowCount < lanes && sim.Waves.CurrentWave < 3))
-            {
-                for (int k = 0; k < lanes; k++) { int l = (2 + k) % lanes; if (!LaneHas(sim, l, "glowcap") && TryPlace(sim, glow, l, 0)) return; }
-            }
-            for (int k = 0; k < lanes; k++) { int l = (2 + k) % lanes; if (!LaneHas(sim, l, "sunspore") && TryPlace(sim, shoot, l, 1, 2)) return; }
-            foreach (EnemyRuntime e in sim.Enemies)
-                if (e.alive && e.Definition.armorHealth > 0f && !LaneHas(sim, e.lane, "bulwark_bloom") && TryPlace(sim, wall, e.lane, 5, 4, 6)) return;
-            for (int k = 0; k < lanes; k++) { int l = (2 + k) % lanes; if (CountLane(sim, l, "sunspore") < 2 && TryPlace(sim, shoot, l, 2, 3)) return; }
-            for (int k = 0; k < lanes; k++) { int l = (2 + k) % lanes; if (CountLane(sim, l, "sunspore") < 3 && TryPlace(sim, shoot, l, 3, 4)) return; }
-            for (int k = 0; k < lanes; k++) { int l = (2 + k) % lanes; if (!LaneHas(sim, l, "bulwark_bloom") && TryPlace(sim, wall, l, 6, 5)) return; }
-        }
-
-        private static bool LaneHas(BattleSimulation sim, int lane, string id) => CountLane(sim, lane, id) > 0;
-
-        private static int CountLane(BattleSimulation sim, int lane, string id)
-        {
-            int n = 0;
-            foreach (DefenderRuntime d in sim.Defenders) if (d.alive && d.Coord.lane == lane && d.Definition.id == id) n++;
-            return n;
-        }
-
-        private static int Count(BattleSimulation sim, string id)
-        {
-            int n = 0;
-            foreach (DefenderRuntime d in sim.Defenders) if (d.alive && d.Definition.id == id) n++;
-            return n;
+            if (_player.Decide(sim, out int slot, out GridCoord cell)) TryPlace(sim, slot, cell.lane, cell.column);
         }
 
         private bool TryPlace(BattleSimulation sim, int slot, int lane, params int[] columns)

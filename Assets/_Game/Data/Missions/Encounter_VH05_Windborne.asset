@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36ad9fab429b75c978ceae423ae5a451, type: 3}
+  m_Name: Encounter_VH05_Windborne
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.EncounterDefinition
+  id: vh_05
+  displayName: Windborne
+  briefing: 'Gliders soar over plants: answer with Whirlseed, Thorncaster or Storm
+    Orchid. Mirrorleaf throws Sapper spit back.'
+  biomeId: verdant_heartlands
+  battlefield: {fileID: 11400000, guid: 7dc7e3d31801534b8a3cce3a4d458302, type: 2}
+  heartrootHealth: 5
+  startingVitality: 225
+  vitalityCap: 2000
+  skyDropInterval: 8
+  skyDropFirstDelay: 3
+  skyDropAmount: 25
+  pickupLifetime: 12
+  sunlightPoolInterval: 0
+  sunlightPoolDuration: 9
+  sunlightPoolCount: 2
+  sunlightBoost: 1.6
+  prepTime: 25
+  interWaveGap: 5
+  fixedSeed: 0
+  roster:
+  - {fileID: 11400000, guid: dea7c7ce8f38afabc8908c0467697152, type: 2}
+  - {fileID: 11400000, guid: 148fa75ba0f426bb4b965dd989b6e0bc, type: 2}
+  - {fileID: 11400000, guid: 1f5ca81365896e118b665dc01a3a38aa, type: 2}
+  - {fileID: 11400000, guid: 6cac50c27aad97b2fb132988b0bf3098, type: 2}
+  - {fileID: 11400000, guid: a7b1987e5ff3ef002965a6fd7bf37a6d, type: 2}
+  - {fileID: 11400000, guid: 33c9f50369ba81e2cbe4ee543ba4c633, type: 2}
+  - {fileID: 11400000, guid: e8ae9c2cb15ffe023aeb2f53375cffca, type: 2}
+  - {fileID: 11400000, guid: c6d6c712e5f647674b8ae7cd7f4599b5, type: 2}
+  waves:
+  - {fileID: 11400000, guid: 33afdcf65912a86c9b2b92c12adcf2b1, type: 2}
+  - {fileID: 11400000, guid: b48d83abdbd4ff536be1de1d01fe8ebd, type: 2}
+  - {fileID: 11400000, guid: bcd82ddafb5af7851a0fc3f3f36cc1fd, type: 2}
+  - {fileID: 11400000, guid: 3a8c16474fe324fe0aceced49ec86902, type: 2}
+  - {fileID: 11400000, guid: 6ef5eb17ce75122b7bcc33bf543f93cb, type: 2}
+  - {fileID: 11400000, guid: 442c3d0d5a709da508c269dc0816c8de, type: 2}
+  boss: {fileID: 0}
+  bossArrivesAtWave: 0
+  seedReward: 120
+  flawlessBonus: 55

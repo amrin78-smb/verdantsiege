@@ -10,6 +10,7 @@ namespace VerdantSiege.Data
         public List<DefenderDefinition> defenders = new List<DefenderDefinition>();
         public List<EnemyDefinition> enemies = new List<EnemyDefinition>();
         public List<EncounterDefinition> encounters = new List<EncounterDefinition>();
+        public List<BossDefinition> bosses = new List<BossDefinition>();
 
         public EncounterDefinition FindEncounter(string id)
         {

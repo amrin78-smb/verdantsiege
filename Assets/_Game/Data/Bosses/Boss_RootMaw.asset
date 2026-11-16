@@ -1,0 +1,104 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad0336c46e9ab35d0aaa56132ec0f128, type: 3}
+  m_Name: Boss_RootMaw
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.BossDefinition
+  id: root_maw
+  displayName: The Root Maw
+  description: A vast mouth of roots beneath the meadow. It erupts under your plants,
+    walls off the ground and calls the Blight.
+  counterHint: 'Spread out: it strikes the most crowded column. Hit its glowing Core
+    while it is exposed.'
+  maxHealth: 12500
+  guardedDamageMultiplier: 0.4
+  exposedDamageMultiplier: 2.2
+  entranceSeconds: 3.5
+  phaseTransitionSeconds: 3
+  uprootRefund: 0.5
+  phases:
+  - name: The Ground Stirs
+    startsAtHealthFraction: 1
+    attackInterval: 7
+    pattern:
+    - kind: 0
+      telegraphSeconds: 2.8
+      cells: 2
+      blockSeconds: 9
+      summonEnemy: {fileID: 0}
+      summonCount: 2
+      exposeCoreSeconds: 5
+    - kind: 1
+      telegraphSeconds: 2
+      cells: 2
+      blockSeconds: 10
+      summonEnemy: {fileID: 11400000, guid: 8c2b3a2b460f6a58ba3e4eb69d95c839, type: 2}
+      summonCount: 2
+      exposeCoreSeconds: 0
+  - name: Grasping Roots
+    startsAtHealthFraction: 0.66
+    attackInterval: 6.5
+    pattern:
+    - kind: 0
+      telegraphSeconds: 2.6
+      cells: 3
+      blockSeconds: 10
+      summonEnemy: {fileID: 0}
+      summonCount: 2
+      exposeCoreSeconds: 5
+    - kind: 1
+      telegraphSeconds: 1.8
+      cells: 2
+      blockSeconds: 10
+      summonEnemy: {fileID: 11400000, guid: 86b594bec1ee484e4bef3a81e794ccf6, type: 2}
+      summonCount: 2
+      exposeCoreSeconds: 0
+    - kind: 0
+      telegraphSeconds: 2.4
+      cells: 2
+      blockSeconds: 9
+      summonEnemy: {fileID: 0}
+      summonCount: 2
+      exposeCoreSeconds: 4
+    - kind: 1
+      telegraphSeconds: 1.8
+      cells: 2
+      blockSeconds: 10
+      summonEnemy: {fileID: 11400000, guid: 3125244d0e9dec42ebb85d34b4cb9d57, type: 2}
+      summonCount: 1
+      exposeCoreSeconds: 0
+  - name: Heartrot Frenzy
+    startsAtHealthFraction: 0.33
+    attackInterval: 6
+    pattern:
+    - kind: 0
+      telegraphSeconds: 2.8
+      cells: 5
+      blockSeconds: 8
+      summonEnemy: {fileID: 0}
+      summonCount: 2
+      exposeCoreSeconds: 6
+    - kind: 1
+      telegraphSeconds: 1.8
+      cells: 2
+      blockSeconds: 10
+      summonEnemy: {fileID: 11400000, guid: 5dd373e17643edeca9b22dfaca752e17, type: 2}
+      summonCount: 2
+      exposeCoreSeconds: 0
+    - kind: 1
+      telegraphSeconds: 1.8
+      cells: 2
+      blockSeconds: 10
+      summonEnemy: {fileID: 11400000, guid: 8c2b3a2b460f6a58ba3e4eb69d95c839, type: 2}
+      summonCount: 3
+      exposeCoreSeconds: 0
+  prefab: {fileID: 5576277122225591654, guid: 029a6b8728701a3a8aaeb891b732459a, type: 3}
+  accentColor: {r: 0.6, g: 0.3, b: 0.55, a: 1}

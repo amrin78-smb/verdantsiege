@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba4b411643fbba042b9e2533d761aa47, type: 3}
+  m_Name: Enemy_Howler
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.EnemyDefinition
+  id: howler
+  displayName: Howler
+  description: Every few seconds it stops, swells its throat sac and howls, whipping
+    nearby Blight into a frenzy (faster for a while).
+  counterHint: Kill it first, or freeze it mid-howl.
+  tags: 0
+  elite: 0
+  maxHealth: 280
+  armorHealth: 0
+  resistances: []
+  devourable: 1
+  movement: 0
+  moveSpeed: 0.2
+  speedMultiplierAfterArmorBreak: 1
+  bodyLength: 0.55
+  biteDamage: 30
+  biteInterval: 1
+  ability: 4
+  abilityWindup: 1.1
+  abilityInterval: 9
+  abilityRange: 1.8
+  abilityMagnitude: 0.25
+  abilityDuration: 4
+  abilityStatus: {fileID: 11400000, guid: c1a61f4a464deb27faf7648ec61a06bf, type: 2}
+  abilityDamage: 20
+  abilityProjectile: {fileID: 0}
+  breachDamage: 1
+  vitalityDrop: 10
+  threatCost: 3
+  prefab: {fileID: 1620875519349545707, guid: 3c67d0f1e2650a7e2bf3edf76db72722, type: 3}
+  icon: {fileID: 21300000, guid: bd69dc77d59744e09a96b8bab85cbc54, type: 3}
+  accentColor: {r: 0.85, g: 0.35, b: 0.35, a: 1}

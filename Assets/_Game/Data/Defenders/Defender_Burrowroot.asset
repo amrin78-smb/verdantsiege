@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8f696e84ecdf685aa31a986e17d92f7, type: 3}
+  m_Name: Defender_Burrowroot
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.DefenderDefinition
+  id: burrowroot
+  displayName: Burrowroot
+  role: 6
+  description: Hides underground. When a foe steps on it, it erupts in a ring of
+    spikes, then needs time to regrow. Catches burrowers too.
+  strengths: Strong against fast and burrowing foes
+  weaknesses: Edible while regrowing
+  accentColor: {r: 0.7, g: 0.5, b: 0.3, a: 1}
+  cost: 100
+  cooldown: 10
+  startingCooldown: 0
+  maxHealth: 300
+  behaviour: 4
+  projectile: {fileID: 0}
+  attackInterval: 1.4
+  firstAttackDelay: 1.5
+  range: 0
+  generateInterval: 12
+  generateFirstDelay: 5
+  generateAmount: 25
+  burstEvery: 4
+  burstAmount: 50
+  abilityDamage: 450
+  abilityDamageType: 0
+  abilityRange: 0.75
+  abilityRecharge: 9
+  abilityWindup: 0.3
+  abilityCount: 1
+  abilityFalloff: 0.8
+  abilityStatus: {fileID: 0}
+  canHitAir: 0
+  reflectsProjectiles: 0
+  reflectMultiplier: 1.5
+  taunts: 0
+  prefab: {fileID: 7164338717710346064, guid: 2a4a8e1a6e341104392a7d9235f51172, type: 3}
+  icon: {fileID: 21300000, guid: 96274a68bcf76fc4bb1bb568bca4471e, type: 3}
