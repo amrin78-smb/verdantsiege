@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8f696e84ecdf685aa31a986e17d92f7, type: 3}
+  m_Name: Defender_Thorncaster
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.DefenderDefinition
+  id: thorncaster
+  displayName: Thorncaster
+  role: 0
+  description: Hurls heavy thorns that punch through armour plating and pierce two
+    foes. Also hits Gliders.
+  strengths: Pierces armour; anti-air
+  weaknesses: Slow to reload
+  accentColor: {r: 0.55, g: 0.8, b: 0.3, a: 1}
+  cost: 175
+  cooldown: 10
+  startingCooldown: 0
+  maxHealth: 300
+  behaviour: 0
+  projectile: {fileID: 11400000, guid: e39dde436f74e8a09a0d9d2e7ea5e4c8, type: 2}
+  attackInterval: 2.2
+  firstAttackDelay: 0.8
+  range: 0
+  generateInterval: 12
+  generateFirstDelay: 5
+  generateAmount: 25
+  burstEvery: 4
+  burstAmount: 50
+  abilityDamage: 0
+  abilityDamageType: 0
+  abilityRange: 1.2
+  abilityRecharge: 10
+  abilityWindup: 0.3
+  abilityCount: 1
+  abilityFalloff: 0.8
+  abilityStatus: {fileID: 0}
+  canHitAir: 0
+  reflectsProjectiles: 0
+  reflectMultiplier: 1.5
+  taunts: 0
+  prefab: {fileID: 3476579313373612733, guid: 74d493bb0449c4c7caa2583c2d0d0bb5, type: 3}
+  icon: {fileID: 0}

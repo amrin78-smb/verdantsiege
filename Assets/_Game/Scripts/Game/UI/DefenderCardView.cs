@@ -29,6 +29,14 @@ namespace VerdantSiege.UI
         private bool _wasReady = true;
         private float _shake;
         private float _lift;
+        private Color _monogramTint;
+
+        private static string Monogram(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return "?";
+            string[] words = name.Split(' ');
+            return words.Length > 1 ? $"{words[0][0]}{words[1][0]}" : name.Substring(0, 1);
+        }
 
         public static DefenderCardView Create(Transform parent, int slotIndex, DeckSlot slot, Vector2 size)
         {
@@ -55,17 +63,32 @@ namespace VerdantSiege.UI
             _portrait = UIKit.Image("Portrait", _bg.transform, d.icon, Color.white);
             _portrait.preserveAspect = true;
             UIKit.Place(_portrait.rectTransform, new Vector2(0f, 0.5f), new Vector2(2f, 6f), new Vector2(size.y * 0.98f, size.y * 0.98f));
+            if (d.icon == null)
+            {
+                // No card art yet: an accent disc with the defender's initials stands in (portrait image kept for tinting).
+                _portrait.sprite = UIKit.Lib != null ? UIKit.Lib.uiCircle : null;
+                _portrait.rectTransform.sizeDelta = new Vector2(size.y * 0.7f, size.y * 0.7f);
+                _portrait.rectTransform.anchoredPosition = new Vector2(12f, 0f);
+                TextMeshProUGUI mono = UIKit.Text("Monogram", _portrait.transform, Monogram(d.displayName), size.y * 0.3f,
+                    new Color(0.1f, 0.12f, 0.1f, 0.9f), TextAlignmentOptions.Center, true);
+                UIKit.Stretch(mono.rectTransform);
+                _monogramTint = new Color(d.accentColor.r, d.accentColor.g, d.accentColor.b, 1f);
+            }
             _name = UIKit.Text("Name", _bg.transform, d.displayName, 26f, UIPalette.Parchment, TextAlignmentOptions.TopRight, true);
             _name.rectTransform.anchorMin = new Vector2(0.38f, 0.5f);
             _name.rectTransform.anchorMax = new Vector2(1f, 1f);
             _name.rectTransform.offsetMin = new Vector2(0f, 0f);
             _name.rectTransform.offsetMax = new Vector2(-12f, -10f);
             _name.textWrappingMode = TextWrappingModes.Normal;
+            _name.enableAutoSizing = true;
+            _name.fontSizeMin = 16f;
+            _name.fontSizeMax = Mathf.Min(26f, size.y * 0.2f);
             _costChip = UIKit.Image("CostChip", _bg.transform, UIKit.Lib != null ? UIKit.Lib.uiRound : null, new Color(0f, 0f, 0f, 0.5f));
-            UIKit.Place(_costChip.rectTransform, new Vector2(1f, 0f), new Vector2(-10f, 10f), new Vector2(118f, 50f));
+            float chipH = Mathf.Min(50f, size.y * 0.36f);
+            UIKit.Place(_costChip.rectTransform, new Vector2(1f, 0f), new Vector2(-10f, 8f), new Vector2(chipH * 2.36f, chipH));
             Image vIcon = UIKit.Image("VitalityIcon", _costChip.transform, UIKit.Lib != null ? UIKit.Lib.iconVitality : null, Color.white);
-            UIKit.Place(vIcon.rectTransform, new Vector2(0f, 0.5f), new Vector2(4f, 0f), new Vector2(42f, 42f));
-            _cost = UIKit.Text("Cost", _costChip.transform, d.cost.ToString(), 34f, UIPalette.Vitality, TextAlignmentOptions.MidlineRight, true);
+            UIKit.Place(vIcon.rectTransform, new Vector2(0f, 0.5f), new Vector2(4f, 0f), new Vector2(chipH * 0.84f, chipH * 0.84f));
+            _cost = UIKit.Text("Cost", _costChip.transform, d.cost.ToString(), chipH * 0.68f, UIPalette.Vitality, TextAlignmentOptions.MidlineRight, true);
             UIKit.Stretch(_cost.rectTransform);
             _cost.rectTransform.offsetMax = new Vector2(-10f, 0f);
             _cooldown = UIKit.Image("Cooldown", _bg.transform, UIKit.Lib != null ? UIKit.Lib.uiRound : null, new Color(0.02f, 0.06f, 0.05f, 0.72f));
@@ -101,7 +124,8 @@ namespace VerdantSiege.UI
             _readyFlash = Mathf.Max(0f, _readyFlash - dt);
 
             bool usable = ready && affordable;
-            _portrait.color = usable ? Color.white : new Color(0.55f, 0.55f, 0.55f, 1f);
+            Color baseTint = _monogramTint.a > 0f ? _monogramTint : Color.white;
+            _portrait.color = usable ? baseTint : baseTint * new Color(0.55f, 0.55f, 0.55f, 1f);
             _cost.color = affordable ? UIPalette.Vitality : UIPalette.Danger;
             Color edge = _selected ? UIPalette.Gold : new Color(UIPalette.PanelEdge.r, UIPalette.PanelEdge.g, UIPalette.PanelEdge.b, usable ? 0.55f : 0.25f);
             if (_readyFlash > 0f) edge = Color.Lerp(edge, Color.white, _readyFlash / 0.35f);

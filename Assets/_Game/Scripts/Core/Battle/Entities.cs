@@ -35,22 +35,34 @@ namespace VerdantSiege.Battle
         /// <summary>Card slot the defender came from (for undo refunds).</summary>
         public int slotIndex;
         public bool alive;
+        /// <summary>Ambusher/trap state (Ready = armed).</summary>
+        public DefenderAbilityState abilityState;
+        public float abilityTimer;
+        public int abilityTargetId;
+        /// <summary>Harmful effects from spore clouds and Sapper spit (Mender Moss cleanses these).</summary>
+        public readonly StatusEffectSet statuses = new StatusEffectSet();
 
         public bool IsAlive => alive;
         public float Health => health;
         public float MaxHealth => Definition != null ? Definition.maxHealth : 1f;
         public float HealthFraction => MaxHealth > 0f ? health / MaxHealth : 0f;
+        /// <summary>An armed trap is hidden: enemies walk onto it instead of stopping to eat it.</summary>
+        public bool IsArmedTrap => Definition != null && Definition.behaviour == DefenderBehaviourKind.Trap && abilityState != DefenderAbilityState.Recovering;
 
         public void ResetForPool()
         {
             Id = 0; Definition = null; Coord = GridCoord.Invalid; health = 0f; attackTimer = 0f;
             generateTimer = 0f; generatePulses = 0; age = 0f; slotIndex = -1; alive = false;
+            abilityState = DefenderAbilityState.Ready; abilityTimer = 0f; abilityTargetId = 0;
+            statuses.Clear();
         }
     }
 
     /// <summary>Mutable state of one enemy. X is the front of the enemy in column units (decreasing as it advances).</summary>
     public sealed class EnemyRuntime : ILaneTargetable, IPoolable
     {
+        public const float LaneSwitchSeconds = 0.6f;
+
         public int Id { get; set; }
         public EnemyDefinition Definition;
         public int lane;
@@ -58,12 +70,32 @@ namespace VerdantSiege.Battle
         public float prevX;
         public float health;
         public float armor;
+        /// <summary>Armour capacity (definition value, or what a Mimic copied).</summary>
+        public float maxArmor;
         public float biteTimer;
         public EnemyActivity activity;
         public int waveIndex;
         public bool alive;
         public float hitFlash; // presentation hint, seconds remaining
         public readonly StatusEffectSet statuses = new StatusEffectSet();
+
+        // ---- ability state (see EnemyAbilities)
+        public float abilityTimer;
+        public bool abilityUsed;
+        public int abilityTargetId;
+        /// <summary>Vault: start and landing x of the leap.</summary>
+        public float leapFromX, leapToX;
+        /// <summary>Mimic: copied base speed (0 = none).</summary>
+        public float speedOverride;
+        public bool underground;
+        /// <summary>Frost hits counted toward the next freeze.</summary>
+        public int frostHits;
+        /// <summary>Damage reduction from Warden auras this step (0..1).</summary>
+        public float wardReduction;
+        /// <summary>Lure (Mirrorleaf): lane change in progress toward targetLane.</summary>
+        public float laneSwitchTimer;
+        public int targetLane;
+        public bool lured;
 
         public int Lane => lane;
         public float X => x;
@@ -72,23 +104,30 @@ namespace VerdantSiege.Battle
         public float MaxHealth => Definition != null ? Definition.maxHealth : 1f;
         public bool HasArmor => armor > 0f;
         public float BackX => x + (Definition != null ? Definition.bodyLength : 0.5f);
+        public bool IsFlying => Definition != null && Definition.movement == EnemyMovementKind.Flying;
+        public bool IsElite => Definition != null && Definition.elite;
+        /// <summary>Lane position for presentation while switching lanes (fractional).</summary>
+        public float VisualLane => laneSwitchTimer > 0f ? targetLane + (lane - targetLane) * (laneSwitchTimer / LaneSwitchSeconds) : lane;
 
+        /// <summary>Base speed after statuses, armour break, mimicry and haste (rule-wide modifiers are applied by the simulation).</summary>
         public float CurrentSpeed
         {
             get
             {
                 if (Definition == null) return 0f;
                 if (statuses.Has(StatusKind.Stun)) return 0f;
-                float s = Definition.moveSpeed;
-                if (Definition.armorHealth > 0f && armor <= 0f) s *= Definition.speedMultiplierAfterArmorBreak;
-                return s * (1f - statuses.SlowFraction());
+                float s = speedOverride > 0f ? speedOverride : Definition.moveSpeed;
+                if (maxArmor > 0f && armor <= 0f && speedOverride <= 0f) s *= Definition.speedMultiplierAfterArmorBreak;
+                return s * (1f - statuses.SlowFraction()) * (1f + statuses.HasteFraction());
             }
         }
 
         public void ResetForPool()
         {
-            Id = 0; Definition = null; lane = 0; x = 0f; prevX = 0f; health = 0f; armor = 0f; biteTimer = 0f;
+            Id = 0; Definition = null; lane = 0; x = 0f; prevX = 0f; health = 0f; armor = 0f; maxArmor = 0f; biteTimer = 0f;
             activity = EnemyActivity.Walking; waveIndex = -1; alive = false; hitFlash = 0f;
+            abilityTimer = 0f; abilityUsed = false; abilityTargetId = 0; leapFromX = leapToX = 0f; speedOverride = 0f;
+            underground = false; frostHits = 0; wardReduction = 0f; laneSwitchTimer = 0f; targetLane = 0; lured = false;
             statuses.Clear();
         }
     }
@@ -105,7 +144,22 @@ namespace VerdantSiege.Battle
         public int hitsRemaining;
         public int sourceDefenderId;
         public bool alive;
-        // Pierce bookkeeping: ids already hit (small fixed buffer; pierce counts are small).
+        /// <summary>Current damage (bounce falloff and reflection change it).</summary>
+        public float damage;
+        /// <summary>Fired by an enemy toward the Heartroot side.</summary>
+        public bool hostile;
+        public int sourceEnemyId;
+        /// <summary>Hostile: target cell column. Lobbed: landing x.</summary>
+        public int targetColumn;
+        public float targetX;
+        /// <summary>Homing (ricochet hop or reflected spit): enemy being chased (0 = none).</summary>
+        public int homingEnemyId;
+        public int bouncesRemaining;
+        public bool reflected;
+        /// <summary>Lane the projectile came from (presentation blends lane changes over a hop).</summary>
+        public int fromLane;
+        public float hopFromX;
+        // Pierce bookkeeping: ids already hit (small fixed buffer; pierce/bounce counts are small).
         public readonly int[] hitIds = new int[8];
         public int hitCount;
 
@@ -123,7 +177,8 @@ namespace VerdantSiege.Battle
         public void ResetForPool()
         {
             Id = 0; Definition = null; lane = 0; x = 0f; prevX = 0f; startX = 0f; hitsRemaining = 0;
-            sourceDefenderId = 0; alive = false; hitCount = 0;
+            sourceDefenderId = 0; alive = false; hitCount = 0; damage = 0f; hostile = false; sourceEnemyId = 0;
+            targetColumn = 0; targetX = 0f; homingEnemyId = 0; bouncesRemaining = 0; reflected = false; fromLane = 0; hopFromX = 0f;
         }
     }
 
@@ -144,6 +199,23 @@ namespace VerdantSiege.Battle
         {
             Id = 0; amount = 0; x = 0f; laneFloat = 0f; remaining = 0f; lifetime = 0f; age = 0f;
             source = PickupSource.Sky; alive = false;
+        }
+    }
+
+    /// <summary>A lingering spore cloud on one cell (left by a Spore Carrier). Harms the defender in it; fire burns it away.</summary>
+    public sealed class CloudRuntime : IPoolable
+    {
+        public int Id;
+        public GridCoord coord;
+        public float remaining;
+        public float duration;
+        public float damagePerSecond;
+        public StatusEffectDefinition status;
+        public bool alive;
+
+        public void ResetForPool()
+        {
+            Id = 0; coord = GridCoord.Invalid; remaining = 0f; duration = 0f; damagePerSecond = 0f; status = null; alive = false;
         }
     }
 

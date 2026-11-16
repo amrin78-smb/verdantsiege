@@ -29,7 +29,7 @@ namespace VerdantSiege.EditorTools
         public static void SyncSourceArt()
         {
             int copied = 0;
-            foreach (string cat in new[] { "Defenders", "Enemies", "Battlefield", "Props", "FX" })
+            foreach (string cat in new[] { "Defenders", "Enemies", "Bosses", "Battlefield", "Props", "FX" })
             {
                 string src = Path.Combine(SourceArt, "Models", cat);
                 if (!Directory.Exists(src)) continue;

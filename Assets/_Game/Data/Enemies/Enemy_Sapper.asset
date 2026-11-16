@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba4b411643fbba042b9e2533d761aa47, type: 3}
+  m_Name: Enemy_Sapper
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.EnemyDefinition
+  id: sapper
+  displayName: Sapper
+  description: An Ironroot saboteur. It halts at range and lobs corrosive spit at
+    your plants (its canister glows before each throw).
+  counterHint: Mirrorleaf reflects the spit; Storm Orchid short-circuits it; Mender
+    Moss washes off corrosion.
+  tags: 1
+  elite: 0
+  maxHealth: 220
+  armorHealth: 0
+  resistances: []
+  devourable: 1
+  movement: 0
+  moveSpeed: 0.24
+  speedMultiplierAfterArmorBreak: 1
+  bodyLength: 0.5
+  biteDamage: 25
+  biteInterval: 1
+  ability: 5
+  abilityWindup: 0.8
+  abilityInterval: 3
+  abilityRange: 2.5
+  abilityMagnitude: 0.25
+  abilityDuration: 4
+  abilityStatus: {fileID: 0}
+  abilityDamage: 40
+  abilityProjectile: {fileID: 11400000, guid: fbe29bb40b1a762f5bce14a71d22544d, type: 2}
+  breachDamage: 1
+  threatCost: 3
+  prefab: {fileID: 192130802211364923, guid: c5aa7837c75d42907a04b72135b71b39, type: 3}
+  icon: {fileID: 0}
+  accentColor: {r: 0.5, g: 0.75, b: 0.35, a: 1}

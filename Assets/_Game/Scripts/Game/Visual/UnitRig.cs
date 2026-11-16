@@ -115,6 +115,17 @@ namespace VerdantSiege.Visual
             ApplyFlash(true);
         }
 
+        private Color _tint;
+        private float _tintStrength;
+        private float _appliedTint = -1f;
+
+        /// <summary>Persistent status tint (chill blue, burn orange...) shown under hit flashes. Strength 0 clears it.</summary>
+        public void SetTint(Color c, float strength)
+        {
+            _tint = c;
+            _tintStrength = Mathf.Clamp01(strength);
+        }
+
         public void Flash(Color c, float seconds = 0.09f)
         {
             _flashColor = c;
@@ -124,7 +135,8 @@ namespace VerdantSiege.Visual
         /// <summary>Call every frame from the owning view.</summary>
         public void TickFlash(float dt)
         {
-            if (_flash <= 0f && !_flashApplied) return;
+            bool tintChanged = Mathf.Abs(_appliedTint - _tintStrength) > 0.01f;
+            if (_flash <= 0f && !_flashApplied && !tintChanged && _tintStrength <= 0f) return;
             _flash -= dt;
             ApplyFlash(false);
         }
@@ -132,16 +144,27 @@ namespace VerdantSiege.Visual
         private void ApplyFlash(bool force)
         {
             if (_renderers == null) return;
+            if (force) { _tintStrength = 0f; _appliedTint = -1f; }
             if (_flash > 0f)
             {
                 _mpb.SetColor(FlashId, new Color(_flashColor.r, _flashColor.g, _flashColor.b, Mathf.Clamp01(_flash / 0.09f) * 0.75f));
                 for (int i = 0; i < _renderers.Length; i++) _renderers[i].SetPropertyBlock(_mpb);
                 _flashApplied = true;
+                _appliedTint = -1f;
+            }
+            else if (_tintStrength > 0.01f)
+            {
+                if (Mathf.Abs(_appliedTint - _tintStrength) <= 0.01f && !force) return;
+                _mpb.SetColor(FlashId, new Color(_tint.r, _tint.g, _tint.b, _tintStrength * 0.55f));
+                for (int i = 0; i < _renderers.Length; i++) _renderers[i].SetPropertyBlock(_mpb);
+                _flashApplied = true;
+                _appliedTint = _tintStrength;
             }
             else if (_flashApplied || force)
             {
                 for (int i = 0; i < _renderers.Length; i++) _renderers[i].SetPropertyBlock(null);
                 _flashApplied = false;
+                _appliedTint = 0f;
             }
         }
     }

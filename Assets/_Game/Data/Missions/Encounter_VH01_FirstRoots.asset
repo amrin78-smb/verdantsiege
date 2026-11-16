@@ -38,5 +38,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 74b2c9231d97c9bc3b8bdd2165a17489, type: 2}
   - {fileID: 11400000, guid: 8b3582df4ebb944bc8dd3103c3ec2112, type: 2}
   - {fileID: 11400000, guid: fa7195426a26b3e38a92c60a2d0a171f, type: 2}
+  boss: {fileID: 0}
+  bossArrivesAtWave: 0
   seedReward: 50
   flawlessBonus: 25

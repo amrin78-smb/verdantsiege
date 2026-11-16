@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba4b411643fbba042b9e2533d761aa47, type: 3}
+  m_Name: Enemy_SporeCarrier
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.EnemyDefinition
+  id: spore_carrier
+  displayName: Spore Carrier
+  description: A bloated walker. When it bursts it leaves a choking spore cloud that
+    slows and hurts the plant beneath it.
+  counterHint: Burn the cloud away with Ember Lily, or kill it before it reaches
+    your plants.
+  tags: 2
+  elite: 0
+  maxHealth: 260
+  armorHealth: 0
+  resistances: []
+  devourable: 1
+  movement: 0
+  moveSpeed: 0.2
+  speedMultiplierAfterArmorBreak: 1
+  bodyLength: 0.55
+  biteDamage: 25
+  biteInterval: 1
+  ability: 2
+  abilityWindup: 0.8
+  abilityInterval: 8
+  abilityRange: 2
+  abilityMagnitude: 0.25
+  abilityDuration: 7
+  abilityStatus: {fileID: 11400000, guid: 1d4725da11f92a738b2119db640ea378, type: 2}
+  abilityDamage: 25
+  abilityProjectile: {fileID: 0}
+  breachDamage: 1
+  threatCost: 2
+  prefab: {fileID: 3941448105830519897, guid: 2addcbb125512c63bbf5a0a046c6ffb9, type: 3}
+  icon: {fileID: 0}
+  accentColor: {r: 0.6, g: 0.8, b: 0.3, a: 1}

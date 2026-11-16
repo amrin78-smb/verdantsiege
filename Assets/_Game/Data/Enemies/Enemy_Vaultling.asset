@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba4b411643fbba042b9e2533d761aa47, type: 3}
+  m_Name: Enemy_Vaultling
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.EnemyDefinition
+  id: vaultling
+  displayName: Vaultling
+  description: A springy Blight imp. It crouches when it meets a plant, then leaps
+    clean over it, but only once.
+  counterHint: Put a cheap plant in front as a springboard, or slow it with Frost
+    Fern.
+  tags: 0
+  elite: 0
+  maxHealth: 170
+  armorHealth: 0
+  resistances: []
+  devourable: 1
+  movement: 0
+  moveSpeed: 0.42
+  speedMultiplierAfterArmorBreak: 1
+  bodyLength: 0.5
+  biteDamage: 25
+  biteInterval: 0.8
+  ability: 1
+  abilityWindup: 0.9
+  abilityInterval: 8
+  abilityRange: 2
+  abilityMagnitude: 0.25
+  abilityDuration: 4
+  abilityStatus: {fileID: 0}
+  abilityDamage: 20
+  abilityProjectile: {fileID: 0}
+  breachDamage: 1
+  threatCost: 2
+  prefab: {fileID: 3269956227081673026, guid: 924918344b5824ac0be5a8ba311c29e1, type: 3}
+  icon: {fileID: 0}
+  accentColor: {r: 0.95, g: 0.6, b: 0.3, a: 1}

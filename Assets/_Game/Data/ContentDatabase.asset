@@ -16,10 +16,35 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 148fa75ba0f426bb4b965dd989b6e0bc, type: 2}
   - {fileID: 11400000, guid: 1f5ca81365896e118b665dc01a3a38aa, type: 2}
   - {fileID: 11400000, guid: dea7c7ce8f38afabc8908c0467697152, type: 2}
+  - {fileID: 11400000, guid: 6cac50c27aad97b2fb132988b0bf3098, type: 2}
+  - {fileID: 11400000, guid: 17431560443e675f7aa77f7f947b52e8, type: 2}
+  - {fileID: 11400000, guid: c6d6c712e5f647674b8ae7cd7f4599b5, type: 2}
+  - {fileID: 11400000, guid: 63bc41917237a0a629d82284c0803a66, type: 2}
+  - {fileID: 11400000, guid: a7b1987e5ff3ef002965a6fd7bf37a6d, type: 2}
+  - {fileID: 11400000, guid: 807a79563816d08a5ab13b8966402136, type: 2}
+  - {fileID: 11400000, guid: a13dcc71bf478158398ee811022c8e98, type: 2}
+  - {fileID: 11400000, guid: 33c9f50369ba81e2cbe4ee543ba4c633, type: 2}
+  - {fileID: 11400000, guid: e8ae9c2cb15ffe023aeb2f53375cffca, type: 2}
   enemies:
   - {fileID: 11400000, guid: 8c2b3a2b460f6a58ba3e4eb69d95c839, type: 2}
   - {fileID: 11400000, guid: 86b594bec1ee484e4bef3a81e794ccf6, type: 2}
   - {fileID: 11400000, guid: fa46ea961417ef74687c52c49cabfd0e, type: 2}
+  - {fileID: 11400000, guid: 5dd373e17643edeca9b22dfaca752e17, type: 2}
+  - {fileID: 11400000, guid: 3125244d0e9dec42ebb85d34b4cb9d57, type: 2}
+  - {fileID: 11400000, guid: a5065550828516c98a5382b51f77f0e5, type: 2}
+  - {fileID: 11400000, guid: 8472ee3970d2cb52988cc5b38a0a51d5, type: 2}
+  - {fileID: 11400000, guid: 7a763fabd3480bff1b508a11a7e96917, type: 2}
+  - {fileID: 11400000, guid: 66c02d1cdd6027a56bb5b6a65bb7be2d, type: 2}
+  - {fileID: 11400000, guid: 979da6e4f945d4883aad47d444c8c5c7, type: 2}
+  - {fileID: 11400000, guid: 3f2f37e162aa0a567bcaa7c4381b5b72, type: 2}
+  - {fileID: 11400000, guid: e73bd2847e010320296db303fb45858b, type: 2}
   encounters:
   - {fileID: 11400000, guid: 20dcc4a60068226e88b9f9b4a7015e77, type: 2}
   - {fileID: 11400000, guid: 579767def65bea3d3a48c955f66aaa72, type: 2}
+  - {fileID: 11400000, guid: b352bf1aed1117219890f1dd35d34249, type: 2}
+  - {fileID: 11400000, guid: 18e62b9b5aba796e9a276a2942b5dadb, type: 2}
+  - {fileID: 11400000, guid: a774b67e4d121f1c781fce25558c8e03, type: 2}
+  - {fileID: 11400000, guid: cd5bc097b77f04de58a2dac5ec865c8e, type: 2}
+  - {fileID: 11400000, guid: 0b9d0baeb3a8ed89da8458ca2c64c455, type: 2}
+  bosses:
+  - {fileID: 11400000, guid: e240c6794a2cf6982990e60b91671e77, type: 2}

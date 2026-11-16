@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8f696e84ecdf685aa31a986e17d92f7, type: 3}
+  m_Name: Defender_StormOrchid
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.DefenderDefinition
+  id: storm_orchid
+  displayName: Storm Orchid
+  role: 7
+  description: Calls lightning that leaps between up to four foes across neighbouring
+    lanes. Short-circuits Ironroot machines. Hits Gliders.
+  strengths: Chains across lanes; stuns machines
+  weaknesses: Expensive
+  accentColor: {r: 0.65, g: 0.6, b: 1, a: 1}
+  cost: 200
+  cooldown: 16
+  startingCooldown: 0
+  maxHealth: 300
+  behaviour: 6
+  projectile: {fileID: 0}
+  attackInterval: 2.6
+  firstAttackDelay: 0.8
+  range: 0
+  generateInterval: 12
+  generateFirstDelay: 5
+  generateAmount: 25
+  burstEvery: 4
+  burstAmount: 50
+  abilityDamage: 45
+  abilityDamageType: 4
+  abilityRange: 1.8
+  abilityRecharge: 10
+  abilityWindup: 0.3
+  abilityCount: 4
+  abilityFalloff: 0.8
+  abilityStatus: {fileID: 11400000, guid: 31e2b85aeaf41650595f7dc84cd1b3f1, type: 2}
+  canHitAir: 1
+  reflectsProjectiles: 0
+  reflectMultiplier: 1.5
+  taunts: 0
+  prefab: {fileID: 2857104867386039743, guid: 15faf3841adc89676bb054c860cb4309, type: 3}
+  icon: {fileID: 0}

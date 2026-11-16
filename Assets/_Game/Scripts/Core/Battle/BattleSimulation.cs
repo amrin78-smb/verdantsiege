@@ -32,8 +32,10 @@ namespace VerdantSiege.Battle
     /// The presentation layer calls <see cref="Advance"/> with frame time; the simulation runs fixed steps and
     /// raises events that views and UI subscribe to. Positions along a lane are in column units: 0 is the
     /// Heartroot edge, <see cref="Columns"/> the enemy entry edge.
+    /// Split across partial files: this one (core, deployment, economy, flow), .Combat (defender attacks and
+    /// projectiles), .Enemies (movement, abilities, auras, clouds) and .Boss (boss phases and battlefield changes).
     /// </summary>
-    public sealed class BattleSimulation
+    public sealed partial class BattleSimulation
     {
         public const float FixedStep = 1f / 30f;
         public const int MaxStepsPerAdvance = 8;
@@ -41,13 +43,14 @@ namespace VerdantSiege.Battle
         public const float EnemyContactBehind = 0.3f;  // enemy already this far past a centre ignores it
         public const float BreachX = -0.15f;
         public const float SpawnOffset = 0.45f;        // spawn beyond the last column
+        public const float FieldEdgeSlack = 0.25f;     // enemies beyond Columns + this are not yet on the field
 
         // ---------- events (synchronous, raised inside Step) ----------
         public event Action<DefenderRuntime> DefenderPlaced;
         /// <summary>(defender, killed) killed=false for undo/removal.</summary>
         public event Action<DefenderRuntime, bool> DefenderRemoved;
         public event Action<DefenderRuntime, float> DefenderDamaged;
-        /// <summary>Raised when a shooter fires or a generator produces (animation hook).</summary>
+        /// <summary>Raised when a defender acts: shoots, produces, snaps, erupts, heals, casts (animation hook).</summary>
         public event Action<DefenderRuntime> DefenderActed;
         public event Action<EnemyRuntime> EnemySpawned;
         public event Action<EnemyRuntime, DamageResult, DamageType> EnemyDamaged;
@@ -128,6 +131,7 @@ namespace VerdantSiege.Battle
             _skyTimer = encounter.skyDropFirstDelay;
             _spawnCallback = (def, lane, wave) => SpawnEnemy(def, lane, wave);
             _waveStartedCallback = OnWaveStarted;
+            if (encounter.boss != null) Boss = new BossRuntime(encounter.boss);
         }
 
         // ================================================================== time
@@ -156,9 +160,12 @@ namespace VerdantSiege.Battle
 
             Waves.Tick(dt, AliveInWave(Waves.CurrentWave), _spawnCallback, _waveStartedCallback);
             TickSkyDrops(dt);
+            RefreshAuras();
             TickDefenders(dt);
             TickProjectiles(dt);
             TickEnemies(dt);
+            TickClouds(dt);
+            TickBoss(dt);
             TickPickups(dt);
             Compact();
             CheckEnd();
@@ -305,7 +312,7 @@ namespace VerdantSiege.Battle
             }
         }
 
-        // ================================================================== defenders
+        // ================================================================== defenders (shared)
 
         private void TickDefenders(float dt)
         {
@@ -314,41 +321,17 @@ namespace VerdantSiege.Battle
                 DefenderRuntime d = _defenders[i];
                 if (!d.alive) continue;
                 d.age += dt;
-                DefenderBehaviours.For(d.Definition.behaviour).Tick(d, this, dt);
+                float bdt = dt;
+                if (d.statuses.Count > 0)
+                {
+                    float dot = d.statuses.Tick(dt, out _);
+                    if (dot > 0f) DamageDefender(d, dot);
+                    if (!d.alive) continue;
+                    if (d.statuses.Has(StatusKind.Stun)) continue;
+                    bdt = dt * (1f - d.statuses.SlowFraction()); // spores and corrosion slow its actions
+                }
+                DefenderBehaviours.For(d.Definition.behaviour).Tick(d, this, bdt);
             }
-        }
-
-        /// <summary>Is there a live, on-field enemy in this defender's lane ahead of it (within range)?</summary>
-        public bool HasTargetAhead(DefenderRuntime d)
-        {
-            float cx = d.Coord.CenterX;
-            float range = d.Definition.range;
-            for (int i = 0; i < _enemies.Count; i++)
-            {
-                EnemyRuntime e = _enemies[i];
-                if (!e.alive || e.lane != d.Coord.lane) continue;
-                if (e.x < cx - 0.3f || e.x > Columns + 0.25f) continue;
-                if (range > 0f && e.x - cx > range) continue;
-                return true;
-            }
-            return false;
-        }
-
-        internal void FireProjectile(DefenderRuntime d)
-        {
-            ProjectileDefinition def = d.Definition.projectile;
-            if (def == null) return;
-            ProjectileRuntime p = _projectilePool.Rent();
-            p.Id = _nextId++;
-            p.Definition = def;
-            p.lane = d.Coord.lane;
-            p.startX = p.prevX = p.x = d.Coord.CenterX + 0.3f;
-            p.hitsRemaining = Math.Max(1, def.pierceCount);
-            p.sourceDefenderId = d.Id;
-            p.alive = true;
-            _projectiles.Add(p);
-            DefenderActed?.Invoke(d);
-            ProjectileFired?.Invoke(p);
         }
 
         public void DamageDefender(DefenderRuntime d, float amount)
@@ -371,68 +354,9 @@ namespace VerdantSiege.Battle
             DefenderRemoved?.Invoke(d, killed);
         }
 
-        // ================================================================== projectiles
+        // ================================================================== enemies (shared)
 
-        private void TickProjectiles(float dt)
-        {
-            float despawnX = Columns + 1.0f;
-            for (int i = 0; i < _projectiles.Count; i++)
-            {
-                ProjectileRuntime p = _projectiles[i];
-                if (!p.alive) continue;
-                p.prevX = p.x;
-                p.x += p.Definition.speed * dt;
-                while (p.alive && p.hitsRemaining > 0)
-                {
-                    EnemyRuntime target = FindProjectileHit(p);
-                    if (target == null) break;
-                    p.MarkHit(target.Id);
-                    p.hitsRemaining--;
-                    ApplyProjectileHit(p, target);
-                    if (p.hitsRemaining <= 0) p.alive = false;
-                }
-                if (p.alive && p.x > despawnX) p.alive = false;
-                if (!p.alive) ProjectileDespawned?.Invoke(p);
-            }
-        }
-
-        private EnemyRuntime FindProjectileHit(ProjectileRuntime p)
-        {
-            EnemyRuntime best = null;
-            for (int i = 0; i < _enemies.Count; i++)
-            {
-                EnemyRuntime e = _enemies[i];
-                if (!e.alive || e.lane != p.lane || p.AlreadyHit(e.Id)) continue;
-                if (e.x > Columns + 0.25f) continue; // not yet on the field
-                // projectile swept segment [prevX, x] overlaps the enemy body [front-0.2, back]
-                if (p.x < e.x - 0.2f || p.prevX > e.BackX) continue;
-                if (best == null || e.x < best.x) best = e;
-            }
-            return best;
-        }
-
-        private void ApplyProjectileHit(ProjectileRuntime p, EnemyRuntime e)
-        {
-            ProjectileDefinition def = p.Definition;
-            ProjectileHit?.Invoke(p, e);
-            DamageEnemy(e, def.damage, def.damageType);
-            if (def.statusEffect != null && e.alive) ApplyStatus(e, def.statusEffect);
-            if (def.knockback > 0f && e.alive) e.x = Math.Min(e.x + def.knockback, SpawnX);
-            if (def.splashRadius > 0f)
-            {
-                float splash = def.damage * def.splashDamageFraction;
-                for (int i = 0; i < _enemies.Count; i++)
-                {
-                    EnemyRuntime o = _enemies[i];
-                    if (o == e || !o.alive || o.lane != e.lane) continue;
-                    if (Math.Abs(o.x - e.x) <= def.splashRadius) DamageEnemy(o, splash, def.damageType);
-                }
-            }
-        }
-
-        // ================================================================== enemies
-
-        /// <summary>Spawns an enemy at the entry edge of a lane (also used by debug tools).</summary>
+        /// <summary>Spawns an enemy at the entry edge of a lane (also used by debug tools and boss summons).</summary>
         public EnemyRuntime SpawnEnemy(EnemyDefinition def, int lane, int waveIndex = -1)
         {
             if (def == null) throw new ArgumentNullException(nameof(def));
@@ -441,13 +365,15 @@ namespace VerdantSiege.Battle
             e.Id = _nextId++;
             e.Definition = def;
             e.lane = lane;
+            e.targetLane = lane;
             e.x = e.prevX = SpawnX + _rng.Range(0f, 0.2f);
             e.health = def.maxHealth;
-            e.armor = def.armorHealth;
+            e.armor = e.maxArmor = def.armorHealth;
             e.waveIndex = waveIndex;
             e.activity = EnemyActivity.Walking;
             e.alive = true;
             _enemies.Add(e);
+            EnemyAbilities.For(def.ability).OnSpawn(e, this);
             EnemySpawned?.Invoke(e);
             return e;
         }
@@ -455,77 +381,36 @@ namespace VerdantSiege.Battle
         public DamageResult DamageEnemy(EnemyRuntime e, float amount, DamageType type)
         {
             if (e == null || !e.alive) return default;
+            if (e.wardReduction > 0f) amount *= 1f - e.wardReduction;
             bool hadArmor = e.armor > 0f;
             DamageResult r = DamageCalculator.Apply(amount, type, e.Definition.resistances, ref e.armor, ref e.health);
             e.hitFlash = 0.12f;
             EnemyDamaged?.Invoke(e, r, type);
             if (hadArmor && r.armorBroken) EnemyArmorBroken?.Invoke(e);
-            if (r.killed)
-            {
-                e.alive = false;
-                _stats.enemiesDefeated++;
-                EnemyKilled?.Invoke(e);
-            }
+            if (r.killed) OnEnemyDied(e);
             return r;
+        }
+
+        /// <summary>Removes an enemy outright (devoured by a Snapjaw, or withering when its boss falls).</summary>
+        internal void KillEnemy(EnemyRuntime e)
+        {
+            if (e == null || !e.alive) return;
+            e.health = 0f;
+            OnEnemyDied(e);
+        }
+
+        private void OnEnemyDied(EnemyRuntime e)
+        {
+            e.alive = false;
+            _stats.enemiesDefeated++;
+            EnemyKilled?.Invoke(e);
+            EnemyAbilities.For(e.Definition.ability).OnDeath(e, this);
         }
 
         public void ApplyStatus(EnemyRuntime e, StatusEffectDefinition status)
         {
             if (e == null || !e.alive || status == null) return;
             if (e.statuses.Apply(status)) StatusApplied?.Invoke(e, status);
-        }
-
-        private void TickEnemies(float dt)
-        {
-            for (int i = 0; i < _enemies.Count; i++)
-            {
-                EnemyRuntime e = _enemies[i];
-                if (!e.alive) continue;
-                if (e.hitFlash > 0f) e.hitFlash -= dt;
-                if (e.statuses.Count > 0)
-                {
-                    float dot = e.statuses.Tick(dt, out DamageType dotType);
-                    if (dot > 0f) DamageEnemy(e, dot, dotType);
-                    if (!e.alive) continue;
-                }
-                e.prevX = e.x;
-                bool stunned = e.statuses.Has(StatusKind.Stun);
-                DefenderRuntime blocker = FindBlocker(e);
-                if (blocker != null)
-                {
-                    if (e.activity != EnemyActivity.Attacking)
-                    {
-                        e.activity = EnemyActivity.Attacking;
-                        e.biteTimer = e.Definition.biteInterval * 0.5f; // readable wind-up before the first bite
-                        EnemyActivityChanged?.Invoke(e, e.activity);
-                    }
-                    if (!stunned) e.biteTimer -= dt * (1f - e.statuses.SlowFraction());
-                    if (e.biteTimer <= 0f)
-                    {
-                        e.biteTimer += e.Definition.biteInterval;
-                        EnemyBit?.Invoke(e, blocker);
-                        DamageDefender(blocker, e.Definition.biteDamage);
-                    }
-                    continue;
-                }
-                if (e.activity != EnemyActivity.Walking)
-                {
-                    e.activity = EnemyActivity.Walking;
-                    EnemyActivityChanged?.Invoke(e, e.activity);
-                }
-                e.x -= e.CurrentSpeed * dt;
-                if (e.x <= BreachX) Breach(e);
-            }
-        }
-
-        /// <summary>The defender this enemy is in contact with, if any.</summary>
-        public DefenderRuntime FindBlocker(EnemyRuntime e)
-        {
-            // Defender centre c+0.5 must lie in [x - ahead, x + behind]  =>  c in [x-ahead-0.5, x+behind-0.5]
-            int c = (int)Math.Ceiling(e.x - EnemyContactAhead - 0.5f);
-            if (c > e.x + EnemyContactBehind - 0.5f) return null;
-            DefenderRuntime d = Grid.Get(e.lane, c);
-            return d != null && d.alive ? d : null;
         }
 
         private void Breach(EnemyRuntime e)
@@ -555,10 +440,25 @@ namespace VerdantSiege.Battle
             }
         }
 
+        public EnemyRuntime FindEnemy(int id)
+        {
+            if (id == 0) return null;
+            for (int i = 0; i < _enemies.Count; i++) if (_enemies[i].Id == id && _enemies[i].alive) return _enemies[i];
+            return null;
+        }
+
+        public DefenderRuntime FindDefender(int id)
+        {
+            if (id == 0) return null;
+            for (int i = 0; i < _defenders.Count; i++) if (_defenders[i].Id == id && _defenders[i].alive) return _defenders[i];
+            return null;
+        }
+
         private void OnWaveStarted(int index)
         {
             WaveDefinition w = Encounter.waves[index];
             WaveStarted?.Invoke(index, w != null && w.major);
+            if (Boss != null && Boss.state == BossState.Dormant && index >= Encounter.bossArrivesAtWave) BossRise();
         }
 
         // ================================================================== end state
@@ -566,6 +466,7 @@ namespace VerdantSiege.Battle
         private void CheckEnd()
         {
             if (HeartrootHealth <= 0) SetState(BattleState.Lost);
+            else if (Boss != null) { if (Boss.state == BossState.Defeated) SetState(BattleState.Won); }
             else if (Waves.Finished && AliveEnemyCount == 0) SetState(BattleState.Won);
         }
 
@@ -591,6 +492,8 @@ namespace VerdantSiege.Battle
                 if (!_projectiles[i].alive) { _projectilePool.Return(_projectiles[i]); _projectiles.RemoveAt(i); }
             for (int i = _pickups.Count - 1; i >= 0; i--)
                 if (!_pickups[i].alive) { _pickupPool.Return(_pickups[i]); _pickups.RemoveAt(i); }
+            for (int i = _clouds.Count - 1; i >= 0; i--)
+                if (!_clouds[i].alive) { _cloudPool.Return(_clouds[i]); _clouds.RemoveAt(i); }
         }
 
         // ================================================================== debug
@@ -603,6 +506,7 @@ namespace VerdantSiege.Battle
         {
             for (int i = 0; i < _enemies.Count; i++)
                 if (_enemies[i].alive) DamageEnemy(_enemies[i], 1e9f, DamageType.Piercing);
+            if (Boss != null && Boss.Arrived && Boss.state != BossState.Defeated) DefeatBoss();
             Compact();
             CheckEnd();
         }

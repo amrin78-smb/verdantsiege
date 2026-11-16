@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba4b411643fbba042b9e2533d761aa47, type: 3}
+  m_Name: Enemy_Burrower
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.EnemyDefinition
+  id: burrower
+  displayName: Burrower
+  description: Tunnels beneath your lines, trailing dust, and surfaces deep in the
+    garden. Shots cannot reach it underground.
+  counterHint: Burrowroot traps and splash damage hit it underground; keep shooters
+    behind the surfacing point.
+  tags: 0
+  elite: 0
+  maxHealth: 230
+  armorHealth: 0
+  resistances: []
+  devourable: 1
+  movement: 2
+  moveSpeed: 0.32
+  speedMultiplierAfterArmorBreak: 1
+  bodyLength: 0.5
+  biteDamage: 35
+  biteInterval: 1
+  ability: 3
+  abilityWindup: 1.1
+  abilityInterval: 8
+  abilityRange: 4.6
+  abilityMagnitude: 0.25
+  abilityDuration: 4
+  abilityStatus: {fileID: 0}
+  abilityDamage: 20
+  abilityProjectile: {fileID: 0}
+  breachDamage: 1
+  threatCost: 2
+  prefab: {fileID: 8840028612104439395, guid: 0c36680f1e4a2db52bac313c96005f21, type: 3}
+  icon: {fileID: 0}
+  accentColor: {r: 0.6, g: 0.45, b: 0.3, a: 1}

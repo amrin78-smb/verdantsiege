@@ -9,6 +9,9 @@ namespace VerdantSiege.Battle
     /// </summary>
     public static class EncounterValidator
     {
+        /// <summary>Most cards the battle rail shows (the HUD shrinks cards beyond six).</summary>
+        public const int MaxRosterSize = 8;
+
         public static List<string> Validate(EncounterDefinition e)
         {
             var errors = new List<string>();
@@ -29,6 +32,7 @@ namespace VerdantSiege.Battle
                         errors.Add($"{n}: shooter {d.id} has no projectile");
                 }
                 if (!affordable) errors.Add($"{n}: no defender is affordable with the starting Vitality");
+                if (e.roster.Count > MaxRosterSize) errors.Add($"{n}: roster has {e.roster.Count} cards (max {MaxRosterSize})");
             }
             if (e.waves == null || e.waves.Count == 0) errors.Add($"{n}: no waves");
             else
@@ -48,6 +52,26 @@ namespace VerdantSiege.Battle
                 }
             }
             if (e.startingVitality > e.vitalityCap) errors.Add($"{n}: starting Vitality above cap");
+            if (e.boss != null)
+            {
+                BossDefinition b = e.boss;
+                if (b.phases == null || b.phases.Count == 0) errors.Add($"{n}: boss {b.id} has no phases");
+                else
+                {
+                    if (b.phases[0].startsAtHealthFraction < 0.999f) errors.Add($"{n}: boss {b.id} first phase must start at full health");
+                    for (int i = 0; i < b.phases.Count; i++)
+                    {
+                        BossPhase p = b.phases[i];
+                        if (p == null || p.pattern == null || p.pattern.Count == 0) { errors.Add($"{n}: boss {b.id} phase {i} has no attacks"); continue; }
+                        if (i > 0 && p.startsAtHealthFraction >= b.phases[i - 1].startsAtHealthFraction)
+                            errors.Add($"{n}: boss {b.id} phase thresholds must decrease");
+                        foreach (BossAttack a in p.pattern)
+                            if (a.kind == BossAttackKind.Summon && (a.summonEnemy == null || a.summonCount < 1))
+                                errors.Add($"{n}: boss {b.id} phase {i} summon has no enemy");
+                    }
+                }
+                if (e.waves != null && e.bossArrivesAtWave >= e.waves.Count) errors.Add($"{n}: boss arrives after the last wave");
+            }
             return errors;
         }
     }

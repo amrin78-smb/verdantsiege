@@ -34,6 +34,12 @@ namespace VerdantSiege.Data
         public List<DefenderDefinition> roster = new List<DefenderDefinition>();
         public List<WaveDefinition> waves = new List<WaveDefinition>();
 
+        [Header("Boss (optional)")]
+        [Tooltip("If set, the encounter is won by defeating the boss; waves act as its escort.")]
+        public BossDefinition boss;
+        [Tooltip("The boss rises when this wave starts (0 = with the first wave).")]
+        [Min(0)] public int bossArrivesAtWave = 0;
+
         [Header("Rewards")]
         [Min(0)] public int seedReward = 50;
         [Tooltip("Extra seeds when the Heartroot is undamaged.")] [Min(0)] public int flawlessBonus = 25;

@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba4b411643fbba042b9e2533d761aa47, type: 3}
+  m_Name: Enemy_Warden
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.EnemyDefinition
+  id: warden
+  displayName: Warden
+  description: ELITE. A shield-bearing Ironroot knight. Its aura makes nearby Blight
+    take 35% less damage.
+  counterHint: Focus it down with Thorncasters, chain lightning or Ember splash;
+    its shield does not protect itself.
+  tags: 1
+  elite: 1
+  maxHealth: 850
+  armorHealth: 0
+  resistances: []
+  devourable: 0
+  movement: 0
+  moveSpeed: 0.16
+  speedMultiplierAfterArmorBreak: 1
+  bodyLength: 0.65
+  biteDamage: 50
+  biteInterval: 1.2
+  ability: 7
+  abilityWindup: 0.8
+  abilityInterval: 8
+  abilityRange: 1.6
+  abilityMagnitude: 0.35
+  abilityDuration: 4
+  abilityStatus: {fileID: 0}
+  abilityDamage: 20
+  abilityProjectile: {fileID: 0}
+  breachDamage: 2
+  threatCost: 6
+  prefab: {fileID: 1179802818219255719, guid: 745c688960750a78c92a1db5cf4be3a7, type: 3}
+  icon: {fileID: 0}
+  accentColor: {r: 0.55, g: 0.65, b: 0.8, a: 1}

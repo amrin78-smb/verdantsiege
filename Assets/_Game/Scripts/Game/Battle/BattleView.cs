@@ -11,7 +11,7 @@ namespace VerdantSiege.Battle.View
     /// Binds the simulation's events to pooled views, VFX and audio. Owns no gameplay state: everything shown
     /// is derived from the simulation, and views linger only for exit animations.
     /// </summary>
-    public sealed class BattleView : MonoBehaviour
+    public sealed partial class BattleView : MonoBehaviour
     {
         private BattleSimulation _sim;
         private BattleLayout _layout;
@@ -73,6 +73,7 @@ namespace VerdantSiege.Battle.View
             sim.PickupSpawned += OnPickupSpawned;
             sim.PickupRemoved += OnPickupRemoved;
             sim.HeartrootDamaged += OnHeartrootDamaged;
+            InitM3(); // Milestone 3 wiring (BattleView.M3.cs)
         }
 
         private void OnDestroy()
@@ -99,6 +100,7 @@ namespace VerdantSiege.Battle.View
             _sim.PickupSpawned -= OnPickupSpawned;
             _sim.PickupRemoved -= OnPickupRemoved;
             _sim.HeartrootDamaged -= OnHeartrootDamaged;
+            UnsubscribeM3();
         }
 
         private void Play(Sfx s, float vol = 1f) { if (_audio != null) _audio.Play(s, vol); }
@@ -143,7 +145,7 @@ namespace VerdantSiege.Battle.View
         {
             if (_defenders.TryGetValue(d.Id, out DefenderView v)) v.OnActed();
             if (d.Definition.behaviour == DefenderBehaviourKind.Generator) Play(Sfx.Produce);
-            else Play(Sfx.Shoot, 0.8f);
+            else if (d.Definition.behaviour == DefenderBehaviourKind.LaneShooter) Play(Sfx.Shoot, 0.8f); // M3 kinds: BattleView.M3.cs
         }
 
         // ------------------------------------------------------------ enemies
@@ -151,9 +153,10 @@ namespace VerdantSiege.Battle.View
         {
             if (e.Definition.prefab == null) return;
             var v = _pool.Rent<EnemyView>(e.Definition.prefab, _layout.ToWorld(e.x, e.lane), Quaternion.identity, _unitsRoot);
-            v.Bind(e, _layout, _vfx);
+            v.Bind(e, _layout, _vfx, _lib);
             _enemies[e.Id] = v;
-            if (e.Definition.armorHealth > 0f) Play(Sfx.BruteStomp);
+            if (e.Definition.elite) Play(Sfx.EliteArrive);
+            else if (e.Definition.armorHealth > 0f) Play(Sfx.BruteStomp);
             else if (Random.value < 0.35f) Play(Sfx.EnemyGroan, 0.6f);
         }
 
@@ -197,10 +200,11 @@ namespace VerdantSiege.Battle.View
 
         private void OnProjectileHit(ProjectileRuntime p, EnemyRuntime e)
         {
-            Vector3 pos = _layout.ToWorld(e.x + 0.05f, e.lane) + Vector3.up * 0.62f;
+            Vector3 pos = _layout.ToWorld(e.x + 0.05f, e.VisualLane) + Vector3.up * (e.IsFlying ? 1.1f : 0.62f);
             bool armor = e.armor > 0f && p.Definition.damageType != DamageType.Piercing;
-            _vfx.Burst(VfxKind.HitSpark, pos, armor ? _lib.armorDebris : _lib.hitSpark, armor ? 6 : 8, 2.2f, 0.12f, 0.3f);
-            Play(armor ? Sfx.ArmorHit : Sfx.Hit, 0.8f);
+            Color spark = p.Definition.damageType == DamageType.Physical ? _lib.hitSpark : p.Definition.trailColor;
+            _vfx.Burst(VfxKind.HitSpark, pos, armor ? _lib.armorDebris : spark, armor ? 6 : 8, 2.2f, 0.12f, 0.3f);
+            Play(armor ? Sfx.ArmorHit : p.Definition.damageType == DamageType.Frost ? Sfx.FrostHit : Sfx.Hit, 0.8f);
         }
 
         private void OnProjectileDespawned(ProjectileRuntime p)
@@ -251,6 +255,7 @@ namespace VerdantSiege.Battle.View
             foreach (KeyValuePair<int, EnemyView> kv in _enemies) kv.Value.Tick(dt, time, interp);
             foreach (KeyValuePair<int, ProjectileView> kv in _projectiles) kv.Value.Tick(dt, interp);
             foreach (KeyValuePair<int, PickupView> kv in _pickups) kv.Value.Tick(dt, time);
+            TickM3(dt, time);
 
             for (int i = _dyingDefenders.Count - 1; i >= 0; i--)
             {

@@ -33,10 +33,25 @@ namespace VerdantSiege.Tests
             foreach (DefenderDefinition d in db.defenders)
             {
                 Assert.IsNotNull(d.prefab, d.id + " prefab");
-                Assert.IsNotNull(d.icon, d.id + " icon");
+                // Card portraits are optional (cards fall back to a monogram until art lands).
                 Assert.IsFalse(string.IsNullOrEmpty(d.description), d.id + " description");
             }
             foreach (EnemyDefinition e in db.enemies) Assert.IsNotNull(e.prefab, e.id + " prefab");
+            foreach (BossDefinition b in db.bosses) Assert.IsNotNull(b.prefab, b.id + " prefab");
+        }
+
+        [Test]
+        public void Milestone3_RosterAndEncounters_Present()
+        {
+            ContentDatabase db = Db();
+            Assert.AreEqual(12, db.defenders.Count, "launch roster: 12 defenders");
+            Assert.AreEqual(12, db.enemies.Count, "launch roster: 12 enemies");
+            foreach (string id in new[] { "vh_03", "vh_04", "vh_05", "vh_06", "vh_07" }) Assert.IsNotNull(db.FindEncounter(id), id);
+            Assert.IsNotNull(db.FindEncounter("vh_07").boss, "vh_07 is the Root Maw boss fight");
+            foreach (EncounterDefinition e in db.encounters) Assert.LessOrEqual(e.roster.Count, EncounterValidator.MaxRosterSize, e.id);
+            int elites = 0;
+            foreach (EnemyDefinition e in db.enemies) if (e.elite) elites++;
+            Assert.AreEqual(2, elites, "Warden and Blight Herald are elites");
         }
 
         [Test]
@@ -47,6 +62,7 @@ namespace VerdantSiege.Tests
             foreach (DefenderDefinition d in db.defenders) Assert.IsTrue(ids.Add("d:" + d.id), d.id);
             foreach (EnemyDefinition e in db.enemies) Assert.IsTrue(ids.Add("e:" + e.id), e.id);
             foreach (EncounterDefinition e in db.encounters) Assert.IsTrue(ids.Add("m:" + e.id), e.id);
+            foreach (BossDefinition b in db.bosses) Assert.IsTrue(ids.Add("b:" + b.id), b.id);
         }
 
         [Test]
@@ -72,10 +88,46 @@ namespace VerdantSiege.Tests
             }
         }
 
-        /// <summary>Simple player: reacts every 0.5 s, collects pickups after ~1.5 s, plants with a fixed plan.</summary>
-        private static BattleSimulation Play(EncounterDefinition e, int seed, bool defend, out float minutes)
+        /// <summary>
+        /// Tuning aid (explicit: run with -testFilter BalanceReport): plays every encounter on 8 seeds and logs the
+        /// outcome, length, breaches by enemy and the cards the bot used.
+        /// </summary>
+        [Test, Explicit]
+        public void BalanceReport()
+        {
+            var sb = new System.Text.StringBuilder("[BalanceReport]\n");
+            foreach (EncounterDefinition e in Db().encounters)
+            {
+                int wins = 0;
+                var breaches = new Dictionary<string, int>();
+                var planted = new Dictionary<string, int>();
+                float minutesSum = 0f, heartSum = 0f;
+                foreach (int seed in new[] { 1, 7, 42, 1234, 99999, 5, 77, 314 })
+                {
+                    BattleSimulation sim = Play(e, seed, true, out float minutes, s =>
+                    {
+                        s.EnemyBreached += en => { breaches.TryGetValue(en.Definition.id, out int n); breaches[en.Definition.id] = n + 1; };
+                        s.DefenderPlaced += d => { planted.TryGetValue(d.Definition.id, out int n); planted[d.Definition.id] = n + 1; };
+                    });
+                    if (sim.State == BattleState.Won) wins++;
+                    minutesSum += minutes;
+                    heartSum += sim.HeartrootHealth;
+                }
+                sb.Append($"{e.id}: won {wins}/8 avgMin {minutesSum / 8f:0.0} avgHeart {heartSum / 8f:0.0} | breaches ");
+                foreach (var kv in breaches) sb.Append($"{kv.Key}={kv.Value} ");
+                sb.Append("| planted ");
+                foreach (var kv in planted) sb.Append($"{kv.Key}={kv.Value} ");
+                sb.Append('\n');
+            }
+            Debug.Log(sb.ToString());
+        }
+
+        /// <summary>Simple player: reacts every 0.5 s, collects pickups after ~1.5 s, plants with the shared ScriptedPlayer policy.</summary>
+        private static BattleSimulation Play(EncounterDefinition e, int seed, bool defend, out float minutes, System.Action<BattleSimulation> hook = null)
         {
             var sim = new BattleSimulation(e, seed, BattleOptions.Default);
+            hook?.Invoke(sim);
+            var player = new ScriptedPlayer();
             float think = 0f;
             const float dt = BattleSimulation.FixedStep;
             int guard = 0;
@@ -87,52 +139,11 @@ namespace VerdantSiege.Tests
                 think = 0.5f;
                 foreach (PickupRuntime p in sim.Pickups)
                     if (p.alive && p.age > 1.5f) { sim.CollectPickup(p.Id); break; }
-                Plan(sim);
+                if (player.Decide(sim, out int slot, out GridCoord cell))
+                    Assert.AreEqual(DeployResult.Ok, sim.TryDeploy(slot, cell), "ScriptedPlayer chose an invalid deployment");
             }
             minutes = sim.Stats.elapsed / 60f;
             return sim;
-        }
-
-        private static int Slot(BattleSimulation sim, string id)
-        {
-            for (int i = 0; i < sim.Deck.Count; i++) if (sim.Deck[i].Definition.id == id) return i;
-            return -1;
-        }
-
-        private static int CountLane(BattleSimulation sim, int lane, string id)
-        {
-            int n = 0;
-            foreach (DefenderRuntime d in sim.Defenders) if (d.alive && (lane < 0 || d.Coord.lane == lane) && d.Definition.id == id) n++;
-            return n;
-        }
-
-        private static bool Try(BattleSimulation sim, int slot, int lane, params int[] cols)
-        {
-            if (slot < 0) return false;
-            foreach (int c in cols)
-                if (sim.TryDeploy(slot, new GridCoord(lane, c)) == DeployResult.Ok) return true;
-            return false;
-        }
-
-        private static void Plan(BattleSimulation sim)
-        {
-            int glow = Slot(sim, "glowcap"), shoot = Slot(sim, "sunspore"), wall = Slot(sim, "bulwark_bloom");
-            int lanes = sim.Lanes;
-            for (int l = 0; l < lanes; l++)
-            {
-                bool threat = false;
-                foreach (EnemyRuntime en in sim.Enemies) if (en.alive && en.lane == l && en.x < sim.Columns) threat = true;
-                if (threat && CountLane(sim, l, "sunspore") == 0 && Try(sim, shoot, l, 1, 2, 0)) return;
-            }
-            int glows = CountLane(sim, -1, "glowcap");
-            if (glows < 2 || (glows < lanes && sim.Waves.CurrentWave < 3))
-                for (int k = 0; k < lanes; k++) { int l = (2 + k) % lanes; if (CountLane(sim, l, "glowcap") == 0 && Try(sim, glow, l, 0)) return; }
-            for (int k = 0; k < lanes; k++) { int l = (2 + k) % lanes; if (CountLane(sim, l, "sunspore") == 0 && Try(sim, shoot, l, 1, 2)) return; }
-            foreach (EnemyRuntime en in sim.Enemies)
-                if (en.alive && en.Definition.armorHealth > 0f && CountLane(sim, en.lane, "bulwark_bloom") == 0 && Try(sim, wall, en.lane, 5, 4, 6)) return;
-            for (int k = 0; k < lanes; k++) { int l = (2 + k) % lanes; if (CountLane(sim, l, "sunspore") < 2 && Try(sim, shoot, l, 2, 3)) return; }
-            for (int k = 0; k < lanes; k++) { int l = (2 + k) % lanes; if (CountLane(sim, l, "sunspore") < 3 && Try(sim, shoot, l, 3, 4)) return; }
-            for (int k = 0; k < lanes; k++) { int l = (2 + k) % lanes; if (CountLane(sim, l, "bulwark_bloom") == 0 && Try(sim, wall, l, 6, 5)) return; }
         }
     }
 }

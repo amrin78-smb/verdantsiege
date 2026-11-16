@@ -72,6 +72,7 @@ namespace VerdantSiege.EditorTools
                     () => ArtBuilder.PlaceholderRig(new Color(0.4f, 0.22f, 0.35f), "Body", "Head", "ArmL", "ArmR", "LegL", "LegR", "Armor")),
                 ["SeedBolt"] = ArtBuilder.ProjectilePrefab(lib),
             };
+            M3Assets.AddPrefabs(prefabs, lib); // Milestone 3 defenders, enemies, boss, projectiles (M3Assets.cs)
             lib.sunmote = ArtBuilder.PickupPrefab(lib);
             lib.groundTileA = ArtBuilder.TilePrefab(lib, "GroundTileA", new Color(0.5f, 0.72f, 0.3f));
             lib.groundTileB = ArtBuilder.TilePrefab(lib, "GroundTileB", new Color(0.42f, 0.64f, 0.26f));
@@ -95,6 +96,7 @@ namespace VerdantSiege.EditorTools
 
             var icons = new Dictionary<string, Sprite>();
             foreach (string n in new[] { "Sunspore", "BulwarkBloom", "Glowcap", "Drifter", "Skitter", "PlatedBrute" }) icons[n] = ArtBuilder.Icon(n);
+            M3Assets.AddIcons(icons); // Milestone 3 (missing icons are allowed: cards show a monogram)
 
             AudioLibrary audio = AudioSynth.BuildAll();
             ContentDatabase db = ContentBuilder.Build(prefabs, icons);
@@ -138,7 +140,7 @@ namespace VerdantSiege.EditorTools
         /// <summary>Logs bounds and a vertex-colour sample per model (scale/axis/colour-space sanity).</summary>
         private static void LogModelDiagnostics()
         {
-            foreach (string cat in new[] { "Defenders", "Enemies", "Battlefield", "FX" })
+            foreach (string cat in new[] { "Defenders", "Enemies", "Bosses", "Battlefield", "FX" })
             {
                 string[] guids = AssetDatabase.FindAssets("t:Model", new[] { EditorAssets.Root + "Art/Models/" + cat });
                 foreach (string g in guids)

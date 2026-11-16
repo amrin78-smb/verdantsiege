@@ -80,6 +80,38 @@ namespace VerdantSiege.Battle
             return best > 0.85f ? 0.85f : best;
         }
 
+        /// <summary>Strongest haste bonus (fraction, not stacked across sources, capped at 1).</summary>
+        public float HasteFraction()
+        {
+            float best = 0f;
+            for (int i = 0; i < _active.Count; i++)
+            {
+                StatusInstance s = _active[i];
+                if (s.definition.kind != StatusKind.Haste) continue;
+                float v = s.definition.magnitude * s.stacks;
+                if (v > best) best = v;
+            }
+            return best > 1f ? 1f : best;
+        }
+
+        /// <summary>Removes one harmful status (slow, damage over time or stun; never haste). Returns true if one was removed.</summary>
+        public bool RemoveOneNegative()
+        {
+            for (int i = 0; i < _active.Count; i++)
+            {
+                if (_active[i].definition.kind == StatusKind.Haste) continue;
+                RemoveAt(i);
+                return true;
+            }
+            return false;
+        }
+
+        public bool HasNegative()
+        {
+            for (int i = 0; i < _active.Count; i++) if (_active[i].definition.kind != StatusKind.Haste) return true;
+            return false;
+        }
+
         /// <summary>Advances timers. Returns total damage-over-time damage that ticked (by the first DoT type).</summary>
         public float Tick(float dt, out DamageType dotType)
         {

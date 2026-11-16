@@ -29,6 +29,22 @@ namespace VerdantSiege.Audio
         Victory,
         Defeat,
         EnemyGroan,
-        BruteStomp
+        BruteStomp,
+        // ---- Milestone 3 (append only)
+        Snap,
+        TrapErupt,
+        Heal,
+        Zap,
+        FrostHit,
+        EmberBurst,
+        Reflect,
+        Howl,
+        Spit,
+        Leap,
+        Burrow,
+        EliteArrive,
+        BossRoar,
+        BossRumble,
+        RootStrike
     }
 }

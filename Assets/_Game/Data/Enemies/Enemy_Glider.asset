@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba4b411643fbba042b9e2533d761aa47, type: 3}
+  m_Name: Enemy_Glider
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.EnemyDefinition
+  id: glider
+  displayName: Glider
+  description: A membrane-winged scout that soars over every plant. Only anti-air
+    attacks can reach it.
+  counterHint: Thorncaster, Whirlseed and Storm Orchid hit flyers.
+  tags: 0
+  elite: 0
+  maxHealth: 100
+  armorHealth: 0
+  resistances: []
+  devourable: 1
+  movement: 1
+  moveSpeed: 0.38
+  speedMultiplierAfterArmorBreak: 1
+  bodyLength: 0.5
+  biteDamage: 0
+  biteInterval: 1
+  ability: 0
+  abilityWindup: 0.8
+  abilityInterval: 8
+  abilityRange: 2
+  abilityMagnitude: 0.25
+  abilityDuration: 4
+  abilityStatus: {fileID: 0}
+  abilityDamage: 20
+  abilityProjectile: {fileID: 0}
+  breachDamage: 1
+  threatCost: 2
+  prefab: {fileID: 7795023950984676864, guid: aa25b6fd8ad9b913890e61dcc906c714, type: 3}
+  icon: {fileID: 0}
+  accentColor: {r: 0.6, g: 0.5, b: 0.9, a: 1}

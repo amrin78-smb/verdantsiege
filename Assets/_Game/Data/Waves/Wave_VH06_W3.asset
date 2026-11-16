@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95d76948a58ca70eb8857667267cc27c, type: 3}
+  m_Name: Wave_VH06_W3
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.WaveDefinition
+  label: Rot and Acid
+  major: 0
+  maxDuration: 55
+  groups:
+  - enemy: {fileID: 11400000, guid: 3125244d0e9dec42ebb85d34b4cb9d57, type: 2}
+    count: 2
+    lane: -1
+    startDelay: 0
+    interval: 8
+  - enemy: {fileID: 11400000, guid: 7a763fabd3480bff1b508a11a7e96917, type: 2}
+    count: 2
+    lane: -1
+    startDelay: 4
+    interval: 9
+  - enemy: {fileID: 11400000, guid: 86b594bec1ee484e4bef3a81e794ccf6, type: 2}
+    count: 2
+    lane: -1
+    startDelay: 6
+    interval: 4

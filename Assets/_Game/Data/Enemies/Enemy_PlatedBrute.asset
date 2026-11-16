@@ -17,14 +17,27 @@ MonoBehaviour:
   description: A hulking beast in bone-and-bark plating. The plating absorbs hits
     until it shatters; then it charges.
   counterHint: Stall it with a Bulwark Bloom while several Sunspores break the plating.
+  tags: 0
+  elite: 0
   maxHealth: 360
   armorHealth: 440
   resistances: []
+  devourable: 1
+  movement: 0
   moveSpeed: 0.15
   speedMultiplierAfterArmorBreak: 1.35
   bodyLength: 0.6
   biteDamage: 60
   biteInterval: 1.2
+  ability: 0
+  abilityWindup: 0.8
+  abilityInterval: 8
+  abilityRange: 2
+  abilityMagnitude: 0.25
+  abilityDuration: 4
+  abilityStatus: {fileID: 0}
+  abilityDamage: 20
+  abilityProjectile: {fileID: 0}
   breachDamage: 2
   threatCost: 4
   prefab: {fileID: 8558811984773310335, guid: cfeee441d01f8d0e0afa8a1605f6894f, type: 3}

@@ -34,5 +34,17 @@ MonoBehaviour:
   generateAmount: 25
   burstEvery: 4
   burstAmount: 50
+  abilityDamage: 0
+  abilityDamageType: 0
+  abilityRange: 1.2
+  abilityRecharge: 10
+  abilityWindup: 0.3
+  abilityCount: 1
+  abilityFalloff: 0.8
+  abilityStatus: {fileID: 0}
+  canHitAir: 0
+  reflectsProjectiles: 0
+  reflectMultiplier: 1.5
+  taunts: 0
   prefab: {fileID: 4982359199894817079, guid: 5330fa53b1c216d8da7ea2d29a7f18e7, type: 3}
   icon: {fileID: 21300000, guid: fbc8a80907b2a24a291ffa9ed76d92f4, type: 3}
