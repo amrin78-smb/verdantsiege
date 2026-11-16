@@ -143,9 +143,9 @@ namespace VerdantSiege.UI
             r.glyph = UIKit.Text("Glyph", r.disc.transform, "", 34f, new Color(0.1f, 0.14f, 0.1f), TextAlignmentOptions.Center, true);
             UIKit.Stretch(r.glyph.rectTransform);
             r.name = UIKit.Text("Name", r.root, "", 34f, UIPalette.Parchment, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(r.name.rectTransform, new Vector2(0f, 1f), new Vector2(112f, -10f), new Vector2(CardWidth - 112f - 150f, 42f));
+            UIKit.Place(r.name.rectTransform, new Vector2(0f, 1f), new Vector2(112f, -10f), new Vector2(CardWidth - 28f - 112f - 150f, 42f));
             r.desc = UIKit.Text("Desc", r.root, "", 23f, UIPalette.TextDim, TextAlignmentOptions.TopLeft);
-            UIKit.Place(r.desc.rectTransform, new Vector2(0f, 1f), new Vector2(113f, -50f), new Vector2(CardWidth - 113f - 140f, 58f));
+            UIKit.Place(r.desc.rectTransform, new Vector2(0f, 1f), new Vector2(113f, -50f), new Vector2(CardWidth - 28f - 113f - 150f, 58f));
             r.desc.enableAutoSizing = true;
             r.desc.fontSizeMin = 18f;
             r.desc.fontSizeMax = 23f;

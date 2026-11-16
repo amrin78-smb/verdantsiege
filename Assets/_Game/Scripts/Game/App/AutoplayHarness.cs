@@ -129,7 +129,13 @@ namespace VerdantSiege.App
             }
             if (sim.Clouds.Count > 0) Shot("spore_cloud");
             // Living Evolution moments.
-            foreach (DefenderRuntime d in sim.Defenders) if (d.EvolutionReady) { Shot("evolve_ready_badge"); break; }
+            foreach (DefenderRuntime d in sim.Defenders)
+                if (d.EvolutionReady && _battle.Evolution != null && !_shotsTaken.Contains("evolve_ready_badge"))
+                {
+                    Shot("evolve_ready_badge");
+                    Debug.Log("[VS Autoplay] badges: " + _battle.Evolution.Badges.Describe());
+                    break;
+                }
             if (sim.AuraLinks.Count >= 3) Shot("evolve_aura_links");
             if (_evolvedAt > 0f && Time.unscaledTime - _evolvedAt > 0.25f) Shot("evolve_moment");
             if (_evolvedAt > 0f && Time.unscaledTime - _evolvedAt > 2.5f) Shot("evolve_evolved_look");
@@ -166,6 +172,7 @@ namespace VerdantSiege.App
         }
 
         private DefenderRuntime _evolveTarget;
+        private bool _chooserShown;
         private int _evolveOption = -1;
         private float _evolvedAt = -1f;
         private int _evolutions;
@@ -181,9 +188,16 @@ namespace VerdantSiege.App
             if (_evolveTarget != null)
             {
                 DefenderRuntime d = _evolveTarget;
+                if (!chooser.IsOpen || chooser.State.Target != d) { _evolveTarget = null; return false; }
+                if (!_chooserShown)
+                {
+                    // Leave the card on screen for one think (a player reads it), then pick.
+                    _chooserShown = true;
+                    Shot("evolve_chooser");
+                    Debug.Log("[VS Autoplay] badges: " + chooser.Badges.Describe());
+                    return true;
+                }
                 _evolveTarget = null;
-                if (!chooser.IsOpen || chooser.State.Target != d) return false;
-                if (_evolutions == 0) Shot("evolve_chooser");
                 EvolveResult r = chooser.Choose(_evolveOption);
                 if (r == EvolveResult.Ok)
                 {

@@ -15,7 +15,7 @@ namespace VerdantSiege.UI
     /// </summary>
     public sealed class EvolutionBadges : MonoBehaviour
     {
-        public const float Size = 92f;
+        public const float Size = 82f;
 
         private sealed class Badge
         {
@@ -52,7 +52,7 @@ namespace VerdantSiege.UI
         }
 
         /// <summary>Screen position of a defender's badge (also used by the autoplay harness to tap it).</summary>
-        public Vector2 BadgeScreenPoint(DefenderRuntime d) => _cam.WorldToScreenPoint(_layout.CellCenter(d.Coord) + Vector3.up * 1.55f);
+        public Vector3 BadgeScreenPoint(DefenderRuntime d) => _cam.WorldToScreenPoint(_layout.CellCenter(d.Coord) + new Vector3(0.28f, 1.2f, 0f)); // z > 0: in front of the camera
 
         private Badge Get(int i)
         {
@@ -85,6 +85,15 @@ namespace VerdantSiege.UI
                 _pool.Add(b);
             }
             return _pool[i];
+        }
+
+        /// <summary>Active badges with their screen positions (autoplay diagnostics).</summary>
+        public string Describe()
+        {
+            var sb = new System.Text.StringBuilder();
+            foreach (Badge b in _pool)
+                if (b.root.gameObject.activeInHierarchy) sb.Append($"[{b.label.text} {b.root.position.x:0},{b.root.position.y:0} s={b.root.lossyScale.x:0.00}] ");
+            return sb.Length == 0 ? "none" : sb.ToString();
         }
 
         private void OnTapped(Badge b)

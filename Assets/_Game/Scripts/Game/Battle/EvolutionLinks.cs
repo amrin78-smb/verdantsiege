@@ -82,11 +82,11 @@ namespace VerdantSiege.Battle.View
                 lr.SetPositions(_scratch);
                 _shimmer.TryGetValue(link.sourceId, out float sh);
                 Color c = src.evolution.accentColor;
-                float alpha = 0.32f + 0.1f * Mathf.Sin(time * 3f + phase) + sh * 0.6f;
+                float alpha = 0.5f + 0.12f * Mathf.Sin(time * 3f + phase) + sh * 0.5f;
                 var g = new Color(c.r, c.g, c.b, Mathf.Clamp01(alpha));
                 lr.startColor = g;
                 lr.endColor = new Color(c.r, c.g, c.b, g.a * 0.55f);
-                lr.widthMultiplier = 0.07f + sh * 0.06f;
+                lr.widthMultiplier = 0.09f + sh * 0.06f;
                 if (!lr.enabled) lr.enabled = true;
                 if (motes && _vfx != null && (i + Mathf.FloorToInt(time * 3f)) % 3 == 0)
                 {

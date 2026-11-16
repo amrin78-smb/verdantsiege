@@ -191,12 +191,13 @@ namespace VerdantSiege.Battle.View
             if (_ring != null)
             {
                 float grow = Mathf.Clamp01(_evolveAge / 0.6f);
-                float size = Mathf.Lerp(2.8f, 1.1f, 1f - (1f - grow) * (1f - grow)) + Mathf.Sin(time * 2.2f) * 0.04f;
+                float size = Mathf.Lerp(2.8f, 1.25f, 1f - (1f - grow) * (1f - grow)) + Mathf.Sin(time * 2.2f) * 0.05f;
                 _ring.localScale = new Vector3(size, size, 1f);
                 _ring.localRotation = Quaternion.Euler(90f, time * 25f % 360f, 0f);
                 Color a = evo.accentColor;
-                float alpha = Mathf.Lerp(0.95f, 0.5f + Mathf.Sin(time * 2.6f) * 0.08f, grow);
-                _ringMpb.SetColor(BaseColorId, new Color(a.r, a.g, a.b, alpha));
+                float alpha = Mathf.Lerp(1f, 0.8f + Mathf.Sin(time * 2.6f) * 0.12f, grow);
+                Color rc = Color.Lerp(a, Color.white, 0.3f); // brighter than the accent so green branches still read on grass
+                _ringMpb.SetColor(BaseColorId, new Color(rc.r, rc.g, rc.b, alpha));
                 _ringRenderer.SetPropertyBlock(_ringMpb);
             }
             // Capacitor: the cap swells and glows with its stored charge.
