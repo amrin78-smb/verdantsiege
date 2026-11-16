@@ -53,5 +53,20 @@
   "EvoSolar": {"category": "FX", "tris": 600, "max": [0.4, 0.4, 0.15], "parts": ["Mesh"]},
   "EvoPrism": {"category": "FX", "tris": 600, "max": [0.3, 0.3, 0.28], "parts": ["Mesh"]},
   "EvoRoot": {"category": "FX", "tris": 600, "max": [0.8, 0.8, 0.1], "parts": ["Mesh"]},
-  "EvoBloom": {"category": "FX", "tris": 600, "max": [0.45, 0.45, 0.15], "parts": ["Mesh"]}
+  "EvoBloom": {"category": "FX", "tris": 600, "max": [0.45, 0.45, 0.15], "parts": ["Mesh"]},
+  "EmberTileA": {"category": "Battlefield", "tris": 400, "max": [1.0, 1.0, 0.16], "parts": []},
+  "EmberTileB": {"category": "Battlefield", "tris": 400, "max": [1.0, 1.0, 0.16], "parts": []},
+  "EmberLaneEdge": {"category": "Battlefield", "tris": 1800, "max": [1.05, 0.6, 0.5], "parts": []},
+  "EmberLavaChannel": {"category": "Battlefield", "tris": 1800, "max": [1.0, 0.9, 0.3], "parts": []},
+  "EmberVentCell": {"category": "Battlefield", "tris": 1500, "max": [1.0, 1.0, 0.25], "parts": ["Crust", "Fissure"]},
+  "EmberRockA": {"category": "Props", "tris": 1800, "max": [1.5, 1.5, 1.5], "parts": []},
+  "EmberRockB": {"category": "Props", "tris": 1800, "max": [1.5, 1.5, 1.5], "parts": []},
+  "EmberRockC": {"category": "Props", "tris": 1800, "max": [1.5, 1.5, 1.5], "parts": []},
+  "EmberRoots": {"category": "Props", "tris": 1800, "max": [1.6, 1.6, 1.0], "parts": []},
+  "EmberFlowerCluster": {"category": "Props", "tris": 1800, "max": [0.8, 0.8, 0.6], "parts": []},
+  "EmberGrassTuft": {"category": "Props", "tris": 1800, "max": [0.6, 0.6, 0.5], "parts": []},
+  "EmberLavaPool": {"category": "Props", "tris": 1800, "max": [1.6, 1.6, 0.4], "parts": []},
+  "EmberTreeA": {"category": "Props", "tris": 3500, "max": [4.0, 4.0, 5.0], "parts": ["Trunk", "Canopy"]},
+  "EmberTreeB": {"category": "Props", "tris": 3500, "max": [4.0, 4.0, 5.0], "parts": ["Trunk", "Canopy"]},
+  "EmberForge": {"category": "Props", "tris": 3000, "max": [4.5, 4.5, 4.5], "parts": []}
 }

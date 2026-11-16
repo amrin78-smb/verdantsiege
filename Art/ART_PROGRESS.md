@@ -124,3 +124,38 @@ Same script; files in `Art/Models/FX/`; root + `Mesh`; **origin at the attachmen
 
 Previews in `Art/Previews/` (also in `Art/Previews/_contact_sheet.png`, 55 models). `model_specs.json` has all new entries;
 `check_models.py` → **55/55 pass**. `build_all.sh` now also runs `model_fx.py`.
+
+## 2026-11-16 — Biome B "The Emberwild" environment kit — READY (not yet integrated in Unity)
+New script `Tools/Blender/model_emberwild.py` (registered in `build_all.sh` and `model_specs.json`); `check_models.py` → **70/70 pass**.
+All 55 earlier models were regenerated from an untouched copy of the scripts and re-checked: identical tris / size / glow-corner counts
+(`vskit.py` and the other model scripts are unchanged). Same contract as the Heartlands kit: metres, Z up, root at the ground centre,
+one `VS_Vertex` material, `Col` sRGB with **alpha = emission** (lava, molten seams, glowing roots, ember tips), `.fbx` + `.blend`.
+Look-dev: `Art/emberwild_contact.png` (all previews) and `Art/emberwild_diorama.png` (3-lane field from ~the battle camera, with
+existing defenders/enemies/Heartroot for scale; regenerate with `blender -b --factory-startup --python Tools/Blender/diorama_emberwild.py`).
+
+Palette: basalt `#3B3436`→`#8A7A74`, ash `#A39890`/`#D6CCBE`, rust/terracotta `#7A3420` `#B0502C` `#DD8448`, charred wood `#2A2120`→`#55423A`,
+obsidian `#241E30`→`#7C6A9C`, lava (emissive) `#B8301C` → `#F25A1C` → `#FF9A2E` → `#FFE07A`, ember foliage `#6E2216`→`#FFB04E`;
+tiles A `#A06A4C`/`#C48A62`, B `#7A4E40`/`#9A6650`.
+
+| Model | Folder | Tris | Size X×Y×Z | Notes |
+|---|---|---:|---|---|
+| EmberTileA / B | Battlefield | 320 / 320 | 1.00×1.00×0.08 | Same footprint/profile as GroundTileA/B (domed top 0.062, rolled rim 0.05). Warm ash soil with soft ash drifts and scorched patches, one short half-buried glowing root vein, two cinders |
+| EmberLaneEdge | Battlefield | 1227 | 1.05×0.46×0.31 | Replaces LaneEdge (1 m along X): basalt hex columns with ash tops, glowing root along the base, ember pebbles, ash grass |
+| EmberLavaChannel | Battlefield | 820 | 1.00×0.88×0.17 | 1 m segment along X, **tiles seamlessly** (all variation periodic in X); rounded basalt banks, flowing lava ribbon (lava top z ≈ 0.04), 4 floating crust plates; bank and lava ends are capped |
+| EmberVentCell | Battlefield | 841 | 0.92×0.92×0.14 | Unsafe-cell hazard. Parts: `Crust` (heaved basalt plates, hot undersides) and `Fissure` (molten layer + vent bubbles), both pivot (0,0,0). Put the root on the tile top (z ≈ 0.06). Hide/pulse `Fissure` (or its emission) for the dormant/active state |
+| EmberRockA | Props | 1770 | 1.25×0.94×0.69 | Split basalt boulder around a molten core + companion stone |
+| EmberRockB | Props | 849 | 0.98×0.91×1.09 | Basalt column cluster, ash tops, ember glow at the foot |
+| EmberRockC | Props | 445 | 0.63×0.56×0.66 | Obsidian shard cluster (faceted), molten base |
+| EmberRoots | Props | 1712 | 1.23×1.21×0.34 | Six charred roots arching from a knot, molten seam along their backs, two glowing pods |
+| EmberFlowerCluster | Props | 1713 | 0.54×0.63×0.39 | Five flame-cup ember-blooms (petals glow toward the tips) on olive stems, ash grass, cinders |
+| EmberGrassTuft | Props | 620 | 0.36×0.39×0.36 | Ash grass with glowing ember tips |
+| EmberLavaPool | Props | 1610 | 1.50×1.47×0.21 | Domed lava pool in a lumpy basalt rim, crust islands, bubble |
+| EmberTreeA | Props | 2912 | 3.04×2.56×3.22 | Charred oak (`Trunk`, glowing bark cracks) + ember-red canopy (`Canopy`, pivot (0,0,1.73)), glowing ember fruit |
+| EmberTreeB | Props | 1329 | 2.61×2.63×4.08 | Cinder pine: charcoal tiers, ash-dusted tops, smouldering rims (`Trunk`, `Canopy` pivot (0,0,0.79)) |
+| EmberForge | Props | 2925 | 3.70×3.25×1.79 | Landmark: banded terracotta beehive kiln, glowing mouth facing **−Y**, smouldering chimney, molten-seamed flagstone apron, anvil + hot ingot, charred logs, roots |
+
+Notes / follow-ups:
+- No Emberwild Heartroot variant (the existing Heartroot reads fine on the Emberwild field; see the diorama). Optional later.
+- EmberLavaChannel crust plates repeat every metre when tiled; a second segment variant would break that up if it shows in game.
+- The glow is strong in Cycles previews (emission × 3); tune the Unity VertexLit emission intensity for this biome if lava over-blooms on device.
+- `contact_sheet.py` now accepts optional name globs (`contact_sheet.py out.png Ember*`); with no globs it behaves as before.
