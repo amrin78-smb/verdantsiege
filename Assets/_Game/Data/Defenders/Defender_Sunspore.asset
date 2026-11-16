@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8f696e84ecdf685aa31a986e17d92f7, type: 3}
+  m_Name: Defender_Sunspore
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.DefenderDefinition
+  id: sunspore
+  displayName: Sunspore
+  role: 0
+  description: Fires sun-warmed seed bolts down its lane at the first Blight it sees.
+  strengths: Reliable lane damage
+  weaknesses: Fragile; armour plating soaks its bolts
+  accentColor: {r: 1, g: 0.62, b: 0.2, a: 1}
+  cost: 100
+  cooldown: 5
+  startingCooldown: 0
+  maxHealth: 300
+  behaviour: 0
+  projectile: {fileID: 11400000, guid: f1464c0f1db43c52aa03c2c6687e2a25, type: 2}
+  attackInterval: 1.4
+  firstAttackDelay: 0.6
+  range: 0
+  generateInterval: 12
+  generateFirstDelay: 5
+  generateAmount: 25
+  burstEvery: 4
+  burstAmount: 50
+  prefab: {fileID: 2828307106426130495, guid: ef9e64e15db4aee13ae13f3abfee088b, type: 3}
+  icon: {fileID: 21300000, guid: 0cea71a3d351a8536ac8a60f0b9c89d4, type: 3}

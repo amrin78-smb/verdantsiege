@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36ad9fab429b75c978ceae423ae5a451, type: 3}
+  m_Name: Encounter_VH01_FirstRoots
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.EncounterDefinition
+  id: vh_01
+  displayName: First Roots
+  briefing: Grow Glowcaps for Vitality, then Sunspores to hold every lane.
+  biomeId: verdant_heartlands
+  battlefield: {fileID: 11400000, guid: 7dc7e3d31801534b8a3cce3a4d458302, type: 2}
+  heartrootHealth: 5
+  startingVitality: 150
+  vitalityCap: 1500
+  skyDropInterval: 9
+  skyDropFirstDelay: 3
+  skyDropAmount: 25
+  pickupLifetime: 12
+  prepTime: 22
+  interWaveGap: 5
+  fixedSeed: 0
+  roster:
+  - {fileID: 11400000, guid: dea7c7ce8f38afabc8908c0467697152, type: 2}
+  - {fileID: 11400000, guid: 148fa75ba0f426bb4b965dd989b6e0bc, type: 2}
+  - {fileID: 11400000, guid: 1f5ca81365896e118b665dc01a3a38aa, type: 2}
+  waves:
+  - {fileID: 11400000, guid: d3dcb4d82cf78168eb84b73bf73e96ad, type: 2}
+  - {fileID: 11400000, guid: 17e235fdfb730602586e12c3160713e8, type: 2}
+  - {fileID: 11400000, guid: 634455e569bd01c4b9aab9a7f03a29ea, type: 2}
+  - {fileID: 11400000, guid: 74b2c9231d97c9bc3b8bdd2165a17489, type: 2}
+  - {fileID: 11400000, guid: 8b3582df4ebb944bc8dd3103c3ec2112, type: 2}
+  - {fileID: 11400000, guid: fa7195426a26b3e38a92c60a2d0a171f, type: 2}
+  seedReward: 50
+  flawlessBonus: 25

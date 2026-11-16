@@ -3,6 +3,7 @@
     "rootNamespace": "VerdantSiege.Tests",
     "references": [
         "VerdantSiege.Core",
+        "VerdantSiege.Game",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

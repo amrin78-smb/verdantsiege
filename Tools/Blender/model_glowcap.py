@@ -54,8 +54,8 @@ cap_c = Vector((-0.06, 0, TOP - 0.01))
 R = 0.255
 cprof = [(0.0, 0.25), (0.09, 0.235), (0.17, 0.19), (0.225, 0.12), (R, 0.04), (R - 0.008, 0.0), (0.215, -0.015)]
 def wave(pi, si, a):
-    return 1.0 + (0.05 * math.sin(a * 7) if pi >= 4 else 0.0)
-cap = lathe(cprof, sides=20, jitter=wave, cap_bottom=False, cap_top=False)
+    return 1.0 + (0.05 * math.sin(a * 7) if pi >= 3 else 0.0)
+cap = lathe(cprof[::-1], sides=20, jitter=lambda pi, si, a: wave(len(cprof) - 1 - pi, si, a), cap_bottom=False, cap_top=False)
 def cap_paint(p, n, fc, fi):
     t = smoothstep(0.03, 0.24, p.z)
     c = mix(C_CAP1, C_CAP0, t ** 0.7)         # deep teal crown, lighter toward the rim
@@ -65,7 +65,7 @@ def cap_paint(p, n, fc, fi):
     return glow(mix(c, hexc("#7DF7EA"), rim * 0.8), 0.0 + 0.7 * rim)
 cap.paint(cap_paint)
 gills = Geo()
-under = lathe([(0.215, -0.015), (0.15, -0.035), (0.09, -0.045), (0.06, -0.04)], sides=20, jitter=wave,
+under = lathe([(0.215, -0.015), (0.15, -0.035), (0.09, -0.045), (0.06, -0.04)], sides=20, jitter=lambda pi, si, a: wave(6 if pi == 0 else 0, si, a),
               cap_bottom=False, cap_top=False)
 for i in range(len(under.f)):
     under.f[i] = under.f[i][::-1]
@@ -101,7 +101,7 @@ babies = Geo()
 for (bx, by, h, r, tilt) in ((-0.2, 0.17, 0.13, 0.075, -12), (0.13, -0.21, 0.1, 0.06, 15)):
     st = lathe([(0, 0), (0.028, 0), (0.024, h * 0.6), (0.018, h), (0, h)], sides=8)
     st.paint(lambda p, n, fc, fi: mix(C_STEM0, C_STEM1, smoothstep(0.0, 0.08, p.z)))
-    cp = lathe([(0, r * 0.75), (r * 0.6, r * 0.62), (r, r * 0.2), (r * 0.9, 0.0), (0.0, 0.0)], sides=10)
+    cp = lathe([(0.0, 0.0), (r * 0.9, 0.0), (r, r * 0.2), (r * 0.6, r * 0.62), (0, r * 0.75)], sides=10)
     cp.paint(lambda p, n, fc, fi: C_GILL1 if n.z < -0.3 else glow(mix(C_CAP0, C_CAP1, smoothstep(0, r * 0.7, p.z)), 0.45))
     cp.transform(T(0, 0, h - 0.01))
     b = merge(st, cp)

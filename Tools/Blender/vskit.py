@@ -206,7 +206,7 @@ def lathe(profile, sides=12, jitter=None, twist=0.0, smooth=True, cap_bottom=Tru
         for s in range(sides):
             t = (s + 1) % sides
             if len(A) == 1:
-                g.add_face([A[0], B[s], B[t]], smooth)
+                g.add_face([A[0], B[t], B[s]], smooth)
             elif len(B) == 1:
                 g.add_face([A[s], A[t], B[0]], smooth)
             else:
@@ -506,7 +506,14 @@ def vertex_material():
     bsdf.inputs["Roughness"].default_value = 0.62
     if "Specular IOR Level" in bsdf.inputs:
         bsdf.inputs["Specular IOR Level"].default_value = 0.25
-    nt.links.new(bsdf.outputs[0], out.inputs[0])
+    # Debug: back faces render loud magenta so flipped winding is visible in every preview (Unity culls them).
+    geo = nt.nodes.new("ShaderNodeNewGeometry")
+    bad = nt.nodes.new("ShaderNodeEmission"); bad.inputs[0].default_value = (1, 0, 1, 1); bad.inputs[1].default_value = 2.0
+    mixs = nt.nodes.new("ShaderNodeMixShader")
+    nt.links.new(geo.outputs["Backfacing"], mixs.inputs[0])
+    nt.links.new(bsdf.outputs[0], mixs.inputs[1])
+    nt.links.new(bad.outputs[0], mixs.inputs[2])
+    nt.links.new(mixs.outputs[0], out.inputs[0])
     return m
 
 
@@ -612,7 +619,7 @@ def check(root, spec):
             errors.append(f"size {ax} {size[i]:.3f} > {mx[i]}")
     if root.location.length > 1e-6:
         errors.append("root not at origin")
-    if lo.z < -0.02:
+    if spec.get("grounded", True) and lo.z < -0.02:
         errors.append(f"geometry below ground ({lo.z:.3f})")
     if spec.get("grounded", True) and lo.z > 0.03:
         errors.append(f"model floats above ground ({lo.z:.3f})")

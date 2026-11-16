@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8f696e84ecdf685aa31a986e17d92f7, type: 3}
+  m_Name: Defender_BulwarkBloom
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.DefenderDefinition
+  id: bulwark_bloom
+  displayName: Bulwark Bloom
+  role: 1
+  description: A dome of bark-plated petals. It cannot attack, but the Blight must
+    chew through it to pass.
+  strengths: Blocks and absorbs
+  weaknesses: Deals no damage
+  accentColor: {r: 0.55, g: 0.72, b: 0.35, a: 1}
+  cost: 125
+  cooldown: 12
+  startingCooldown: 10
+  maxHealth: 4000
+  behaviour: 1
+  projectile: {fileID: 0}
+  attackInterval: 1.4
+  firstAttackDelay: 0.6
+  range: 0
+  generateInterval: 12
+  generateFirstDelay: 5
+  generateAmount: 25
+  burstEvery: 4
+  burstAmount: 50
+  prefab: {fileID: 1274049353900495769, guid: fff5def3fc81d1c7996504a56ca58125, type: 3}
+  icon: {fileID: 21300000, guid: ba3245da8952f3cd4a1523dcadc1823c, type: 3}

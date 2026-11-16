@@ -1,0 +1,101 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c88d1d36120e4142f8fa596bf73d449d, type: 3}
+  m_Name: AudioLibrary
+  m_EditorClassIdentifier: VerdantSiege.Game::VerdantSiege.Audio.AudioLibrary
+  sfx:
+  - {fileID: 8300000, guid: 21cc742b57ae4e80ab0ce3cca1a423f7, type: 3}
+  - {fileID: 8300000, guid: 6fea4ec9973714bb29c223309d2acc9d, type: 3}
+  - {fileID: 8300000, guid: 2a3768fe72ec39e7f9ccf7afc120d41b, type: 3}
+  - {fileID: 8300000, guid: 60339bc10f8ef28b5ad441b2d8ffe7e1, type: 3}
+  - {fileID: 8300000, guid: ef7ec662147ee4c9f8269e624f1f7658, type: 3}
+  - {fileID: 8300000, guid: be4ce6820a81a0bebb4697d9c293270e, type: 3}
+  - {fileID: 8300000, guid: cd8684d45e68c2d49b56da8ff05a8df8, type: 3}
+  - {fileID: 8300000, guid: 4aa5bef18da75dd99972afc511470c7e, type: 3}
+  - {fileID: 8300000, guid: a0883fd4d2316a648a297ca769682b88, type: 3}
+  - {fileID: 8300000, guid: 52f3fdd8094684178be5fd75956a78f8, type: 3}
+  - {fileID: 8300000, guid: 6fb252edc9b1044b4ad5075a9621b60e, type: 3}
+  - {fileID: 8300000, guid: bfac4a540dfc933a1b05243a55ec2741, type: 3}
+  - {fileID: 8300000, guid: 45441c38a2627e86aa56559716a79459, type: 3}
+  - {fileID: 8300000, guid: 38f575f60603526a3a28e1e364e6bcac, type: 3}
+  - {fileID: 8300000, guid: 02840d6b2e4565650adeafbda0bc67c6, type: 3}
+  - {fileID: 8300000, guid: 38035adcb2e91857d9cd3851b67d1c55, type: 3}
+  - {fileID: 8300000, guid: 8363c2815e57aa900a1cee9cd6f47333, type: 3}
+  - {fileID: 8300000, guid: aba908680b4e50c49b39544309ea15fc, type: 3}
+  - {fileID: 8300000, guid: 1cc36d7ee3f082fdca9af30038c7cc9e, type: 3}
+  - {fileID: 8300000, guid: 9b8ab71b2eafddc0f8666c2048d03b3e, type: 3}
+  - {fileID: 8300000, guid: 31371cbae41928f3bb8bf238b3c9e79b, type: 3}
+  - {fileID: 8300000, guid: 50a2df660395dd0a697fa334be6b75aa, type: 3}
+  - {fileID: 8300000, guid: f3d2b25a861a3253f8e7acf62c7d0b8e, type: 3}
+  - {fileID: 8300000, guid: b8c1f85229a65a5f3803ead4cffd7480, type: 3}
+  - {fileID: 8300000, guid: 70535f0e692f2970ebf613be2bf503de, type: 3}
+  sfxVolume:
+  - 0.55
+  - 0.55
+  - 0.65
+  - 0.6
+  - 0.8
+  - 0.6
+  - 0.6
+  - 0.42
+  - 0.5
+  - 0.5
+  - 0.75
+  - 0.62
+  - 0.45
+  - 0.45
+  - 0.72
+  - 0.65
+  - 0.5
+  - 0.5
+  - 0.8
+  - 0.9
+  - 0.9
+  - 0.9
+  - 0.85
+  - 0.4
+  - 0.6
+  maxVoices: 02000000020000000200000001000000020000000100000001000000040000000400000003000000020000000300000003000000020000000200000003000000020000000200000001000000010000000100000001000000010000000200000002000000
+  minInterval:
+  - 0.03
+  - 0.03
+  - 0.03
+  - 0.12
+  - 0.05
+  - 0.12
+  - 0.08
+  - 0.05
+  - 0.04
+  - 0.05
+  - 0.08
+  - 0.05
+  - 0.12
+  - 0.1
+  - 0.1
+  - 0.03
+  - 0.1
+  - 0.15
+  - 0.5
+  - 1
+  - 0.5
+  - 1
+  - 1
+  - 1.2
+  - 0.15
+  menuMusic: {fileID: 8300000, guid: 6c134461c8b390848849e9262e475a7a, type: 3}
+  battleMusic: {fileID: 8300000, guid: 523199c8f358d4b8f98ac97ce2622294, type: 3}
+  victorySting: {fileID: 8300000, guid: 50a2df660395dd0a697fa334be6b75aa, type: 3}
+  ambienceLoop: {fileID: 8300000, guid: 9a481a28fa2d2fd18af9bafce96b2dab, type: 3}
+  menuMusicVolume: 0.7
+  battleMusicVolume: 0.55
+  victoryStingVolume: 0.9
+  ambienceVolume: 0.45
