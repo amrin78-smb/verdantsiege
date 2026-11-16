@@ -78,6 +78,23 @@ namespace VerdantSiege.Tests
             }
         }
 
+        /// <summary>Boss length target (owner): about 4-6 minutes for the scripted bot; the weak-point mechanic must come up.</summary>
+        [Test]
+        public void BossEncounter_LastsFourToSixMinutes_WeakPointsComeUp([Values(1, 42, 99999)] int seed)
+        {
+            EncounterDefinition e = Db().FindEncounter("vh_07");
+            int specials = 0, staggers = 0;
+            BattleSimulation sim = Play(e, seed, true, out float minutes, s =>
+            {
+                s.BossWeakPointsExposed += b => specials++;
+                s.BossStaggered += b => staggers++;
+            });
+            Assert.AreEqual(BattleState.Won, sim.State, $"seed {seed}: bot lost the boss (heart {sim.HeartrootHealth}, {minutes:0.0} min)");
+            Assert.That(minutes, Is.InRange(4f, 6.5f), $"seed {seed}: boss encounter {minutes:0.0} min outside 4..6.5");
+            Assert.Greater(specials, 0, "the special attack (weak points) happens in every fight");
+            Debug.Log($"[Balance] vh_07 seed={seed} {minutes:0.00} min, specials {specials}, staggers {staggers}, landed {sim.Boss.specialsLanded}, heart {sim.HeartrootHealth}");
+        }
+
         [Test]
         public void Encounters_AreLostWithoutDefence()
         {
@@ -101,19 +118,27 @@ namespace VerdantSiege.Tests
                 int wins = 0;
                 var breaches = new Dictionary<string, int>();
                 var planted = new Dictionary<string, int>();
-                float minutesSum = 0f, heartSum = 0f;
+                float minutesSum = 0f, heartSum = 0f, minMin = float.MaxValue, maxMin = 0f;
+                int specials = 0, staggers = 0, uprooted = 0;
                 foreach (int seed in new[] { 1, 7, 42, 1234, 99999, 5, 77, 314 })
                 {
                     BattleSimulation sim = Play(e, seed, true, out float minutes, s =>
                     {
                         s.EnemyBreached += en => { breaches.TryGetValue(en.Definition.id, out int n); breaches[en.Definition.id] = n + 1; };
                         s.DefenderPlaced += d => { planted.TryGetValue(d.Definition.id, out int n); planted[d.Definition.id] = n + 1; };
+                        s.BossWeakPointsExposed += b => specials++;
+                        s.BossStaggered += b => staggers++;
+                        s.DefenderUprooted += (d, r) => uprooted++;
                     });
                     if (sim.State == BattleState.Won) wins++;
                     minutesSum += minutes;
+                    minMin = Mathf.Min(minMin, minutes);
+                    maxMin = Mathf.Max(maxMin, minutes);
                     heartSum += sim.HeartrootHealth;
                 }
-                sb.Append($"{e.id}: won {wins}/8 avgMin {minutesSum / 8f:0.0} avgHeart {heartSum / 8f:0.0} | breaches ");
+                sb.Append($"{e.id}: won {wins}/8 avgMin {minutesSum / 8f:0.0} ({minMin:0.0}-{maxMin:0.0}) avgHeart {heartSum / 8f:0.0} | ");
+                if (e.boss != null) sb.Append($"specials {specials} staggers {staggers} uprooted {uprooted} | ");
+                sb.Append("breaches ");
                 foreach (var kv in breaches) sb.Append($"{kv.Key}={kv.Value} ");
                 sb.Append("| planted ");
                 foreach (var kv in planted) sb.Append($"{kv.Key}={kv.Value} ");

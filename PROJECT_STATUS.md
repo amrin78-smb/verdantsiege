@@ -87,6 +87,22 @@ vh_01..vh_04: 8/8 wins, avg Heartroot 4.0-5.0, 3.8-4.4 min. vh_05: 8/8 (4.4). vh
 - Enemy health bars only on elites; lure applies once per enemy; Herald affects all enemies on the field, not just its wave.
 - Linux autoplay runs at ~2-3 FPS under software GL; says nothing about phone performance. New VFX budgets not yet profiled on device.
 
+## Boss polish: The Root Maw (implemented on branch; device validation pending)
+
+| Feature | Status |
+|---|---|
+| Entrance: tremors and dust under the soil, eruption with tearing roots and camera shake, roar; intro text kept but compact (2.4 s banner, 5 s hint card) | Verified (Linux autoplay screenshot `boss_entrance`) |
+| Camera shake (trauma model, unscaled time) on the entrance, every landing (scaled by cells struck and plants uprooted), pod breaks, stagger and death; Reduced shake turns all of it off; breach shake uses the same system | Shake verified in code paths/autoplay only; **feel needs a device** |
+| Per-phase attacks: Root Slam (column, red), Sweeping Grasp (lane strip, amber ripple, yaw sweep), Frenzy (3 columns, magenta, column-by-column beat, triple jolt); attack name on the boss bar | Verified (automated test + autoplay `boss_sweep`, `boss_frenzy`) |
+| Weak points: the Heartrot Crush wind-up (10 s) exposes 3 pods in lanes 0/2/4 (260 HP each); lane hits strike the pod first; all three broken = attack interrupted + STAGGERED (6 s, Core x3); otherwise it crushes 4 cells of the most crowded column. Pod bars with countdown rings, "BREAK PODS n/3 t" + countdown strip on the boss bar. Uses the art's `WeakPoint0..2` (slid onto lane centres), code-built pods when missing | Verified (automated test + autoplay `boss_weakpoints`, `boss_stagger`) |
+| Death: thrash, pods and Core burst, collapse and sink with a spore explosion, 0.35x slow motion for 1.2 s real; all Blight withers | Verified (automated test for the state; autoplay `boss_death`, `boss_death_collapse`) |
+| Boss victory variant: crest moment then results with +150 bonus Seeds and Essence (3 first defeat, 1 after); Essence in the save (v2, migration) and on the main menu | Verified (automated test + autoplay `boss_victory_crest`, `result`) |
+| Readability: boss pushed right (1.95 columns) and scaled 0.82, camera fit keeps its face and pods in view; no lane cell covered and every bot tap planted at 1600x720, 1920x1080, 2048x1536, 2400x1080 | Verified (Linux autoplay); **phone check pending** |
+
+Tuning (bot, `BalanceReport`, 8 seeds): vh_07 8/8 wins, avg **5.1 min** (4.5-5.4; was ~3.3), avg Heartroot 5.0, 36 specials of which 28 staggered (78%), ~39 plants uprooted per fight (50% refund each). Root Maw: 42000 HP (was 12500), guarded x0.4 / exposed x2.2 / staggered x3, attack intervals 7.5 / 7 / 6.5 s, entrance 4.5 s. Economy unchanged.
+
+Known limitations: no new SFX (reuses roar/rumble/root strike/armour break); Essence has no sink yet; the death/victory sequence adds ~4 s before the result; the intel card can touch the far lane's border at 1600x720 (lead's notification rework); slow motion and shake strength are untested on a phone.
+
 ## Next actions
 1. Pair the S23 Ultra over wireless debugging, install the APK, run `Docs/ANDROID_TEST_CHECKLIST.md`; TCL Tab 10 after 21:00; Redmi A3 when available.
 2. Milestone 2 (vertical slice polish): environment composition and lighting, Heartroot placement, sunlight pools, proper tutorial, better VFX (hit, armour break, death), damage numbers option, card/HUD polish, tuned quality profiles after device profiling.

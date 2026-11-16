@@ -110,20 +110,48 @@ namespace VerdantSiege.Battle
                 barsGo.AddComponent<DamageNumbers>().Init(Sim, Layout, battleCamera, Hud.Canvas.transform);
             if (!settings.tutorialSeen && _app.Config.content.encounters.IndexOf(_encounter) == 0)
                 TutorialController.Create(this, Hud);
-            _shakeEnabled = !settings.reducedShake;
+            InitShakeAndBoss(settings);
         }
 
-        private bool _shakeEnabled = true;
-        private float _shake;
+        // ================================================================ camera shake + boss cinematics (boss polish)
+        private BattleCameraShake _cameraShake;
+        private float _slowMoRemaining;
+        private float _slowMoScale = 1f;
 
-        private void LateUpdateShake()
+        /// <summary>Camera shake (all impacts; off with Reduced shake) and, in a boss encounter, its cinematics.</summary>
+        private void InitShakeAndBoss(SettingsData settings)
         {
-            if (battleCamera == null) return;
-            if (_shake <= 0f) return;
-            _shake = Mathf.Max(0f, _shake - Time.unscaledDeltaTime);
-            var rig = battleCamera.GetComponent<BattleCameraRig>();
-            if (rig != null) rig.ShakeOffset = _shake > 0f ? Random.insideUnitSphere * (_shake * 0.25f) : Vector3.zero;
+            if (battleCamera != null)
+            {
+                _cameraShake = battleCamera.GetComponent<BattleCameraShake>();
+                if (_cameraShake == null) _cameraShake = battleCamera.gameObject.AddComponent<BattleCameraShake>();
+                _cameraShake.ShakeEnabled = !settings.reducedShake;
+            }
+            if (Sim.Boss == null) return;
+            var go = new GameObject("BossCinematics");
+            go.transform.SetParent(transform, false);
+            go.AddComponent<BossCinematics>().Init(Sim, View.BossView, _cameraShake, _app.Audio, SlowMotion);
+            BossWeakPointHud.Create(Hud, Sim, View.BossView, battleCamera);
         }
+
+        /// <summary>Visual slow motion (x scale for some real seconds) on top of the speed setting; the sim is unaffected when already over.</summary>
+        public void SlowMotion(float scale, float realSeconds)
+        {
+            _slowMoScale = Mathf.Clamp(scale, 0.05f, 1f);
+            _slowMoRemaining = realSeconds;
+            ApplyTimeScale();
+        }
+
+        private void ApplyTimeScale() => Time.timeScale = Paused ? 0f : Speed * (_slowMoRemaining > 0f ? _slowMoScale : 1f);
+
+        private void TickSlowMotion()
+        {
+            if (_slowMoRemaining <= 0f || Paused) return;
+            _slowMoRemaining -= Time.unscaledDeltaTime;
+            if (_slowMoRemaining <= 0f) ApplyTimeScale();
+        }
+
+        private bool BossWon => Sim.Boss != null && Sim.State == BattleState.Won && Sim.Boss.state == BossState.Defeated;
 
         private void BuildGround()
         {
@@ -149,7 +177,7 @@ namespace VerdantSiege.Battle
             Bounds b = Layout.FieldBounds;
             // Include the Heartroot (left), the enemy entry (right) and unit height.
             b.Encapsulate(new Vector3(-1.6f, 0f, b.center.z)); // keep the Heartroot's glowing core in view
-            b.Encapsulate(new Vector3(Layout.Columns + (Sim.Boss != null ? 1.6f : 0.9f), 0f, b.center.z)); // M3: keep the boss's face in view
+            b.Encapsulate(new Vector3(Layout.Columns + (Sim.Boss != null ? BossStage.FitMargin : 0.9f), 0f, b.center.z)); // keep the boss's face and pods in view
             b.Encapsulate(new Vector3(b.center.x, 1.0f, Layout.Lanes * Layout.LaneDepth + 0.15f));
             b.Encapsulate(new Vector3(b.center.x, 0f, -0.1f));
             // HUD-free viewport: left rail and top bar are excluded (reference 1920x1080 scaled by height).
@@ -167,10 +195,10 @@ namespace VerdantSiege.Battle
             {
                 Hud.SetHeartroot(remaining, Sim.HeartrootMaxHealth);
                 if (remaining > 0) Hud.ShowToast("The Heartroot is wounded!");
-                if (_shakeEnabled) _shake = 0.45f;
+                if (_cameraShake != null) _cameraShake.Impact(0.35f);
             };
             Sim.WaveStarted += OnWaveStarted;
-            Sim.StateChanged += s => { if (s != BattleState.Running) _resultDelay = 1.4f; };
+            Sim.StateChanged += s => { if (s != BattleState.Running) _resultDelay = BossWon ? 4.2f : 1.4f; }; // boss: death sequence first
         }
 
         private void OnWaveStarted(int index, bool major)
@@ -349,7 +377,7 @@ namespace VerdantSiege.Battle
                 else SetPaused(!Paused);
             }
             if (!Paused) Sim.Advance(Time.deltaTime);
-            LateUpdateShake();
+            TickSlowMotion();
 
             if (_resultDelay > 0f)
             {
@@ -362,7 +390,7 @@ namespace VerdantSiege.Battle
         {
             if (_resultShown && paused) return;
             Paused = paused;
-            Time.timeScale = paused ? 0f : Speed;
+            ApplyTimeScale();
             if (_app.Audio != null) _app.Audio.SetPaused(paused);
             Hud.ShowPause(paused);
             if (paused) Deselect();
@@ -372,7 +400,7 @@ namespace VerdantSiege.Battle
         public void ToggleSpeed()
         {
             Speed = Speed > 1.5f ? 1f : 2f;
-            if (!Paused) Time.timeScale = Speed;
+            ApplyTimeScale();
             Hud.SetSpeed(Speed);
         }
 
@@ -391,11 +419,21 @@ namespace VerdantSiege.Battle
             Deselect();
             Hud.ShowInspect(null);
             bool won = Sim.State == BattleState.Won;
+            bool bossWon = BossWon;
+            _slowMoRemaining = 0f;
             Time.timeScale = 1f;
             SaveData data = _app.Save.Data;
             EncounterRecord rec = data.GetOrCreate(_encounter.id);
             rec.attempts++;
-            int seeds = Sim.SeedsEarned;
+            int seeds = Sim.SeedsEarned + Sim.BossBonusSeeds;
+            int essence = 0;
+            bool firstBossDefeat = false;
+            if (bossWon)
+            {
+                firstBossDefeat = rec.bossDefeats == 0;
+                BossDefinition bd = Sim.Boss.Definition;
+                essence = data.AwardBossVictory(_encounter.id, bd.essenceFirstDefeat, bd.essenceRepeatDefeat);
+            }
             if (won)
             {
                 rec.completed = true;
@@ -406,9 +444,27 @@ namespace VerdantSiege.Battle
             }
             _app.SaveNow();
             Debug.Log($"[VS Battle] Result {(won ? "WON" : "LOST")} t={Sim.Stats.elapsed:0.0}s defeated={Sim.Stats.enemiesDefeated} " +
-                      $"planted={Sim.Stats.defendersPlanted} lost={Sim.Stats.defendersLost} heart={Sim.HeartrootHealth}/{Sim.HeartrootMaxHealth} seeds+={seeds} total={data.seeds}");
+                      $"planted={Sim.Stats.defendersPlanted} lost={Sim.Stats.defendersLost} heart={Sim.HeartrootHealth}/{Sim.HeartrootMaxHealth} seeds+={seeds} total={data.seeds}" + (bossWon ? $" BOSS essence+={essence} total={data.essence} staggers={Sim.Boss.staggerCount}" : ""));
             EncounterDefinition next = NextEncounter();
-            Hud.ShowResult(won, Sim.Stats, seeds, Sim.HeartrootHealth, Sim.HeartrootMaxHealth, next != null, () => AppRoot.LoadBattle(next.id));
+            if (bossWon)
+            {
+                // Boss variant: crest moment, then results with the bonus Seeds and Essence (BossVictoryScreen).
+                BossVictoryScreen.Show(Hud, new BossVictoryScreen.Data
+                {
+                    bossName = Sim.Boss.Definition.displayName,
+                    accent = Sim.Boss.Definition.accentColor,
+                    stats = Sim.Stats,
+                    encounterSeeds = Sim.SeedsEarned,
+                    bonusSeeds = Sim.BossBonusSeeds,
+                    essence = essence,
+                    totalEssence = data.essence,
+                    firstDefeat = firstBossDefeat,
+                    staggers = Sim.Boss.staggerCount,
+                    heart = Sim.HeartrootHealth,
+                    heartMax = Sim.HeartrootMaxHealth,
+                }, Restart, () => { SaveSettings(); AppRoot.LoadMainMenu(); }, next != null ? () => AppRoot.LoadBattle(next.id) : (System.Action)null);
+            }
+            else Hud.ShowResult(won, Sim.Stats, seeds, Sim.HeartrootHealth, Sim.HeartrootMaxHealth, next != null, () => AppRoot.LoadBattle(next.id));
             Play(won ? Sfx.Victory : Sfx.Defeat);
         }
 

@@ -15,7 +15,13 @@ namespace VerdantSiege.Save
             // Version 0 = pre-release prototype saves without a version field; same shape as v1.
             SaveData data = JsonUtility.FromJson<SaveData>(json);
             if (data == null) return null;
-            // if (fromVersion < 2) { ... transform v1 -> v2 ... }
+            if (fromVersion < 2)
+            {
+                // v1 -> v2: Essence (boss reward) and per-encounter boss defeat counts did not exist yet. Start both at
+                // zero explicitly so a v1 save never inherits garbage, and the first boss win still counts as the first.
+                data.essence = 0;
+                if (data.encounters != null) foreach (EncounterRecord r in data.encounters) if (r != null) r.bossDefeats = 0;
+            }
             if (data.settings == null) data.settings = new SettingsData();
             if (data.encounters == null) data.encounters = new System.Collections.Generic.List<EncounterRecord>();
             if (data.unlockedDefenders == null) data.unlockedDefenders = new System.Collections.Generic.List<string>();

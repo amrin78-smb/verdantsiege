@@ -448,7 +448,7 @@ namespace VerdantSiege.Battle
                 ChainPoints[n++] = new ChainPoint { x = BossFrontX + 0.4f, lane = d.Coord.lane, boss = true };
                 DefenderActed?.Invoke(d);
                 ChainCast?.Invoke(d, n);
-                DamageBoss(def.abilityDamage, def.abilityDamageType);
+                DamageBossInLane(d.Coord.lane, def.abilityDamage, def.abilityDamageType);
                 return true;
             }
             int hitCount = 0;

@@ -102,6 +102,18 @@ namespace VerdantSiege.UI
             _seedsText = UIKit.Text("Amount", seeds.transform, _app.Save.Data.seeds.ToString(), 54f, UIPalette.Gold, TextAlignmentOptions.MidlineRight, true);
             UIKit.Stretch(_seedsText.rectTransform);
             _seedsText.rectTransform.offsetMax = new Vector2(-24f, 0f);
+            if (_app.Save.Data.essence > 0)
+            {
+                // Essence (boss reward) chip under the Seeds, only once some has been earned.
+                Image ess = UIKit.Panel("Essence", _root, new Color(0.2f, 0.12f, 0.28f, 0.92f), true, true);
+                UIKit.Place(ess.rectTransform, new Vector2(1f, 1f), new Vector2(-40f, -148f), new Vector2(300f, 84f));
+                Image gem = UIKit.Image("Gem", ess.transform, UIKit.Lib != null ? UIKit.Lib.uiCircle : null, BossVictoryScreen.EssenceColor);
+                UIKit.Place(gem.rectTransform, new Vector2(0f, 0.5f), new Vector2(18f, 0f), new Vector2(56f, 56f));
+                gem.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
+                TextMeshProUGUI et = UIKit.Text("Amount", ess.transform, _app.Save.Data.essence.ToString(), 48f, BossVictoryScreen.EssenceColor, TextAlignmentOptions.MidlineRight, true);
+                UIKit.Stretch(et.rectTransform);
+                et.rectTransform.offsetMax = new Vector2(-24f, 0f);
+            }
 
             TextMeshProUGUI ver = UIKit.Text("Version", _root, _app.Config != null ? _app.Config.versionLabel : "", 24f, new Color(1f, 1f, 1f, 0.55f), TextAlignmentOptions.BottomRight);
             UIKit.Place(ver.rectTransform, new Vector2(1f, 0f), new Vector2(-30f, 20f), new Vector2(600f, 40f));

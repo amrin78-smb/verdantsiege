@@ -22,6 +22,8 @@ namespace VerdantSiege.UI
         private BattleHud _hud;
         private RectTransform _bossBar;
         private Image _bossFill, _bossTrail;
+        private Image _bossTimer; // boss polish: wind-up countdown strip
+        private bool _podsHinted;
         private TextMeshProUGUI _bossName, _bossState;
         private readonly List<Image> _phasePips = new List<Image>();
         private RectTransform _heraldPill;
@@ -52,6 +54,8 @@ namespace VerdantSiege.UI
             sim.BossTelegraphed += OnBossTelegraph;
             sim.BossCoreExposedChanged += OnCoreExposed;
             sim.DefenderUprooted += OnUprooted;
+            sim.BossStaggered += OnBossStaggered;
+            sim.BossWeakPointsExposed += OnWeakPoints;
         }
 
         private void OnDestroy()
@@ -65,6 +69,8 @@ namespace VerdantSiege.UI
             _sim.BossTelegraphed -= OnBossTelegraph;
             _sim.BossCoreExposedChanged -= OnCoreExposed;
             _sim.DefenderUprooted -= OnUprooted;
+            _sim.BossStaggered -= OnBossStaggered;
+            _sim.BossWeakPointsExposed -= OnWeakPoints;
         }
 
         // ---------------------------------------------------------------- building
@@ -87,6 +93,17 @@ namespace VerdantSiege.UI
             tr.offsetMax = new Vector2(-22f, 32f);
             _bossTrail = FillImage("Trail", track.transform, new Color(1f, 0.85f, 0.85f, 0.6f));
             _bossFill = FillImage("Fill", track.transform, new Color(0.75f, 0.3f, 0.65f));
+            // ---- boss polish: thin countdown strip along the bottom edge while an attack winds up.
+            _bossTimer = UIKit.Image("WindupTimer", panel.transform, UIKit.Lib != null ? UIKit.Lib.uiRound : null, UIPalette.Danger);
+            RectTransform wt = _bossTimer.rectTransform;
+            wt.anchorMin = new Vector2(0f, 0f);
+            wt.anchorMax = new Vector2(1f, 0f);
+            wt.pivot = new Vector2(0.5f, 0f);
+            wt.offsetMin = new Vector2(22f, 2f);
+            wt.offsetMax = new Vector2(-22f, 8f);
+            _bossTimer.type = Image.Type.Filled;
+            _bossTimer.fillMethod = Image.FillMethod.Horizontal;
+            _bossTimer.enabled = false;
             // Phase pips at each threshold (a pip turns dark once that phase has begun).
             for (int i = 1; i < boss.PhaseCount; i++)
             {
@@ -183,8 +200,9 @@ namespace VerdantSiege.UI
         {
             _bossShow = 0f;
             if (_bossBar != null) _bossBar.gameObject.SetActive(true);
-            _hud.ShowBanner(b.Definition.displayName, "The ground splits open", UIPalette.Blight, 3.5f);
-            ShowIntel(b.Definition.displayName, b.Definition.counterHint, 7f);
+            // Compact intro (boss polish): the entrance animation carries the moment.
+            _hud.ShowBanner(b.Definition.displayName, "The ground splits open", UIPalette.Blight, 2.4f);
+            ShowIntel(b.Definition.displayName, b.Definition.counterHint, 5f);
         }
 
         private void OnBossPhase(BossRuntime b, int phase)
@@ -194,6 +212,16 @@ namespace VerdantSiege.UI
         }
 
         private void OnBossDefeated(BossRuntime b) => _hud.ShowBanner(b.Definition.displayName + " Falls!", "Its Blight withers away", UIPalette.Gold, 3f);
+
+        // ---- boss polish: weak points and stagger (two notifications at most per special)
+        private void OnWeakPoints(BossRuntime b)
+        {
+            if (_podsHinted) return;
+            _podsHinted = true;
+            _hud.ShowToast($"Break all {b.weakPoints.Count} glowing pods to stop it!", 3f);
+        }
+
+        private void OnBossStaggered(BossRuntime b) => _hud.ShowBanner("STAGGERED!", "Its Core is open: strike now!", UIPalette.Gold, 1.6f);
 
         private void OnBossTelegraph(BossRuntime b, BossAttack a)
         {
@@ -245,6 +273,26 @@ namespace VerdantSiege.UI
             bool exposed = b.CoreExposed;
             _bossFill.color = exposed ? Color.Lerp(new Color(1f, 0.45f, 0.85f), Color.white, 0.25f + 0.25f * Mathf.Sin(time * 10f)) : new Color(0.75f, 0.3f, 0.65f);
             for (int i = 0; i < _phasePips.Count; i++) _phasePips[i].color = b.phase >= i + 1 ? new Color(0.25f, 0.15f, 0.2f, 0.9f) : UIPalette.Gold;
+            // ---- boss polish: countdown strip + special/stagger states
+            bool winding = b.state == BossState.Telegraph || b.state == BossState.Staggered;
+            _bossTimer.enabled = winding && b.stateDuration > 0f;
+            if (_bossTimer.enabled)
+            {
+                _bossTimer.fillAmount = Mathf.Clamp01(b.stateTimer / b.stateDuration);
+                _bossTimer.color = b.state == BossState.Staggered ? new Color(1f, 0.6f, 0.95f) : b.WeakPointsExposed ? UIPalette.Gold : UIPalette.Danger;
+            }
+            if (b.state == BossState.Staggered)
+            {
+                _bossState.text = $"STAGGERED {Mathf.CeilToInt(b.stateTimer)}";
+                _bossState.color = new Color(1f, 0.7f, 0.95f);
+                return;
+            }
+            if (b.state == BossState.Telegraph && b.WeakPointsExposed)
+            {
+                _bossState.text = $"BREAK PODS {b.weakPoints.Count - b.WeakPointsAlive}/{b.weakPoints.Count}  {Mathf.CeilToInt(b.stateTimer)}";
+                _bossState.color = Color.Lerp(UIPalette.Danger, UIPalette.Gold, 0.5f + 0.5f * Mathf.Sin(time * 8f));
+                return;
+            }
             switch (b.state)
             {
                 case BossState.Rising: _bossState.text = "RISING"; _bossState.color = UIPalette.TextDim; break;
@@ -252,7 +300,12 @@ namespace VerdantSiege.UI
                 case BossState.Defeated: _bossState.text = "DEFEATED"; _bossState.color = UIPalette.Gold; break;
                 default:
                     if (exposed) { _bossState.text = $"CORE EXPOSED {Mathf.CeilToInt(b.exposedRemaining)}"; _bossState.color = new Color(1f, 0.6f, 0.9f); }
-                    else if (b.state == BossState.Telegraph) { _bossState.text = "WINDING UP"; _bossState.color = UIPalette.Danger; }
+                    else if (b.state == BossState.Telegraph)
+                    {
+                        string label = b.currentAttack != null && !string.IsNullOrEmpty(b.currentAttack.label) ? b.currentAttack.label.ToUpperInvariant() : "WINDING UP";
+                        _bossState.text = label;
+                        _bossState.color = UIPalette.Danger;
+                    }
                     else { _bossState.text = $"Phase {b.phase + 1}/{b.PhaseCount}"; _bossState.color = UIPalette.Gold; }
                     break;
             }
