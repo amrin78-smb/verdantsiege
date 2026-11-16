@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ab3b46e9cfc1ef6baa0d47d5cad972e, type: 3}
+  m_Name: Research_sunlit_glades
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.ResearchDefinition
+  id: sunlit_glades
+  displayName: Sunlit Glades
+  description: Sunlight pools last 50% longer.
+  branch: 0
+  tier: 2
+  seedCost: 150
+  essenceCost: 0
+  prerequisite: {fileID: 11400000, guid: d989aac1c595cd4cb9f018a8da7b856a, type: 2}
+  effect: 2
+  magnitude: 0.5
+  glyph: SG

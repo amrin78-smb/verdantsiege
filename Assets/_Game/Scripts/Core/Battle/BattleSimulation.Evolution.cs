@@ -15,7 +15,9 @@ namespace VerdantSiege.Battle
         AlreadyEvolved,
         NotReady,
         InvalidOption,
-        NotEnoughVitality
+        NotEnoughVitality,
+        /// <summary>The branch needs a higher defender mastery level (Milestone 4).</summary>
+        Locked
     }
 
     /// <summary>A visible aura link from an evolved aura source to a neighbour it empowers (presentation reads these).</summary>
@@ -68,8 +70,8 @@ namespace VerdantSiege.Battle
 
         private void AddXp(DefenderRuntime d, float amount)
         {
-            d.xp = Math.Min(d.xp + amount, d.Definition.evolutionXp * 1.5f);
-            if (!d.evolutionAnnounced && d.xp >= d.Definition.evolutionXp)
+            d.xp = Math.Min(d.xp + amount, d.XpThreshold * 1.5f);
+            if (!d.evolutionAnnounced && d.xp >= d.XpThreshold)
             {
                 d.evolutionAnnounced = true;
                 DefenderEvolutionReady?.Invoke(d);
@@ -99,8 +101,25 @@ namespace VerdantSiege.Battle
             if (!d.EvolutionReady) return EvolveResult.NotReady;
             List<EvolutionDefinition> list = d.Definition.evolutions;
             if (option < 0 || option >= list.Count || list[option] == null) return EvolveResult.InvalidOption;
-            if (!Vitality.CanAfford(list[option].cost)) return EvolveResult.NotEnoughVitality;
+            if (!Loadout.BranchUnlocked(d.Definition, list[option])) return EvolveResult.Locked;
+            if (!Vitality.CanAfford(EvolutionCost(d, option))) return EvolveResult.NotEnoughVitality;
             return EvolveResult.Ok;
+        }
+
+        /// <summary>Is branch <paramref name="option"/> available to this defender (mastery requirement met)?</summary>
+        public bool BranchUnlocked(DefenderRuntime d, int option)
+        {
+            List<EvolutionDefinition> list = d?.Definition?.evolutions;
+            return list != null && option >= 0 && option < list.Count && Loadout.BranchUnlocked(d.Definition, list[option]);
+        }
+
+        /// <summary>Vitality cost of a branch for this defender: data cost x mastery thrift, minus research (never below 0).</summary>
+        public int EvolutionCost(DefenderRuntime d, int option)
+        {
+            List<EvolutionDefinition> list = d?.Definition?.evolutions;
+            if (list == null || option < 0 || option >= list.Count || list[option] == null) return 0;
+            int cost = (int)Math.Round(list[option].cost * Loadout.EvolutionCostMultiplier(d.Definition)) - Math.Max(0, Modifiers.evolutionCostReduction);
+            return Math.Max(0, cost);
         }
 
         /// <summary>Atomic: validates, spends and applies the branch in one call (a double tap fails on AlreadyEvolved).</summary>
@@ -109,8 +128,10 @@ namespace VerdantSiege.Battle
             EvolveResult r = CanEvolve(d, option);
             if (r != EvolveResult.Ok) return r;
             EvolutionDefinition evo = d.Definition.evolutions[option];
-            if (!Vitality.TrySpend(evo.cost)) return EvolveResult.NotEnoughVitality;
+            if (!Vitality.TrySpend(EvolutionCost(d, option))) return EvolveResult.NotEnoughVitality;
             d.evolution = evo;
+            EvolutionsChosen++;
+            UsageOf(d.Definition).evolved++;
             d.auraTimer = evo.auraVitalityInterval;
             // A shooter mid-reload keeps its timing; a slower charge shot starts charging from now.
             if (d.attackTimer > AttackInterval(d)) d.attackTimer = AttackInterval(d);
@@ -202,7 +223,7 @@ namespace VerdantSiege.Battle
         /// <summary>Passive XP and evolved regeneration (once per step per defender, before its behaviour acts).</summary>
         private void TickEvolution(DefenderRuntime d, float dt)
         {
-            if (d.CanEvolveEver && Waves.CurrentWave >= 0) AddXp(d, d.Definition.evolutionXp * dt / PassiveEvolutionSeconds);
+            if (d.CanEvolveEver && Waves.CurrentWave >= 0) AddXp(d, d.XpThreshold * dt / PassiveEvolutionSeconds);
             EvolutionDefinition evo = d.evolution;
             if (evo != null && evo.regenPerSecond > 0f && d.health < d.MaxHealth)
                 d.health = Math.Min(d.MaxHealth, d.health + evo.regenPerSecond * dt);

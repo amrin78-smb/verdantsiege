@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57b35c72a6b98fd428cc67e0c4bab58e, type: 3}
+  m_Name: Region_VerdantHeartlands
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.RegionDefinition
+  id: verdant_heartlands
+  displayName: Verdant Heartlands
+  tagline: Meadows, old stone paths and the first roots of the Blight.
+  accentColor: {r: 0.55, g: 0.85, b: 0.4, a: 1}
+  groundColor: {r: 0.3, g: 0.52, b: 0.24, a: 1}
+  missions:
+  - {fileID: 11400000, guid: 20dcc4a60068226e88b9f9b4a7015e77, type: 2}
+  - {fileID: 11400000, guid: 579767def65bea3d3a48c955f66aaa72, type: 2}
+  - {fileID: 11400000, guid: b352bf1aed1117219890f1dd35d34249, type: 2}
+  - {fileID: 11400000, guid: 18e62b9b5aba796e9a276a2942b5dadb, type: 2}
+  - {fileID: 11400000, guid: a774b67e4d121f1c781fce25558c8e03, type: 2}
+  - {fileID: 11400000, guid: cd5bc097b77f04de58a2dac5ec865c8e, type: 2}
+  - {fileID: 11400000, guid: 0b9d0baeb3a8ed89da8458ca2c64c455, type: 2}
+  comingSoon: 0
+  lockedHint: 

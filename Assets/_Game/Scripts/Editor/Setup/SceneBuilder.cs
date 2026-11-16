@@ -195,6 +195,23 @@ namespace VerdantSiege.EditorTools
             mr.shadowCastingMode = ShadowCastingMode.Off;
         }
 
+        /// <summary>Dark, slightly purple unlit-looking material for the blighted Sanctuary's rot pools (vertex-lit shader, no texture).</summary>
+        private static Material RotMaterial()
+        {
+            string path = EditorAssets.Root + "Art/Materials/VS_RotPool.mat";
+            Material m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (m == null)
+            {
+                Shader sh = Shader.Find("Universal Render Pipeline/Unlit");
+                m = new Material(sh);
+                EditorAssets.EnsureFolder(EditorAssets.Root + "Art/Materials");
+                AssetDatabase.CreateAsset(m, path);
+            }
+            m.SetColor("_BaseColor", new Color(0.2f, 0.12f, 0.22f, 1f));
+            EditorUtility.SetDirty(m);
+            return m;
+        }
+
         // ------------------------------------------------------------------ main menu
         private static void BuildMainMenu(VisualLibrary lib, Dictionary<string, GameObject> props, GameObject heartrootPrefab)
         {
@@ -219,16 +236,56 @@ namespace VerdantSiege.EditorTools
                 go.transform.SetPositionAndRotation(pos, Quaternion.Euler(0f, yaw, 0f));
                 go.transform.localScale = Vector3.one * scale;
             }
+            // Base Sanctuary (always there): the old grove's bones.
             for (int i = 0; i < 8; i++) Put(i % 2 == 0 ? "TreeA" : "TreeB", new Vector3(-6f + i * 2.2f + R(-0.5f, 0.5f), 0f, R(7f, 10f)), R(0f, 360f), R(1f, 1.3f), env);
             Put("Cottage", new Vector3(-3.8f, 0f, 6.2f), 160f, 1f, env);
-            Put("RuinArch", new Vector3(5.6f, 0f, 4.6f), -30f, 1.1f, env);
             Put("RuinWall", new Vector3(-0.8f, 0f, 5.2f), 10f, 1f, env);
-            for (int i = 0; i < 6; i++) Put(i % 2 == 0 ? "BushA" : "BushB", new Vector3(R(-5f, 6f), 0f, R(3.5f, 5.5f)), R(0f, 360f), R(0.9f, 1.3f), env);
-            for (int i = 0; i < 14; i++) Put(i % 3 == 0 ? "GrassTuft" : "FlowerCluster", new Vector3(R(-5f, 6f), 0f, R(-1f, 3.5f)), R(0f, 360f), R(0.8f, 1.2f), env);
             for (int i = 0; i < 3; i++) Put(i == 0 ? "RockA" : i == 1 ? "RockB" : "RockC", new Vector3(R(-3f, 5f), 0f, R(0f, 3f)), R(0f, 360f), R(0.8f, 1.2f), env);
-            Put("MushroomCluster", new Vector3(3.9f, 0f, 1.2f), 0f, 1.1f, env);
             for (int i = 0; i < 5; i++) Put("StonePath", new Vector3(1.6f - i * 0.95f, 0f, 1.2f - i * 0.35f), R(-15f, 15f), 1f, env);
+            for (int i = 0; i < 4; i++) Put("GrassTuft", new Vector3(R(-3f, 6f), 0f, R(-1f, 3f)), R(0f, 360f), R(0.8f, 1.1f), env);
             MarkStatic(env.gameObject);
+
+            // Milestone 4 restoration: blight below tier 2, then four groups that return as missions are won.
+            var restoration = new GameObject("Restoration").AddComponent<SanctuaryRestoration>();
+            Transform Group(string name)
+            {
+                var g = new GameObject(name).transform;
+                g.SetParent(restoration.transform, false);
+                return g;
+            }
+            Transform blight = Group("Blight");
+            for (int i = 0; i < 6; i++) Put(i % 3 == 0 ? "RockA" : i % 3 == 1 ? "RockB" : "RockC", new Vector3(R(2.5f, 7f), 0f, R(-0.6f, 4f)), R(0f, 360f), R(0.6f, 1.1f), blight);
+            for (int i = 0; i < 4; i++) Put("FencePost", new Vector3(R(-1f, 6f), 0f, R(-0.8f, 0.6f)), R(0f, 360f), 1f, blight);
+            for (int i = 0; i < 6; i++)
+            {
+                // Rot pools: dark, flat blotches on the meadow.
+                var pool = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                Object.DestroyImmediate(pool.GetComponent<Collider>());
+                pool.name = "RotPool";
+                pool.transform.SetParent(blight, false);
+                pool.transform.position = new Vector3(R(-1.5f, 6.5f), 0.005f, R(-0.8f, 4.5f));
+                pool.transform.localScale = new Vector3(R(0.9f, 1.8f), 0.004f, R(0.7f, 1.4f));
+                var mr = pool.GetComponent<MeshRenderer>();
+                mr.sharedMaterial = RotMaterial();
+                mr.shadowCastingMode = ShadowCastingMode.Off;
+            }
+            Transform t1 = Group("Tier1_Blossom");
+            for (int i = 0; i < 12; i++) Put(i % 3 == 0 ? "GrassTuft" : "FlowerCluster", new Vector3(R(-0.5f, 5.5f), 0f, R(-1f, 2.8f)), R(0f, 360f), R(0.8f, 1.2f), t1);
+            Transform t2 = Group("Tier2_Hedges");
+            for (int i = 0; i < 6; i++) Put(i % 2 == 0 ? "BushA" : "BushB", new Vector3(R(-5f, 7f), 0f, R(3.5f, 5.5f)), R(0f, 360f), R(0.9f, 1.3f), t2);
+            for (int i = 0; i < 8; i++) Put("FlowerCluster", new Vector3(R(-4f, 7f), 0f, R(2.5f, 4.5f)), R(0f, 360f), R(0.9f, 1.3f), t2);
+            Transform t3 = Group("Tier3_Grove");
+            Put("RuinArch", new Vector3(5.6f, 0f, 4.6f), -30f, 1.1f, t3);
+            Put("MushroomCluster", new Vector3(3.9f, 0f, 1.2f), 0f, 1.1f, t3);
+            Put("MushroomCluster", new Vector3(6.2f, 0f, 2.8f), 40f, 1.2f, t3);
+            for (int i = 0; i < 3; i++) Put(i % 2 == 0 ? "TreeB" : "TreeA", new Vector3(R(5.5f, 9f), 0f, R(3f, 6f)), R(0f, 360f), R(0.9f, 1.15f), t3);
+            Transform t4 = Group("Tier4_Restored");
+            Put("Cottage", new Vector3(8.4f, 0f, 6.4f), 210f, 0.95f, t4);
+            for (int i = 0; i < 14; i++) Put(i % 4 == 0 ? "MushroomCluster" : "FlowerCluster", new Vector3(R(-2f, 8f), 0f, R(-1f, 5f)), R(0f, 360f), R(0.9f, 1.35f), t4);
+            restoration.blight = blight.gameObject;
+            restoration.tiers = new[] { t1.gameObject, t2.gameObject, t3.gameObject, t4.gameObject };
+            restoration.view = cam;
+            restoration.sun = Object.FindAnyObjectByType<Light>();
 
             // A few defenders guarding the Heartroot (animated by the menu controller).
             var guards = new GameObject("Guardians").transform;
@@ -243,6 +300,24 @@ namespace VerdantSiege.EditorTools
             Guard("Glowcap", new Vector3(1.9f, 0f, 0.1f), -10f);
             Guard("BulwarkBloom", new Vector3(4.4f, 0f, 1.1f), -30f);
             Guard("Sunspore", new Vector3(0.9f, 0f, 0.9f), -5f);
+            // Defenders that join the garden through the campaign appear around the Heartroot once unlocked.
+            void Joiner(string prefabName, string id, Vector3 pos, float yaw)
+            {
+                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{EditorAssets.Root}Prefabs/Defenders/{prefabName}.prefab");
+                if (prefab == null) return;
+                var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, guards);
+                go.transform.SetPositionAndRotation(pos, Quaternion.Euler(0f, yaw, 0f));
+                go.AddComponent<SanctuaryGuardian>().defenderId = id;
+            }
+            Joiner("Thorncaster", "thorncaster", new Vector3(4.6f, 0f, 2.5f), -35f);
+            Joiner("FrostFern", "frost_fern", new Vector3(0.7f, 0f, 2.1f), -10f);
+            Joiner("EmberLily", "ember_lily", new Vector3(5.5f, 0f, 3.6f), -40f);
+            Joiner("Burrowroot", "burrowroot", new Vector3(1.5f, 0f, 3.3f), -20f);
+            Joiner("SnapjawVine", "snapjaw_vine", new Vector3(3.7f, 0f, 3.7f), -30f);
+            Joiner("Whirlseed", "whirlseed", new Vector3(0.1f, 0f, 3.8f), 0f);
+            Joiner("StormOrchid", "storm_orchid", new Vector3(6.3f, 0f, 4.8f), -40f);
+            Joiner("Mirrorleaf", "mirrorleaf", new Vector3(4.6f, 0f, 5.0f), -35f);
+            Joiner("MenderMoss", "mender_moss", new Vector3(1.6f, 0f, 5.0f), -15f);
 
             var controllerGo = new GameObject("MainMenu");
             var mm = controllerGo.AddComponent<MainMenuController>();

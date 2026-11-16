@@ -52,3 +52,14 @@ MonoBehaviour:
   bossArrivesAtWave: 0
   seedReward: 110
   flawlessBonus: 50
+  mapPosition: {x: 0.51, y: 0.68}
+  challenge:
+    kind: 2
+    value: 1
+    text: Lose no more than 1 defender
+  challengeSeeds: 55
+  challengeEssence: 1
+  unlocksDefenders:
+  - {fileID: 11400000, guid: a7b1987e5ff3ef002965a6fd7bf37a6d, type: 2}
+  - {fileID: 11400000, guid: 33c9f50369ba81e2cbe4ee543ba4c633, type: 2}
+  - {fileID: 11400000, guid: e8ae9c2cb15ffe023aeb2f53375cffca, type: 2}

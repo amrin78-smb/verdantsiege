@@ -60,5 +60,10 @@ namespace VerdantSiege.Visual
         public Sprite iconClose;
         public Sprite iconSkull;
         public Sprite iconLeaf;
+        [Header("Campaign UI (Milestone 4, generated)")]
+        public Sprite iconStar;
+        public Sprite iconLock;
+        public Sprite iconMapPin;
+        public Sprite iconSprout;
     }
 }

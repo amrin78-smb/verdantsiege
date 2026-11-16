@@ -35,6 +35,71 @@ namespace VerdantSiege.EditorTools
             lib.iconClose = Icon("Icon_Close", (x, y) => Mathf.Abs(x - y) < 0.2f && Mathf.Abs(x) < 0.62f || Mathf.Abs(x + y) < 0.2f && Mathf.Abs(x) < 0.62f);
             lib.iconSkull = Icon("Icon_Blight", (x, y) => x * x + (y - 0.1f) * (y - 0.1f) < 0.42f && !((x + 0.25f) * (x + 0.25f) + (y - 0.1f) * (y - 0.1f) < 0.03f) && !((x - 0.25f) * (x - 0.25f) + (y - 0.1f) * (y - 0.1f) < 0.03f));
             lib.iconLeaf = Icon("Icon_Leaf", Leaf);
+            // Milestone 4 campaign UI.
+            lib.iconStar = Icon("Icon_Star", Star);
+            lib.iconLock = Icon("Icon_Lock", Lock);
+            lib.iconMapPin = Icon("Icon_MapPin", MapPin);
+            lib.iconSprout = Icon("Icon_Sprout", Sprout);
+        }
+
+        private static bool InPolygon(float x, float y, Vector2[] poly)
+        {
+            bool inside = false;
+            for (int i = 0, j = poly.Length - 1; i < poly.Length; j = i++)
+            {
+                Vector2 a = poly[i], b = poly[j];
+                if ((a.y > y) != (b.y > y) && x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x) inside = !inside;
+            }
+            return inside;
+        }
+
+        private static Vector2[] _star;
+
+        private static bool Star(float x, float y)
+        {
+            if (_star == null)
+            {
+                _star = new Vector2[10];
+                for (int i = 0; i < 10; i++)
+                {
+                    float a = Mathf.PI * 0.5f + i * Mathf.PI / 5f;
+                    float r = i % 2 == 0 ? 0.95f : 0.42f;
+                    _star[i] = new Vector2(Mathf.Cos(a) * r, Mathf.Sin(a) * r - 0.06f);
+                }
+            }
+            return InPolygon(x, y, _star);
+        }
+
+        private static bool Lock(float x, float y)
+        {
+            bool body = RoundRect(x, y + 0.3f, 0.6f, 0.45f, 0.12f);
+            float r = Mathf.Sqrt(x * x + (y - 0.18f) * (y - 0.18f));
+            bool shackle = r > 0.27f && r < 0.43f && y > 0.1f;
+            bool legs = (Mathf.Abs(x) > 0.27f && Mathf.Abs(x) < 0.43f && y > 0.1f && y <= 0.2f);
+            bool hole = (x * x + (y + 0.22f) * (y + 0.22f) < 0.012f) || (Mathf.Abs(x) < 0.05f && y < -0.22f && y > -0.5f);
+            return ((body && !hole) || shackle || legs);
+        }
+
+        private static bool MapPin(float x, float y)
+        {
+            float cy = y - 0.25f;
+            bool head = x * x + cy * cy < 0.36f;
+            bool point = Tri(x, y, new Vector2(-0.48f, 0.05f), new Vector2(0.48f, 0.05f), new Vector2(0f, -0.92f));
+            bool hole = x * x + cy * cy < 0.05f;
+            return (head || point) && !hole;
+        }
+
+        private static bool Sprout(float x, float y)
+        {
+            bool stem = Mathf.Abs(x + 0.02f * Mathf.Sin(y * 3f)) < 0.07f && y < 0.2f && y > -0.85f;
+            float lx = x + 0.32f, ly = y - 0.25f;
+            float u1 = (lx * 0.8f + ly * 0.6f), v1 = (-lx * 0.6f + ly * 0.8f);
+            bool left = (u1 * u1) / 0.16f + (v1 * v1) / 0.03f <= 1f;
+            float rx = x - 0.32f, ry = y - 0.42f;
+            float u2 = (rx * 0.8f - ry * 0.6f), v2 = (rx * 0.6f + ry * 0.8f);
+            bool right = (u2 * u2) / 0.18f + (v2 * v2) / 0.035f <= 1f;
+            bool soil = RoundRect(x, y + 0.82f, 0.62f, 0.1f, 0.08f);
+            return stem || left || right || soil;
         }
 
         // ------------------------------------------------------------------ shapes (x,y in [-1,1], y up)

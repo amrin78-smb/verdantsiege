@@ -51,12 +51,12 @@ namespace VerdantSiege.Battle
             }
         }
 
-        public WaveDirector(EncounterDefinition encounter, int lanes, int seed)
+        public WaveDirector(EncounterDefinition encounter, int lanes, int seed, float extraPrepTime = 0f)
         {
             _encounter = encounter;
             _lanes = lanes;
             _rng = new SeededRandom(seed ^ 0x5A17);
-            PrepRemaining = encounter.prepTime;
+            PrepRemaining = encounter.prepTime + extraPrepTime;
         }
 
         /// <param name="aliveFromCurrentWave">enemies from the current wave still alive</param>

@@ -39,7 +39,8 @@ namespace VerdantSiege.UI
         private Image _flash;
         private bool _counted;
 
-        public static BossVictoryScreen Show(BattleHud hud, Data d, Action replay, Action menu, Action next)
+        /// <summary>Shows the crest and the boss rewards; Continue leads to the campaign results (stars, mastery, unlocks).</summary>
+        public static BossVictoryScreen Show(BattleHud hud, Data d, Action onContinue)
         {
             var go = new GameObject("BossVictoryOverlay", typeof(RectTransform));
             go.transform.SetParent(hud.Canvas.transform, false);
@@ -49,7 +50,7 @@ namespace VerdantSiege.UI
             UIKit.Stretch((RectTransform)go.transform);
             var s = go.AddComponent<BossVictoryScreen>();
             s._d = d;
-            s.Build(replay, menu, next);
+            s.Build(onContinue);
             return s;
         }
 
@@ -58,7 +59,11 @@ namespace VerdantSiege.UI
         /// <summary>Reward texts as shown (autoplay report).</summary>
         public string RewardText => _seedsText != null ? _seedsText.text + " / " + _essenceText.text : "";
 
-        private void Build(Action replay, Action menu, Action next)
+        /// <summary>Presses Continue (autoplay; same as a tap once the panel is up).</summary>
+        public void Continue() { if (_continue != null && _continue.interactable && _panelGroup.interactable) _continue.onClick.Invoke(); }
+        private Button _continue;
+
+        private void Build(Action onContinue)
         {
             Transform root = transform;
             Sprite round = UIKit.Lib != null ? UIKit.Lib.uiRound : null;
@@ -162,17 +167,13 @@ namespace VerdantSiege.UI
             essSub.rectTransform.offsetMin = new Vector2(100f, 8f);
             essSub.rectTransform.offsetMax = new Vector2(-20f, -6f);
 
-            float bx = next != null ? -290f : -150f;
-            Button again = UIKit.Button("Again", _panel, "Replay", UIPalette.ButtonSecondary, replay, UIKit.Lib != null ? UIKit.Lib.iconRestart : null, 40f);
-            UIKit.Place((RectTransform)again.transform, new Vector2(0.5f, 0f), new Vector2(bx, 34f), new Vector2(270f, 100f));
-            Button menuB = UIKit.Button("Menu", _panel, "Menu", next != null ? UIPalette.ButtonSecondary : UIPalette.ButtonPrimary, menu,
-                UIKit.Lib != null ? UIKit.Lib.iconHome : null, 40f);
-            UIKit.Place((RectTransform)menuB.transform, new Vector2(0.5f, 0f), new Vector2(bx + 290f, 34f), new Vector2(250f, 100f));
-            if (next != null)
+            _continue = UIKit.Button("Continue", _panel, "Continue", UIPalette.ButtonPrimary, () =>
             {
-                Button nb = UIKit.Button("Next", _panel, "Next", UIPalette.ButtonPrimary, next, UIKit.Lib != null ? UIKit.Lib.iconPlay : null, 40f);
-                UIKit.Place((RectTransform)nb.transform, new Vector2(0.5f, 0f), new Vector2(bx + 560f, 34f), new Vector2(250f, 100f));
-            }
+                _continue.interactable = false;
+                gameObject.SetActive(false);
+                onContinue?.Invoke();
+            }, UIKit.Lib != null ? UIKit.Lib.iconPlay : null, 42f);
+            UIKit.Place((RectTransform)_continue.transform, new Vector2(0.5f, 0f), new Vector2(0f, 34f), new Vector2(340f, 104f));
 
             // Bright flash on arrival.
             _flash = UIKit.Image("Flash", root, null, new Color(1f, 0.95f, 0.85f, 0.85f));

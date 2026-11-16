@@ -49,5 +49,15 @@ namespace VerdantSiege.Data
         [Header("Rewards")]
         [Min(0)] public int seedReward = 50;
         [Tooltip("Extra seeds when the Heartroot is undamaged.")] [Min(0)] public int flawlessBonus = 25;
+
+        [Header("Campaign (Milestone 4)")]
+        [Tooltip("Node position on its region's world map (0..1, origin bottom-left).")]
+        public Vector2 mapPosition = new Vector2(0.5f, 0.5f);
+        [Tooltip("Optional third-star objective (restricted roster, no losses, evolve, stagger...).")]
+        public MissionObjective challenge = new MissionObjective();
+        [Tooltip("One-time Seeds for completing the challenge objective.")] [Min(0)] public int challengeSeeds = 40;
+        [Tooltip("One-time Essence for completing the challenge objective.")] [Min(0)] public int challengeEssence = 1;
+        [Tooltip("Defenders added to the collection the first time this mission is won.")]
+        public List<DefenderDefinition> unlocksDefenders = new List<DefenderDefinition>();
     }
 }

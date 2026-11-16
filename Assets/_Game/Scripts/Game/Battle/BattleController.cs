@@ -68,9 +68,14 @@ namespace VerdantSiege.Battle
             int seed = _encounter.fixedSeed != 0 ? _encounter.fixedSeed : System.Environment.TickCount;
             var options = BattleOptions.Default;
             options.autoCollect = settings.autoCollect;
-            Sim = new BattleSimulation(_encounter, seed, options);
+            // Milestone 4: the player's deck, research modifiers and mastery (neutral when forced or without a campaign).
+            BattleLoadout loadout = _app.ForceNeutralLoadout || _app.Progression == null ? null : _app.Progression.LoadoutFor(_encounter);
+            Sim = new BattleSimulation(_encounter, seed, options, loadout);
             Layout = new BattleLayout(Sim.Lanes, Sim.Columns, 1f, 1f, Vector3.zero);
-            Debug.Log($"[VS Battle] {_encounter.id} seed={seed} lanes={Sim.Lanes} cols={Sim.Columns} waves={_encounter.waves.Count}");
+            var deckIds = new System.Text.StringBuilder();
+            foreach (DeckSlot s in Sim.Deck) deckIds.Append(s.Definition.id).Append(' ');
+            Debug.Log($"[VS Battle] {_encounter.id} seed={seed} lanes={Sim.Lanes} cols={Sim.Columns} waves={_encounter.waves.Count} " +
+                      $"deck=[{deckIds.ToString().Trim()}] research={(Sim.Modifiers.IsNeutral ? "none" : "on")} mastery={(Sim.Loadout.masteryLevels != null)}");
 
             BuildGround();
             _vfx = VfxSystem.Create(transform, _lib, QualityManager.CurrentLevel, settings.reducedFlashes);
@@ -426,55 +431,53 @@ namespace VerdantSiege.Battle
             _slowMoRemaining = 0f;
             Time.timeScale = 1f;
             SaveData data = _app.Save.Data;
-            EncounterRecord rec = data.GetOrCreate(_encounter.id);
-            rec.attempts++;
-            int seeds = Sim.SeedsEarned + Sim.BossBonusSeeds;
-            int essence = 0;
-            bool firstBossDefeat = false;
-            if (bossWon)
-            {
-                firstBossDefeat = rec.bossDefeats == 0;
-                BossDefinition bd = Sim.Boss.Definition;
-                essence = data.AwardBossVictory(_encounter.id, bd.essenceFirstDefeat, bd.essenceRepeatDefeat);
-            }
-            if (won)
-            {
-                rec.completed = true;
-                if (Sim.HeartrootHealth >= Sim.HeartrootMaxHealth) rec.flawless = true;
-                rec.bestHeartroot = Mathf.Max(rec.bestHeartroot, Sim.HeartrootHealth);
-                data.seeds += seeds;
-                data.settings.tutorialSeen = true;
-            }
+            // Milestone 4: stars, Seeds (full on the first win, reduced on replays), Essence, mastery and unlocks.
+            Progression.MissionRewards rewards = _app.Progression.Grant(_encounter, Sim);
+            LastRewards = rewards;
+            if (won) data.settings.tutorialSeen = true;
             _app.SaveNow();
             Debug.Log($"[VS Battle] Result {(won ? "WON" : "LOST")} t={Sim.Stats.elapsed:0.0}s defeated={Sim.Stats.enemiesDefeated} " +
-                      $"planted={Sim.Stats.defendersPlanted} lost={Sim.Stats.defendersLost} heart={Sim.HeartrootHealth}/{Sim.HeartrootMaxHealth} seeds+={seeds} total={data.seeds}" + (bossWon ? $" BOSS essence+={essence} total={data.essence} staggers={Sim.Boss.staggerCount}" : ""));
-            EncounterDefinition next = NextEncounter();
+                      $"planted={Sim.Stats.defendersPlanted} lost={Sim.Stats.defendersLost} heart={Sim.HeartrootHealth}/{Sim.HeartrootMaxHealth} " +
+                      $"seeds+={rewards.Seeds} total={data.seeds} essence+={rewards.Essence} total={data.essence} stars={rewards.stars} new={rewards.newStars} " +
+                      $"firstClear={rewards.firstClear} mastery+={rewards.mastery.Count} unlocked={rewards.unlocked.Count}" + (bossWon ? $" BOSS staggers={Sim.Boss.staggerCount}" : ""));
+            EncounterDefinition next = won ? NextEncounter() : null;
+            System.Action toNext = next != null ? () => { SaveSettings(); AppRoot.LoadMenu(MenuRoute.Loadout, next.id); } : (System.Action)null;
+            System.Action toMap = () => { SaveSettings(); AppRoot.LoadMenu(MenuRoute.WorldMap); };
+            MissionResultScreen.Data result = new MissionResultScreen.Data
+            {
+                encounter = _encounter, rewards = rewards, stats = Sim.Stats, won = won,
+                heart = Sim.HeartrootHealth, heartMax = Sim.HeartrootMaxHealth, content = _app.Config.content,
+            };
             if (bossWon)
             {
-                // Boss variant: crest moment, then results with the bonus Seeds and Essence (BossVictoryScreen).
+                // Boss variant: crest moment and boss rewards first (BossVictoryScreen), then the campaign results.
                 BossVictoryScreen.Show(Hud, new BossVictoryScreen.Data
                 {
                     bossName = Sim.Boss.Definition.displayName,
                     accent = Sim.Boss.Definition.accentColor,
                     stats = Sim.Stats,
-                    encounterSeeds = Sim.SeedsEarned,
-                    bonusSeeds = Sim.BossBonusSeeds,
-                    essence = essence,
+                    encounterSeeds = rewards.seedsMission + rewards.seedsFlawless + rewards.seedsChallenge,
+                    bonusSeeds = rewards.seedsBoss,
+                    essence = rewards.Essence,
                     totalEssence = data.essence,
-                    firstDefeat = firstBossDefeat,
+                    firstDefeat = rewards.firstBossDefeat,
                     staggers = Sim.Boss.staggerCount,
                     heart = Sim.HeartrootHealth,
                     heartMax = Sim.HeartrootMaxHealth,
-                }, Restart, () => { SaveSettings(); AppRoot.LoadMainMenu(); }, next != null ? () => AppRoot.LoadBattle(next.id) : (System.Action)null);
+                }, () => MissionResultScreen.Show(Hud, result, Restart, toMap, toNext));
             }
-            else Hud.ShowResult(won, Sim.Stats, seeds, Sim.HeartrootHealth, Sim.HeartrootMaxHealth, next != null, () => AppRoot.LoadBattle(next.id));
+            else MissionResultScreen.Show(Hud, result, Restart, toMap, toNext);
             Play(won ? Sfx.Victory : Sfx.Defeat);
         }
+
+        /// <summary>Rewards of the finished battle (autoplay report).</summary>
+        public Progression.MissionRewards LastRewards { get; private set; }
 
         private EncounterDefinition NextEncounter()
         {
             ContentDatabase db = _app.Config != null ? _app.Config.content : null;
             if (db == null) return null;
+            if (db.campaign != null) return Progression.CampaignRules.NextInRegion(db.campaign, _encounter);
             int i = db.encounters.IndexOf(_encounter);
             return i >= 0 && i + 1 < db.encounters.Count ? db.encounters[i + 1] : null;
         }

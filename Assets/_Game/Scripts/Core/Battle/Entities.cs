@@ -58,11 +58,16 @@ namespace VerdantSiege.Battle
         public int storedVitality;
         public int storedPulses;
 
+        /// <summary>XP needed this battle (definition threshold x research growth modifier; set when planted).</summary>
+        public float xpNeeded;
+
         public bool IsEvolved => evolution != null;
         public bool CanEvolveEver => Definition != null && Definition.CanEvolve && evolution == null;
+        /// <summary>Effective XP threshold (falls back to the definition's when not set by the simulation).</summary>
+        public float XpThreshold => xpNeeded > 0f ? xpNeeded : (Definition != null ? Definition.evolutionXp : 0f);
         /// <summary>Alive, not yet evolved and over the XP threshold.</summary>
-        public bool EvolutionReady => alive && CanEvolveEver && xp >= Definition.evolutionXp;
-        public float XpFraction => Definition == null || Definition.evolutionXp <= 0f ? 0f : (evolution != null ? 1f : System.Math.Min(1f, xp / Definition.evolutionXp));
+        public bool EvolutionReady => alive && CanEvolveEver && xp >= XpThreshold;
+        public float XpFraction => Definition == null || XpThreshold <= 0f ? 0f : (evolution != null ? 1f : System.Math.Min(1f, xp / XpThreshold));
 
         public bool IsAlive => alive;
         public float Health => health;
@@ -76,7 +81,7 @@ namespace VerdantSiege.Battle
             Id = 0; Definition = null; Coord = GridCoord.Invalid; health = 0f; attackTimer = 0f;
             generateTimer = 0f; generatePulses = 0; age = 0f; slotIndex = -1; alive = false;
             abilityState = DefenderAbilityState.Ready; abilityTimer = 0f; abilityTargetId = 0;
-            xp = 0f; evolution = null; evolutionAnnounced = false; auraSpeedBonus = 0f; auraLinks = 0; auraTimer = 0f;
+            xp = 0f; xpNeeded = 0f; evolution = null; evolutionAnnounced = false; auraSpeedBonus = 0f; auraLinks = 0; auraTimer = 0f;
             storedVitality = 0; storedPulses = 0;
             statuses.Clear();
         }

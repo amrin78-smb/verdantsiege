@@ -46,3 +46,12 @@ MonoBehaviour:
   bossArrivesAtWave: 0
   seedReward: 75
   flawlessBonus: 35
+  mapPosition: {x: 0.23, y: 0.66}
+  challenge:
+    kind: 4
+    value: 20
+    text: Win planting 20 defenders or fewer
+  challengeSeeds: 45
+  challengeEssence: 1
+  unlocksDefenders:
+  - {fileID: 11400000, guid: c6d6c712e5f647674b8ae7cd7f4599b5, type: 2}

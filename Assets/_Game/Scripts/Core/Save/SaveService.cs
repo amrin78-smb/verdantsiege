@@ -25,6 +25,31 @@ namespace VerdantSiege.Save
             if (data.settings == null) data.settings = new SettingsData();
             if (data.encounters == null) data.encounters = new System.Collections.Generic.List<EncounterRecord>();
             if (data.unlockedDefenders == null) data.unlockedDefenders = new System.Collections.Generic.List<string>();
+            if (fromVersion < 3)
+            {
+                // v2 -> v3 (Milestone 4): stars from the old completed/flawless flags; no mastery, research or
+                // loadouts yet (stray fields from hand edits are dropped). Earlier progress is honoured with mastery
+                // once the content is known (CampaignRules.Reconcile reads legacyGrantPending).
+                data.mastery = new System.Collections.Generic.List<MasteryRecord>();
+                data.research = new System.Collections.Generic.List<string>();
+                data.lastLoadout = new System.Collections.Generic.List<string>();
+                data.loadouts = new System.Collections.Generic.List<LoadoutRecord>();
+                data.sanctuaryTierSeen = -1;
+                bool any = false;
+                foreach (EncounterRecord r in data.encounters)
+                {
+                    if (r == null) continue;
+                    r.stars = (r.completed ? EncounterRecord.StarWin : 0) | (r.completed && r.flawless ? EncounterRecord.StarFlawless : 0);
+                    r.wins = r.completed ? 1 : 0;
+                    any |= r.completed;
+                }
+                data.legacyGrantPending = any;
+            }
+            data.encounters.RemoveAll(r => r == null);
+            if (data.mastery == null) data.mastery = new System.Collections.Generic.List<MasteryRecord>();
+            if (data.research == null) data.research = new System.Collections.Generic.List<string>();
+            if (data.lastLoadout == null) data.lastLoadout = new System.Collections.Generic.List<string>();
+            if (data.loadouts == null) data.loadouts = new System.Collections.Generic.List<LoadoutRecord>();
             data.version = SaveData.CurrentVersion;
             return data;
         }

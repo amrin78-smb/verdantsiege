@@ -11,6 +11,8 @@ namespace VerdantSiege.Data
         public List<EnemyDefinition> enemies = new List<EnemyDefinition>();
         public List<EncounterDefinition> encounters = new List<EncounterDefinition>();
         public List<BossDefinition> bosses = new List<BossDefinition>();
+        [Tooltip("Regions, starting collection, research tree and reward rules (Milestone 4).")]
+        public CampaignDefinition campaign;
 
         public EncounterDefinition FindEncounter(string id)
         {

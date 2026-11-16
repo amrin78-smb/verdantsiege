@@ -48,3 +48,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0b9d0baeb3a8ed89da8458ca2c64c455, type: 2}
   bosses:
   - {fileID: 11400000, guid: e240c6794a2cf6982990e60b91671e77, type: 2}
+  campaign: {fileID: 11400000, guid: 88579415436e24f4e96095193e348257, type: 2}

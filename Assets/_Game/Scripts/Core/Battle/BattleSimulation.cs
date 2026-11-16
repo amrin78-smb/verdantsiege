@@ -82,6 +82,14 @@ namespace VerdantSiege.Battle
         public VitalityBank Vitality { get; }
         public WaveDirector Waves { get; }
         public BattleOptions Options { get; set; }
+        /// <summary>Deck, research modifiers and mastery this battle was started with (never null).</summary>
+        public BattleLoadout Loadout { get; }
+        public BattleModifiers Modifiers => Loadout.modifiers;
+        /// <summary>Per-defender usage this battle (defender id -> plants, evolutions), for mastery.</summary>
+        public IReadOnlyDictionary<string, DefenderUsage> Usage => _usage;
+        /// <summary>Evolutions chosen this battle.</summary>
+        public int EvolutionsChosen { get; private set; }
+        private readonly Dictionary<string, DefenderUsage> _usage = new Dictionary<string, DefenderUsage>();
         /// <summary>
         /// While true (guided tutorial) the first-wave countdown still runs, but pauses at <see cref="HeldPrepFloor"/>
         /// seconds until released, so the clock never looks frozen. Sky drops and planting continue.
@@ -129,20 +137,31 @@ namespace VerdantSiege.Battle
         private float _skyTimer;
         private int _nextId = 1;
 
-        public BattleSimulation(EncounterDefinition encounter, int seed, BattleOptions options)
+        public BattleSimulation(EncounterDefinition encounter, int seed, BattleOptions options) : this(encounter, seed, options, null) { }
+
+        /// <summary>
+        /// A battle with the player's loadout: chosen deck, research modifiers and mastery (Milestone 4).
+        /// A null loadout is neutral (encounter roster, authored rules, every evolution branch open).
+        /// </summary>
+        public BattleSimulation(EncounterDefinition encounter, int seed, BattleOptions options, BattleLoadout loadout)
         {
             Encounter = encounter ?? throw new ArgumentNullException(nameof(encounter));
             if (encounter.battlefield == null) throw new ArgumentException("Encounter has no battlefield", nameof(encounter));
+            Loadout = loadout ?? BattleLoadout.Neutral;
+            if (Loadout.modifiers == null) Loadout.modifiers = new BattleModifiers();
+            BattleModifiers mods = Loadout.modifiers;
             Seed = seed;
+            options.undoGraceSeconds += Math.Max(0f, mods.undoGrace);
             Options = options;
             _rng = new SeededRandom(seed);
             Grid = new BattleGrid<DefenderRuntime>(encounter.battlefield.lanes, encounter.battlefield.columns);
             foreach (SpecialCell c in encounter.battlefield.specialCells)
                 if (Grid.InBounds(c.coord)) Grid.SetTerrain(c.coord, c.terrain);
-            Vitality = new VitalityBank(encounter.startingVitality, encounter.vitalityCap);
-            Waves = new WaveDirector(encounter, Grid.Lanes, seed);
-            HeartrootMaxHealth = HeartrootHealth = Math.Max(1, encounter.heartrootHealth);
-            foreach (DefenderDefinition d in encounter.roster) if (d != null) _deck.Add(new DeckSlot(d));
+            Vitality = new VitalityBank(encounter.startingVitality + Math.Max(0, mods.startingVitality), encounter.vitalityCap);
+            Waves = new WaveDirector(encounter, Grid.Lanes, seed, Math.Max(0f, mods.prepTime));
+            HeartrootMaxHealth = HeartrootHealth = Math.Max(1, encounter.heartrootHealth + Math.Max(0, mods.heartrootHealth));
+            List<DefenderDefinition> cards = Loadout.deck != null && Loadout.deck.Count > 0 ? Loadout.deck : encounter.roster;
+            foreach (DefenderDefinition d in cards) if (d != null) _deck.Add(new DeckSlot(d));
             _skyTimer = encounter.skyDropFirstDelay;
             _sunPoolTimer = encounter.sunlightPoolInterval > 0f ? encounter.prepTime + encounter.sunlightPoolInterval * 0.5f : 0f;
             _spawnCallback = (def, lane, wave) => SpawnEnemy(def, lane, wave);
@@ -231,11 +250,15 @@ namespace VerdantSiege.Battle
             d.health = slot.Definition.maxHealth;
             d.slotIndex = slotIndex;
             d.alive = true;
+            d.xpNeeded = slot.Definition.evolutionXp * Math.Max(0.1f, Modifiers.evolutionXpMultiplier);
+            float headStart = Loadout.HeadStart(slot.Definition);
+            if (headStart > 0f && d.CanEvolveEver) d.xp = d.xpNeeded * headStart; // mastery perk: below the threshold, no event
             Grid.Place(coord, d);
             _defenders.Add(d);
             DefenderBehaviours.For(d.Definition.behaviour).OnPlaced(d);
-            slot.cooldownRemaining = slot.Definition.cooldown;
+            slot.cooldownRemaining = slot.Definition.cooldown * Math.Max(0.1f, Modifiers.cardCooldownMultiplier);
             _stats.defendersPlanted++;
+            UsageOf(d.Definition).planted++;
             DefenderPlaced?.Invoke(d);
             return DeployResult.Ok;
         }
@@ -251,6 +274,7 @@ namespace VerdantSiege.Battle
             Vitality.Add(d.Definition.cost);
             if (d.slotIndex >= 0 && d.slotIndex < _deck.Count) _deck[d.slotIndex].cooldownRemaining = 0f;
             _stats.defendersPlanted--;
+            UsageOf(d.Definition).planted--;
             RemoveDefender(d, false);
             return true;
         }
@@ -292,7 +316,7 @@ namespace VerdantSiege.Battle
             p.amount = amount;
             p.x = x;
             p.laneFloat = laneFloat;
-            p.lifetime = p.remaining = Encounter.pickupLifetime;
+            p.lifetime = p.remaining = Encounter.pickupLifetime + Math.Max(0f, Modifiers.pickupLifetime);
             p.source = source;
             p.alive = true;
             _pickups.Add(p);
@@ -304,7 +328,7 @@ namespace VerdantSiege.Battle
             if (Encounter.skyDropInterval <= 0f) return;
             _skyTimer -= dt;
             if (_skyTimer > 0f) return;
-            _skyTimer += Encounter.skyDropInterval;
+            _skyTimer += Encounter.skyDropInterval * Math.Max(0.1f, Modifiers.skyDropIntervalMultiplier);
             float x = _rng.Range(1.0f, Columns - 0.6f);
             float lane = _rng.Range(0, Lanes) + _rng.Range(-0.2f, 0.2f);
             SpawnPickup(PickupSource.Sky, Encounter.skyDropAmount, x, lane);
@@ -356,7 +380,7 @@ namespace VerdantSiege.Battle
             _sunPoolTimer -= dt;
             if (_sunPoolTimer > 0f) return;
             _sunPoolTimer = Encounter.sunlightPoolInterval;
-            _sunPoolActive = Encounter.sunlightPoolDuration;
+            _sunPoolActive = Encounter.sunlightPoolDuration * Math.Max(0.1f, Modifiers.sunlightPoolDurationMultiplier);
             _sunPools.Clear();
             int guard = 0;
             while (_sunPools.Count < Encounter.sunlightPoolCount && guard++ < 50)
@@ -482,6 +506,8 @@ namespace VerdantSiege.Battle
             HeartrootHealth = Math.Max(0, HeartrootHealth - dmg);
             EnemyBreached?.Invoke(e);
             HeartrootDamaged?.Invoke(HeartrootHealth, dmg);
+            // Research "Heartroot's Gift": a wounded (still living) Heartroot sheds a Sunmote in that lane.
+            if (Modifiers.heartrootGift > 0 && HeartrootHealth > 0) SpawnPickup(PickupSource.Sky, Modifiers.heartrootGift, 0.45f, e.lane);
         }
 
         private int AliveInWave(int wave)
@@ -520,6 +546,16 @@ namespace VerdantSiege.Battle
             WaveDefinition w = Encounter.waves[index];
             WaveStarted?.Invoke(index, w != null && w.major);
             if (Boss != null && Boss.state == BossState.Dormant && index >= Encounter.bossArrivesAtWave) BossRise();
+        }
+
+        internal DefenderUsage UsageOf(DefenderDefinition def)
+        {
+            if (!_usage.TryGetValue(def.id, out DefenderUsage u))
+            {
+                u = new DefenderUsage { defenderId = def.id };
+                _usage.Add(def.id, u);
+            }
+            return u;
         }
 
         // ================================================================== end state
