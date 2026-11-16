@@ -82,8 +82,14 @@ namespace VerdantSiege.Battle
         public VitalityBank Vitality { get; }
         public WaveDirector Waves { get; }
         public BattleOptions Options { get; set; }
-        /// <summary>While true the first wave waits (guided tutorial). Sky drops and planting continue.</summary>
+        /// <summary>
+        /// While true (guided tutorial) the first-wave countdown still runs, but pauses at <see cref="HeldPrepFloor"/>
+        /// seconds until released, so the clock never looks frozen. Sky drops and planting continue.
+        /// </summary>
         public bool HoldFirstWave { get; set; }
+        public const float HeldPrepFloor = 5f;
+        /// <summary>True while the tutorial hold is actually stopping the countdown.</summary>
+        public bool FirstWaveWaiting => HoldFirstWave && Waves.CurrentWave < 0 && Waves.PrepRemaining <= HeldPrepFloor;
         public BattleState State { get; private set; } = BattleState.Running;
         public int HeartrootHealth { get; private set; }
         public int HeartrootMaxHealth { get; }
@@ -168,7 +174,7 @@ namespace VerdantSiege.Battle
             _stats.elapsed += dt;
             foreach (DeckSlot s in _deck) if (s.cooldownRemaining > 0f) s.cooldownRemaining = Math.Max(0f, s.cooldownRemaining - dt);
 
-            if (!(HoldFirstWave && Waves.CurrentWave < 0))
+            if (!FirstWaveWaiting)
                 Waves.Tick(dt, AliveInWave(Waves.CurrentWave), _spawnCallback, _waveStartedCallback);
             TickSkyDrops(dt);
             TickSunlightPools(dt);

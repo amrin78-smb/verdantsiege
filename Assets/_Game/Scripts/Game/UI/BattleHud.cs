@@ -447,7 +447,8 @@ namespace VerdantSiege.UI
             // Waves.
             WaveDirector w = _sim.Waves;
             _waveFill.anchorMax = new Vector2(Mathf.Clamp01(w.Progress), 1f);
-            if (w.CurrentWave < 0) _waveText.text = $"First wave in {Mathf.CeilToInt(Mathf.Max(0f, w.PrepRemaining))}";
+            if (w.CurrentWave < 0 && _sim.FirstWaveWaiting) _waveText.text = "Wave waits for the tip";
+            else if (w.CurrentWave < 0) _waveText.text = $"First wave in {Mathf.CeilToInt(Mathf.Max(0f, w.PrepRemaining))}";
             else _waveText.text = $"Wave {w.CurrentWave + 1} / {w.TotalWaves}";
 
             // Toast / banner fades.

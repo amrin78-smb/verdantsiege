@@ -86,5 +86,25 @@ namespace VerdantSiege.Tests
             Assert.AreEqual(0, sim.Waves.CurrentWave);
             c.Destroy();
         }
+
+        [Test]
+        public void HoldFirstWave_CountdownRunsUntilFloor()
+        {
+            var c = new TestContent();
+            c.encounter.prepTime = 20f;
+            var sim = c.Sim();
+            sim.HoldFirstWave = true;
+            TestContent.Run(sim, 8f);
+            Assert.Less(sim.Waves.PrepRemaining, 13f, "countdown must keep running while the tutorial is open");
+            Assert.IsFalse(sim.FirstWaveWaiting);
+            TestContent.Run(sim, 30f);
+            Assert.AreEqual(-1, sim.Waves.CurrentWave);
+            Assert.IsTrue(sim.FirstWaveWaiting);
+            Assert.That(sim.Waves.PrepRemaining, Is.EqualTo(BattleSimulation.HeldPrepFloor).Within(0.1f));
+            sim.HoldFirstWave = false;
+            TestContent.Run(sim, 5.2f);
+            Assert.AreEqual(0, sim.Waves.CurrentWave);
+            c.Destroy();
+        }
     }
 }

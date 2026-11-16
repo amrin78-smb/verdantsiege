@@ -9,7 +9,7 @@ namespace VerdantSiege.UI
     /// <summary>
     /// First-play guided tutorial (First Roots, until the player wins once). Each step points at what to do and
     /// advances on the actual game state, in any order the player chooses. The first wave is held until the
-    /// steps are done, with a Skip button and a 90 s safety release so it can never block play.
+    /// steps are done, with a Skip button and a 45 s safety release (20 s of actual waiting) so it can never block play.
     /// </summary>
     public sealed class TutorialController : MonoBehaviour
     {
@@ -18,7 +18,7 @@ namespace VerdantSiege.UI
         private RectTransform _panel, _pointer;
         private TextMeshProUGUI _text, _stepLabel;
         private int _step;
-        private float _elapsed;
+        private float _elapsed, _waited;
         private bool _done;
         private int _glowSlot, _shootSlot;
         private Button _chip;
@@ -118,7 +118,9 @@ namespace VerdantSiege.UI
             if (_step == 2 && (_sim.Stats.vitalityCollected > 0 || _sim.Options.autoCollect)) { _step = 3; advanced = true; }
             if (_step == 3 && Count("sunspore") > 0) { Finish(); return; }
             if (advanced) ShowStep();
-            if (_elapsed > 90f) { Finish(); return; }
+            // Safety release: never hold the wave long. Counts only while the wave is actually waiting.
+            if (_sim.FirstWaveWaiting) _waited += Time.unscaledDeltaTime;
+            if (_elapsed > 45f || _waited > 20f) { Finish(); return; }
             PlacePointer();
         }
 
@@ -171,7 +173,8 @@ namespace VerdantSiege.UI
             _panel.gameObject.SetActive(false);
             _pointer.gameObject.SetActive(false);
             if (_chip != null) _chip.gameObject.SetActive(false);
-            _battle.Hud.ShowBanner("Well done!", "The Blight approaches from the right", UIPalette.Leaf, 3f);
+            bool completed = Count("sunspore") > 0;
+            _battle.Hud.ShowBanner(completed ? "Well done!" : "Here they come!", "The Blight approaches from the right", UIPalette.Leaf, 3f);
         }
     }
 }
