@@ -74,6 +74,7 @@ namespace VerdantSiege.UI
             panel.raycastTarget = false;
             _bossBar = panel.rectTransform;
             UIKit.Place(_bossBar, new Vector2(0.5f, 1f), new Vector2(BattleHud.RailWidth * 0.5f, -112f), new Vector2(820f, BarHeight));
+            _hud.SetFeedTop(-112f - BarHeight - 10f); // compact feed sits under the boss bar
             _bossName = UIKit.Text("Name", panel.transform, boss.Definition.displayName, 30f, UIPalette.Parchment, TextAlignmentOptions.TopLeft, true);
             UIKit.Place(_bossName.rectTransform, new Vector2(0f, 1f), new Vector2(22f, -4f), new Vector2(460f, 38f));
             _bossState = UIKit.Text("State", panel.transform, "", 24f, UIPalette.Gold, TextAlignmentOptions.TopRight, true);
@@ -116,8 +117,8 @@ namespace VerdantSiege.UI
             Image pill = UIKit.Panel("HeraldCommand", root, new Color(0.35f, 0.08f, 0.25f, 0.92f), true, true);
             pill.raycastTarget = false;
             _heraldPill = pill.rectTransform;
-            float y = _sim.Boss != null ? -112f - BarHeight - 8f : -112f;
-            UIKit.Place(_heraldPill, new Vector2(0.5f, 1f), new Vector2(BattleHud.RailWidth * 0.5f, y), new Vector2(660f, 64f));
+            // Persistent state pill lives in the top-right scenery corner, clear of the feed and the lanes.
+            UIKit.Place(_heraldPill, new Vector2(1f, 1f), new Vector2(-16f, -140f), new Vector2(560f, 58f));
             Image flag = UIKit.Image("Flag", pill.transform, UIKit.Lib != null ? UIKit.Lib.iconFlag : null, UIPalette.Danger);
             UIKit.Place(flag.rectTransform, new Vector2(0f, 0.5f), new Vector2(14f, 0f), new Vector2(44f, 44f));
             _heraldText = UIKit.Text("Text", pill.transform, "", 28f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
@@ -151,12 +152,8 @@ namespace VerdantSiege.UI
             _intelGroup.blocksRaycasts = false;
         }
 
-        private void ShowIntel(string title, string body, float seconds)
-        {
-            _intelTitle.text = title;
-            _intelBody.text = body;
-            _intelTimer = seconds;
-        }
+        // Compact HUD: intel goes through the shared notification strip (the old card stays hidden).
+        private void ShowIntel(string title, string body, float seconds) => _hud.ShowIntel(title, body, seconds);
 
         // ---------------------------------------------------------------- events
         private void OnEnemySpawned(EnemyRuntime e)
@@ -165,8 +162,7 @@ namespace VerdantSiege.UI
             if (!_seen.Add(d)) return;
             if (d.elite)
             {
-                _hud.ShowBanner(d.displayName, "An elite joins the Blight", UIPalette.Danger, 3f);
-                ShowIntel("Elite: " + d.displayName, d.counterHint, 6f);
+                ShowIntel("Elite: " + d.displayName, d.counterHint, 5f);
                 return;
             }
             bool special = d.ability != EnemyAbilityKind.None || d.movement != EnemyMovementKind.Ground;
@@ -199,14 +195,14 @@ namespace VerdantSiege.UI
         {
             if (a.kind != BossAttackKind.RootEruption || _eruptionHinted) return;
             _eruptionHinted = true;
-            _hud.ShowToast("Roots will erupt on the glowing cells!", 3f);
+            _hud.ShowAlert("Roots will erupt on the glowing cells!", UIPalette.Danger, 3f);
         }
 
         private void OnCoreExposed(BossRuntime b, bool exposed)
         {
             if (!exposed || _coreHinted) return;
             _coreHinted = true;
-            _hud.ShowToast("The Core is exposed: strike now!", 3f);
+            _hud.ShowAlert("The Core is exposed: strike now!", UIPalette.Gold, 3f);
         }
 
         private void OnUprooted(DefenderRuntime d, int refund)

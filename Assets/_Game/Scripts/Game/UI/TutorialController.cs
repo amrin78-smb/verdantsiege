@@ -21,6 +21,14 @@ namespace VerdantSiege.UI
         private float _elapsed;
         private bool _done;
         private int _glowSlot, _shootSlot;
+        private Button _chip;
+
+        private void SetMinimised(bool min)
+        {
+            if (_done) return;
+            _panel.gameObject.SetActive(!min);
+            _chip.gameObject.SetActive(min);
+        }
         private const int Steps = 4;
         private readonly Vector3[] _corners = new Vector3[4];
 
@@ -43,18 +51,28 @@ namespace VerdantSiege.UI
 
             Image p = UIKit.Panel("TutorialPanel", hud.Root, new Color(0.1f, 0.2f, 0.15f, 0.95f), true, true);
             _panel = p.rectTransform;
-            UIKit.Place(_panel, new Vector2(0.5f, 0f), new Vector2(BattleHud.RailWidth * 0.5f, 26f), new Vector2(980f, 130f));
+            UIKit.Place(_panel, new Vector2(0.5f, 0f), new Vector2(BattleHud.RailWidth * 0.5f, 16f), new Vector2(780f, 92f));
             p.raycastTarget = false;
             Image sprout = UIKit.Image("Icon", p.transform, UIKit.Lib != null ? UIKit.Lib.iconLeaf : null, UIPalette.Leaf);
-            UIKit.Place(sprout.rectTransform, new Vector2(0f, 0.5f), new Vector2(22f, 0f), new Vector2(72f, 72f));
-            _text = UIKit.Text("Text", p.transform, "", 38f, UIPalette.Parchment, TextAlignmentOptions.MidlineLeft, true);
+            UIKit.Place(sprout.rectTransform, new Vector2(0f, 0.5f), new Vector2(16f, 0f), new Vector2(52f, 52f));
+            _text = UIKit.Text("Text", p.transform, "", 30f, UIPalette.Parchment, TextAlignmentOptions.MidlineLeft, true);
             UIKit.Stretch(_text.rectTransform);
-            _text.rectTransform.offsetMin = new Vector2(112f, 8f);
-            _text.rectTransform.offsetMax = new Vector2(-200f, -8f);
+            _text.enableAutoSizing = true;
+            _text.fontSizeMin = 22f;
+            _text.fontSizeMax = 30f;
+            _text.rectTransform.offsetMin = new Vector2(80f, 6f);
+            _text.rectTransform.offsetMax = new Vector2(-226f, -6f);
             _stepLabel = UIKit.Text("Step", p.transform, "", 24f, UIPalette.TextDim, TextAlignmentOptions.TopRight);
-            UIKit.Place(_stepLabel.rectTransform, new Vector2(1f, 1f), new Vector2(-24f, -10f), new Vector2(160f, 30f));
-            Button skip = UIKit.Button("Skip", p.transform, "Skip", UIPalette.ButtonSecondary, Finish, null, 30f);
-            UIKit.Place((RectTransform)skip.transform, new Vector2(1f, 0f), new Vector2(-18f, 14f), new Vector2(150f, 62f));
+            UIKit.Place(_stepLabel.rectTransform, new Vector2(1f, 1f), new Vector2(-96f, -6f), new Vector2(120f, 26f));
+            _stepLabel.fontSize = 20f;
+            Button skip = UIKit.Button("Skip", p.transform, "Skip", UIPalette.ButtonSecondary, Finish, null, 26f);
+            UIKit.Place((RectTransform)skip.transform, new Vector2(1f, 0f), new Vector2(-84f, 10f), new Vector2(120f, 52f));
+            Button min = UIKit.Button("Minimise", p.transform, "-", UIPalette.ButtonSecondary, () => SetMinimised(true), null, 34f);
+            UIKit.Place((RectTransform)min.transform, new Vector2(1f, 0.5f), new Vector2(-12f, 0f), new Vector2(62f, 62f));
+            // Collapsed chip: tap to bring the tip back. The pointer keeps guiding while minimised.
+            _chip = UIKit.Button("TipChip", hud.Root, "Tip", new Color(0.1f, 0.2f, 0.15f, 0.95f), () => SetMinimised(false), UIKit.Lib != null ? UIKit.Lib.iconLeaf : null, 28f);
+            UIKit.Place((RectTransform)_chip.transform, new Vector2(0.5f, 0f), new Vector2(BattleHud.RailWidth * 0.5f, 16f), new Vector2(170f, 60f));
+            _chip.gameObject.SetActive(false);
 
             Image arrow = UIKit.Image("Pointer", hud.Root, UIKit.Lib != null ? UIKit.Lib.iconPlay : null, UIPalette.Gold);
             _pointer = arrow.rectTransform;
@@ -152,7 +170,8 @@ namespace VerdantSiege.UI
             if (_sim != null) _sim.HoldFirstWave = false;
             _panel.gameObject.SetActive(false);
             _pointer.gameObject.SetActive(false);
-            _battle.Hud.ShowToast("Well done! The Blight approaches from the right.", 3f);
+            if (_chip != null) _chip.gameObject.SetActive(false);
+            _battle.Hud.ShowBanner("Well done!", "The Blight approaches from the right", UIPalette.Leaf, 3f);
         }
     }
 }

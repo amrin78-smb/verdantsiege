@@ -32,12 +32,13 @@ namespace VerdantSiege.UI
         public Canvas Canvas { get; private set; }
 
         private readonly List<DefenderCardView> _cards = new List<DefenderCardView>();
-        private TextMeshProUGUI _vitalityText, _waveText, _speedText, _toastText, _bannerTitle, _bannerSub;
-        private RectTransform _vitalityBadge, _waveFill, _waveTrack, _toast, _banner;
-        private CanvasGroup _toastGroup, _bannerGroup;
+        private TextMeshProUGUI _vitalityText, _waveText, _speedText, _toastText;
+        private RectTransform _vitalityBadge, _waveFill, _waveTrack, _toast;
+        private NotificationFeed _feed;
+        private CanvasGroup _toastGroup;
         private readonly List<Image> _heartPips = new List<Image>();
         private float _displayVitality, _targetVitality, _vitalityPunch;
-        private float _toastTimer, _bannerTimer;
+        private float _toastTimer;
         private BattleSimulation _sim;
 
         // inspect
@@ -185,28 +186,15 @@ namespace VerdantSiege.UI
         {
             Image toast = UIKit.Panel("Toast", Root, new Color(0.08f, 0.12f, 0.1f, 0.92f), true, true);
             _toast = toast.rectTransform;
-            UIKit.Place(_toast, new Vector2(0.5f, 0f), new Vector2(RailWidth * 0.5f, 40f), new Vector2(640f, 84f));
+            UIKit.Place(_toast, new Vector2(0.5f, 0f), new Vector2(RailWidth * 0.5f, 22f), new Vector2(620f, 62f));
             toast.raycastTarget = false;
-            _toastText = UIKit.Text("Text", toast.transform, "", 36f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
+            _toastText = UIKit.Text("Text", toast.transform, "", 30f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
             UIKit.Stretch(_toastText.rectTransform, 10f);
             _toastGroup = UIKit.Group(toast.gameObject);
             _toastGroup.alpha = 0f;
             _toastGroup.blocksRaycasts = false;
 
-            _banner = UIKit.Rect("Banner", Root);
-            UIKit.Place(_banner, new Vector2(0.5f, 0.5f), new Vector2(RailWidth * 0.5f, 120f), new Vector2(1100f, 220f));
-            Image bannerBg = UIKit.Image("Bg", _banner, UIKit.Lib != null ? UIKit.Lib.uiRound : null, new Color(0.05f, 0.08f, 0.06f, 0.65f));
-            UIKit.Stretch(bannerBg.rectTransform);
-            _bannerTitle = UIKit.Text("Title", _banner, "", 88f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
-            UIKit.Stretch(_bannerTitle.rectTransform);
-            _bannerTitle.rectTransform.offsetMin = new Vector2(0f, 70f);
-            _bannerSub = UIKit.Text("Sub", _banner, "", 36f, UIPalette.TextDim, TextAlignmentOptions.Center);
-            UIKit.Stretch(_bannerSub.rectTransform);
-            _bannerSub.rectTransform.offsetMax = new Vector2(0f, -150f);
-            _bannerGroup = UIKit.Group(_banner.gameObject);
-            _bannerGroup.alpha = 0f;
-            _bannerGroup.blocksRaycasts = false;
-            _bannerGroup.interactable = false;
+            _feed = NotificationFeed.Create(Root);
         }
 
         public void ShowToast(string message, float seconds = 1.6f)
@@ -215,13 +203,20 @@ namespace VerdantSiege.UI
             _toastTimer = seconds;
         }
 
-        public void ShowBanner(string title, string subtitle, Color titleColor, float seconds = 2.4f)
-        {
-            _bannerTitle.text = title;
-            _bannerTitle.color = titleColor;
-            _bannerSub.text = subtitle;
-            _bannerTimer = seconds;
-        }
+        /// <summary>Headline (wave, phase, boss): compact strip under the top bars.</summary>
+        public void ShowBanner(string title, string subtitle, Color titleColor, float seconds = 2.4f) =>
+            _feed.Push(NotifyKind.Headline, title, subtitle, titleColor, seconds);
+
+        /// <summary>Two-line intel (new foe + counter hint) in the same compact strip.</summary>
+        public void ShowIntel(string title, string body, float seconds = 5f) =>
+            _feed.Push(NotifyKind.Intel, title, body, UIPalette.Gold, seconds);
+
+        /// <summary>Urgent one-liner (boss telegraphs) in the strip, ahead of intel.</summary>
+        public void ShowAlert(string message, Color color, float seconds = 2.5f) =>
+            _feed.Push(NotifyKind.Alert, message, null, color, seconds);
+
+        /// <summary>Moves the strip below an extra top bar (the boss bar).</summary>
+        public void SetFeedTop(float y) => _feed.SetTop(y);
 
         // ---------------------------------------------------------------- inspect
         private void BuildInspect()
@@ -457,11 +452,6 @@ namespace VerdantSiege.UI
             // Toast / banner fades.
             _toastTimer -= dt;
             _toastGroup.alpha = Mathf.Clamp01(_toastTimer / 0.3f);
-            _bannerTimer -= dt;
-            float ba = Mathf.Clamp01(_bannerTimer / 0.5f);
-            _bannerGroup.alpha = ba;
-            float bs = 1f + Mathf.Max(0f, _bannerTimer - 2f) * 0.3f;
-            _banner.localScale = new Vector3(bs, bs, 1f);
 
             // Inspect live values.
             if (_inspected != null && _inspect.gameObject.activeSelf)
