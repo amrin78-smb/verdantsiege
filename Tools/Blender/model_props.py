@@ -169,30 +169,6 @@ def MushroomCluster():
 
 
 # ------------------------------------------------------------------ trees (background)
-def tree(name, seed, height, clusters, trunk_r=0.18, lean=0.0, warm=0.0):
-    root = new_scene(name)
-    rnd = random.Random(seed)
-    pts = bezier((0, 0, 0), (lean * 0.3, 0.05, height * 0.4), (lean, -0.05, height * 0.7), n=6)
-    tr = tube(pts, taper(len(pts), trunk_r, trunk_r * 0.5), sides=9, cap0=False, cap1=True)
-    flare = lathe([(0.0, 0.0), (trunk_r * 1.9, 0.0), (trunk_r * 1.3, 0.08), (trunk_r * 1.02, 0.25), (0, 0.26)], sides=9,
-                  jitter=lambda pi, si, a: 1 + 0.15 * math.sin(a * 4))
-    branches = Geo()
-    for k in range(3):
-        a = 2 * math.pi * k / 3 + seed
-        p0 = pts[4]
-        p1 = p0 + Vector((math.cos(a) * 0.6, math.sin(a) * 0.6, 0.5))
-        branches.extend(tube([p0, (p0 + p1) / 2 + Vector((0, 0, 0.1)), p1], [trunk_r * 0.5, trunk_r * 0.35, trunk_r * 0.2], sides=6))
-    wood = merge(tr, flare, branches)
-    wood.paint(lambda p, n, fc, fi: shade(mix(C_WOOD0, C_WOOD1, smoothstep(0, height * 0.6, p.z)), 0.85 + 0.3 * hash01(fc.x, fc.y, fc.z)), per_face=True)
-    part("Trunk", wood, root)
-    can = Geo()
-    for k, (c, r) in enumerate(clusters):
-        b = icorock(c, r, subdiv=3 if r[0] > 0.6 else 2, seed=seed * 7 + k, rough=0.22, flatten_bottom=False)
-        b.paint(foliage_paint(0.93 + 0.12 * hash01(k, seed), warm), per_face=True)
-        can.extend(b)
-    cb = Vector((lean, 0, height * 0.65))
-    part("Canopy", can, root, cb)
-    finish(root, "Props")
 
 def oak(name, seed, height, spread, n_br=4, warm=0.0):
     root = new_scene(name)

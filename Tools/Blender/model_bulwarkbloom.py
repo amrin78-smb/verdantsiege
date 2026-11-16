@@ -3,6 +3,7 @@ two amber eyes peeking through the front slit (+X). PlatesOuter drop at 66 % hea
 import sys, os, math
 sys.path.insert(0, os.path.dirname(__file__))
 from vskit import *
+import vskit; vskit.RES = 1.3  # per-model smoothness within the 4000 budget
 
 C_MOSS0, C_MOSS1 = hexc("#2D5E2B"), hexc("#86BE52")
 C_CORE0, C_CORE1 = hexc("#2F6A4A"), hexc("#5FA866")
@@ -33,13 +34,12 @@ for i in range(9):
     skirt.extend(tube(pts, taper(len(pts), 0.05, 0.016), sides=5, cap0=False, round1=True))
 skirt.paint(lambda p, n, fc, fi: mix(shade(C_ROOT, 0.8), C_MOSS0, smoothstep(0.0, 0.12, p.z)))
 moss = Geo()
-for i in range(10):
-    a = 2 * math.pi * i / 10
+for i in range(7):
+    a = 2 * math.pi * i / 7
     r = 0.22 + 0.03 * math.sin(i * 2.3)
-    moss.extend(ellipsoid((math.cos(a) * r, math.sin(a) * r, 0.02), (0.085, 0.08, 0.06), sides=7, rings=4,
-                          jitter=lambda pi, si, aa, i=i: 1 + 0.18 * hash01(pi, si, i) - 0.09, smooth=False))
-moss.paint(lambda p, n, fc, fi: shade(mix(C_MOSS0, C_MOSS1, smoothstep(0.0, 0.08, p.z)), 1 + 0.15 * (hash01(fc.x, fc.y) - 0.5)),
-           per_face=True)
+    moss.extend(soft_blob((math.cos(a) * r, math.sin(a) * r, 0.02), (0.12, 0.11, 0.065), seed=i, lump=0.2, sides=6, rings=4,
+                          flatten_bottom=True))
+paint_vertex_normals(moss, lambda p, n, fc, fi: shade(mix(C_MOSS0, C_MOSS1, smoothstep(0.0, 0.08, p.z)), 1 + 0.12 * vnoise(p, 12)))
 bud = Geo()
 for i in range(6):
     lf = leaf(length=0.14, width=0.1, segs=3, across=1, curl=1.6, fold=0.35, thick=0.014)
@@ -76,7 +76,7 @@ def inner_paint(p, n, fc, fi):
     c = mix(C_INNER0, C_INNER1, smoothstep(0.1, 0.55, p.z))
     c = mix(c, C_MOSSTOP, smoothstep(0.65, 0.95, n.z) * 0.7)
     return shade(c, 1 + 0.12 * (hash01(fc.x, fc.y, fc.z) - 0.5))
-inner.paint(inner_paint, per_face=True)
+inner.paint(inner_paint)
 part("PlatesInner", inner, root, (0, 0, 0), parent=C)
 
 # ---------------- outer plates: big chipped bark-stone shields, lower and wider, with moss caps
@@ -102,7 +102,7 @@ def outer_paint(p, n, fc, fi):
     c = mix(c, C_STONE0, 0.35 * hash01(fc.x * 3.1, fc.y * 2.7))
     c = mix(c, C_MOSSTOP, max(smoothstep(0.4, 0.52, p.z), smoothstep(0.55, 0.9, n.z)) * 0.9)
     return shade(c, 0.92 + 0.16 * hash01(fc.x, fc.y, fc.z))
-outer.paint(outer_paint, per_face=True)
+outer.paint(outer_paint)
 part("PlatesOuter", outer, root, (0, 0, 0), parent=C)
 
 finish(root, "Defenders", icon=True)

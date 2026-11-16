@@ -17,6 +17,9 @@ namespace VerdantSiege.Battle.View
         public Rect safeViewport = new Rect(0.16f, 0.02f, 0.82f, 0.84f);
 
         private Camera _cam;
+        private Vector3 _basePos;
+        /// <summary>Transient offset (breach shake); applied on top of the fitted pose.</summary>
+        public Vector3 ShakeOffset { get; set; }
         private Bounds _focus;
         private Vector2Int _lastSize;
         private Rect _lastSafe;
@@ -36,6 +39,7 @@ namespace VerdantSiege.Battle.View
         {
             if (!_hasFocus) return;
             if (_lastSize.x != Screen.width || _lastSize.y != Screen.height || _lastSafe != ScreenSafe.Area) Refit();
+            transform.position = _basePos + ShakeOffset;
         }
 
         public void Refit()
@@ -73,6 +77,7 @@ namespace VerdantSiege.Battle.View
                 target += right * (dx * 2f * halfW) + up * (dy * 2f * halfH);
             }
             transform.position = target - fwd * dist;
+            _basePos = transform.position;
         }
 
         private static Rect SafeAdjusted(Rect vp)

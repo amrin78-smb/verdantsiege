@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Projectile_SeedBolt
   m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.ProjectileDefinition
   id: seed_bolt
-  speed: 7
-  damage: 20
+  speed: 7.5
+  damage: 25
   damageType: 0
   pierceCount: 1
   splashRadius: 0

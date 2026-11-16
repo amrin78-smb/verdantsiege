@@ -2,6 +2,7 @@
 import sys, os, math
 sys.path.insert(0, os.path.dirname(__file__))
 from vskit import *
+import vskit; vskit.RES = 1.5  # per-model smoothness within the 4000 budget
 
 C_STEM0, C_STEM1 = hexc("#2F6B2A"), hexc("#7CC243")
 C_LEAF0, C_LEAF1 = hexc("#2E7A2E"), hexc("#A6DB4E")
@@ -42,7 +43,7 @@ prof = [(0.0, -L_BACK), (0.035, -L_BACK + 0.03), (0.09, -0.15), (0.14, -0.07), (
         (0.13, 0.135), (0.095, L_FRONT)]
 def ridges(pi, si, a):
     return 1.0 + 0.09 * max(0.0, math.cos(a * 6)) ** 2 - 0.03
-pod = lathe(prof, sides=18, jitter=ridges, cap_bottom=False, cap_top=False)
+pod = lathe(prof, sides=18, jitter=ridges, cap_bottom=False, cap_top=False, round_profile=1)
 pod.transform(T(*hc) @ rot(0, 90, 0) @ S(1, 1, 1))
 # lathe axis is Z -> after rot(0,90,0) local z maps to +X? (rot Y +90: z -> +x)
 def pod_paint(p, n, fc, fi):

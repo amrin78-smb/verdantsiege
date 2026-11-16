@@ -16,15 +16,16 @@ MonoBehaviour:
   displayName: Skitter
   description: A fast, fragile rot-beetle that rushes past slow defences.
   counterHint: Shoot it early or block it with a Bulwark Bloom.
-  maxHealth: 90
+  maxHealth: 70
   armorHealth: 0
   resistances: []
-  moveSpeed: 0.55
+  moveSpeed: 0.5
   speedMultiplierAfterArmorBreak: 1
   bodyLength: 0.45
   biteDamage: 12
   biteInterval: 0.6
   breachDamage: 1
+  vitalityDrop: 10
   threatCost: 1
   prefab: {fileID: 3811570250399702216, guid: 40eab4bec4e792634a90a0153e918087, type: 3}
   icon: {fileID: 21300000, guid: 4be95107196a6aa309a35fc6f8c6b26e, type: 3}

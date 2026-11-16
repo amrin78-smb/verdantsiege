@@ -18,12 +18,16 @@ MonoBehaviour:
   biomeId: verdant_heartlands
   battlefield: {fileID: 11400000, guid: 7dc7e3d31801534b8a3cce3a4d458302, type: 2}
   heartrootHealth: 5
-  startingVitality: 150
-  vitalityCap: 1500
-  skyDropInterval: 9
+  startingVitality: 225
+  vitalityCap: 2000
+  skyDropInterval: 6.5
   skyDropFirstDelay: 3
   skyDropAmount: 25
   pickupLifetime: 12
+  sunlightPoolInterval: 24
+  sunlightPoolDuration: 10
+  sunlightPoolCount: 2
+  sunlightBoost: 1.6
   prepTime: 22
   interWaveGap: 5
   fixedSeed: 0

@@ -5,6 +5,7 @@ under it is fully modelled."""
 import sys, os, math
 sys.path.insert(0, os.path.dirname(__file__))
 from vskit import *
+import vskit; vskit.RES = 1.35  # per-model smoothness within the 6000 budget
 
 C_SKIN0, C_SKIN1 = hexc("#24121F"), hexc("#64304C")
 C_BELLY = hexc("#86506A")
@@ -35,9 +36,8 @@ torso.paint(skin)
 pelvis = ellipsoid((HIP.x, 0, HIP.z + 0.04), (0.2, 0.26, 0.16), sides=12, rings=6).paint(skin)
 hump = Geo()
 for k, (x, y, z, r) in enumerate(((0.16, 0.0, 1.12, 0.17), (0.2, 0.14, 1.0, 0.12), (0.2, -0.13, 1.02, 0.13), (0.12, 0.08, 1.24, 0.1))):
-    hump.extend(ellipsoid((x, y, z), (r, r, r * 0.85), sides=9, rings=5,
-                          jitter=lambda pi, si, a, k=k: 1 + 0.14 * hash01(pi, si, k) - 0.07, smooth=False))
-hump.paint(lambda p, n, fc, fi: shade(mix(C_HUMP0, C_HUMP1, smoothstep(0.95, 1.3, p.z)), 0.9 + 0.2 * hash01(fc.x, fc.z)), per_face=True)
+    hump.extend(soft_blob((x, y, z), (r, r, r * 0.85), seed=k, lump=0.18, sides=10, rings=7))
+paint_vertex_normals(hump, lambda p, n, fc, fi: shade(mix(C_HUMP0, C_HUMP1, smoothstep(0.95, 1.3, p.z)), 1 + 0.12 * vnoise(p, 6)))
 pus = Geo()
 for k, (x, y, z) in enumerate(((0.26, 0.05, 1.18), (0.3, -0.12, 1.05), (0.28, 0.17, 1.06), (0.18, -0.05, 1.3), (0.22, 0.14, 1.24))):
     pus.extend(sphere((x, y, z), 0.032, sides=6, rings=4).fill(C_PUS))
@@ -63,11 +63,11 @@ def arm(side):
     sh = Vector((-0.04, 0.31 * side, 1.08))
     el = Vector((-0.1, 0.37 * side, 0.7))
     wr = Vector((-0.17, 0.34 * side, 0.36))
-    up = tube(bezier(sh, sh + Vector((-0.03, 0.08 * side, -0.18)), el, n=4), taper(5, 0.13, 0.1), sides=9, cap0=True, cap1=True)
-    fo = tube(bezier(el, el + Vector((-0.05, 0.01 * side, -0.16)), wr, n=4), taper(5, 0.1, 0.11), sides=9, cap0=True, cap1=True)
+    up = tube(bezier(sh, sh + Vector((-0.03, 0.08 * side, -0.18)), el, n=4), taper(5, 0.13, 0.1), sides=8, cap0=True, cap1=True)
+    fo = tube(bezier(el, el + Vector((-0.05, 0.01 * side, -0.16)), wr, n=4), taper(5, 0.1, 0.11), sides=8, cap0=True, cap1=True)
     g = merge(up, fo).paint(skin)
-    deltoid = sphere(sh, 0.15, sides=10, rings=6).paint(skin)
-    fist = ellipsoid(wr + Vector((-0.04, 0, -0.1)), (0.14, 0.13, 0.13), sides=10, rings=6).paint(skin)
+    deltoid = sphere(sh, 0.15, sides=9, rings=5).paint(skin)
+    fist = ellipsoid(wr + Vector((-0.04, 0, -0.1)), (0.14, 0.13, 0.13), sides=9, rings=5).paint(skin)
     g.extend(deltoid); g.extend(fist)
     for k in range(4):
         y = (k - 1.5) * 0.055
@@ -116,7 +116,7 @@ def chest_paint(p, n, fc, fi):
     if abs(n.dot(radial)) < 0.55:
         c = shade(C_BARK, 0.9 + 0.2 * hash01(fc.x, fc.z))
     return c
-chest.paint(chest_paint, per_face=True)
+chest.paint(chest_paint)
 arm_g.extend(chest)
 # glowing rune cracks lying ON the chest plate surface
 def on_chest(az, el, lift=1.0):
@@ -132,14 +132,14 @@ for side in (1, -1):
     for layer, (rr, e0, e1, sp) in enumerate(((0.18, -10, 75, 170), (0.195, 20, 85, 120))):
         pad = shell(90 * side, sp, e0, e1, (rr, rr, rr * 0.9), thick=0.045, nu=5, nv=3,
                     center=(-0.04, 0.31 * side, 1.08 - layer * 0.02), point=0.0, bulge=0.05, jit=0.006, seed=10 + layer)
-        pad.paint(plate_paint, per_face=True)
+        pad.paint(plate_paint)
         arm_g.extend(pad)
     base = Vector((-0.04, 0.38 * side, 1.24))
     arm_g.extend(cone(base, base + Vector((0.02, 0.05 * side, 0.15)), 0.045, sides=5).fill(C_BONE1))
 # brow guard: a heavy visor over the head, fixed to the upper chest
 brow = shell(180, 110, 5, 55, (0.2, 0.22, 0.18), thick=0.045, nu=4, nv=3, center=hc + Vector((0.03, 0, 0.02)),
              point=0.3, bulge=0.05, jit=0.005, seed=21)
-brow.paint(plate_paint, per_face=True)
+brow.paint(plate_paint)
 arm_g.extend(brow)
 for side in (1, -1):
     b = hc + Vector((-0.02, 0.15 * side, 0.12))
@@ -149,7 +149,7 @@ for side in (1, -1):
 for side in (1, -1):
     el = Vector((-0.1, 0.37 * side, 0.7)); wr = Vector((-0.17, 0.34 * side, 0.36))
     br = tube([el + (wr - el) * 0.25, el + (wr - el) * 0.8], [0.13, 0.135], sides=8, smooth=False).fill(C_BARK)
-    arm_g.extend(br.paint(lambda p, n, fc, fi: shade(C_BARK, 0.85 + 0.3 * hash01(fc.x, fc.z)), per_face=True))
+    arm_g.extend(br.paint(lambda p, n, fc, fi: shade(C_BARK, 0.85 + 0.3 * hash01(fc.x, fc.z))))
 part("Armor", arm_g, root, HIP, parent=B)
 
 finish(root, "Enemies", icon=True)

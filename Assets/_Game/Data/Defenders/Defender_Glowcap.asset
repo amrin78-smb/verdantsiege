@@ -15,8 +15,8 @@ MonoBehaviour:
   id: glowcap
   displayName: Glowcap
   role: 2
-  description: Gathers light and releases a Sunmote worth 25 Vitality. Every fourth
-    bloom is a double burst.
+  description: Gathers light and releases a Sunmote worth 25 Vitality every 10 seconds.
+    Every fourth bloom is a double burst.
   strengths: Generates Vitality
   weaknesses: No defence of its own
   accentColor: {r: 0.3, g: 0.9, b: 0.85, a: 1}
@@ -29,8 +29,8 @@ MonoBehaviour:
   attackInterval: 1.4
   firstAttackDelay: 0.6
   range: 0
-  generateInterval: 13
-  generateFirstDelay: 6
+  generateInterval: 10
+  generateFirstDelay: 4
   generateAmount: 25
   burstEvery: 4
   burstAmount: 50

@@ -34,13 +34,12 @@ for side in (1, -1):
 stem = merge(stem, face)
 # moss collar
 moss = Geo()
-for i in range(9):
-    a = 2 * math.pi * i / 9 + 0.3
+for i in range(7):
+    a = 2 * math.pi * i / 7 + 0.3
     r = 0.14 + 0.02 * math.sin(i * 1.7)
-    moss.extend(ellipsoid((math.cos(a) * r, math.sin(a) * r, 0.025), (0.07, 0.065, 0.05), sides=7, rings=4,
-                          jitter=lambda pi, si, aa, i=i: 1 + 0.2 * hash01(pi, si, i) - 0.1, smooth=False))
-moss.paint(lambda p, n, fc, fi: shade(mix(C_MOSS0, C_MOSS1, smoothstep(0.0, 0.07, p.z)), 1 + 0.15 * (hash01(fc.x, fc.y) - 0.5)),
-           per_face=True)
+    moss.extend(soft_blob((math.cos(a) * r, math.sin(a) * r, 0.025), (0.09, 0.085, 0.055), seed=i, lump=0.2, sides=6, rings=4,
+                          flatten_bottom=True))
+paint_vertex_normals(moss, lambda p, n, fc, fi: shade(mix(C_MOSS0, C_MOSS1, smoothstep(0.0, 0.07, p.z)), 1 + 0.12 * vnoise(p, 12)))
 sprigs = Geo()
 for i in range(4):
     a = 2 * math.pi * i / 4 + 0.9
@@ -55,7 +54,7 @@ R = 0.255
 cprof = [(0.0, 0.25), (0.09, 0.235), (0.17, 0.19), (0.225, 0.12), (R, 0.04), (R - 0.008, 0.0), (0.215, -0.015)]
 def wave(pi, si, a):
     return 1.0 + (0.05 * math.sin(a * 7) if pi >= 3 else 0.0)
-cap = lathe(cprof[::-1], sides=20, jitter=lambda pi, si, a: wave(len(cprof) - 1 - pi, si, a), cap_bottom=False, cap_top=False)
+cap = lathe(cprof[::-1], round_profile=1, sides=20, jitter=lambda pi, si, a: wave(len(cprof) - 1 - pi, si, a), cap_bottom=False, cap_top=False)
 def cap_paint(p, n, fc, fi):
     t = smoothstep(0.03, 0.24, p.z)
     c = mix(C_CAP1, C_CAP0, t ** 0.7)         # deep teal crown, lighter toward the rim

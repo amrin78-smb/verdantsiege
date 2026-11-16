@@ -35,6 +35,10 @@ namespace VerdantSiege.Data
         [Tooltip("Heartroot damage when this enemy reaches the end of its lane.")]
         [Min(1)] public int breachDamage = 1;
 
+        [Header("Rewards")]
+        [Tooltip("Vitality pickup dropped when defeated (0 = none). Not dropped on breach.")]
+        [Min(0)] public int vitalityDrop = 10;
+
         [Header("Encounter Director")]
         [Min(1)] public int threatCost = 1;
 

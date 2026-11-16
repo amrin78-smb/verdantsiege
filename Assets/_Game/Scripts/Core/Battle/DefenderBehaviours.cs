@@ -36,7 +36,7 @@ namespace VerdantSiege.Battle
 
         public void Tick(DefenderRuntime d, BattleSimulation sim, float dt)
         {
-            if (d.attackTimer > 0f) d.attackTimer -= dt;
+            if (d.attackTimer > 0f) d.attackTimer -= dt * sim.SpeedMultiplierAt(d.Coord);
             if (d.attackTimer > 0f) return;
             if (!sim.HasTargetAhead(d)) return; // stays ready, fires the moment a target appears
             sim.FireProjectile(d);
@@ -62,7 +62,7 @@ namespace VerdantSiege.Battle
 
         public void Tick(DefenderRuntime d, BattleSimulation sim, float dt)
         {
-            d.generateTimer -= dt;
+            d.generateTimer -= dt * sim.SpeedMultiplierAt(d.Coord);
             if (d.generateTimer > 0f) return;
             DefenderDefinition def = d.Definition;
             d.generatePulses++;

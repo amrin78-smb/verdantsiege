@@ -68,6 +68,8 @@ namespace VerdantSiege.Battle
         /// <summary>(remaining, damage)</summary>
         public event Action<int, int> HeartrootDamaged;
         public event Action<BattleState> StateChanged;
+        /// <summary>Sunlight pool cells changed (appeared or faded).</summary>
+        public event Action SunlightPoolsChanged;
         /// <summary>Invalid action attempted (for feedback).</summary>
         public event Action<DeployResult, GridCoord> DeployRejected;
 
@@ -77,6 +79,8 @@ namespace VerdantSiege.Battle
         public VitalityBank Vitality { get; }
         public WaveDirector Waves { get; }
         public BattleOptions Options { get; set; }
+        /// <summary>While true the first wave waits (guided tutorial). Sky drops and planting continue.</summary>
+        public bool HoldFirstWave { get; set; }
         public BattleState State { get; private set; } = BattleState.Running;
         public int HeartrootHealth { get; private set; }
         public int HeartrootMaxHealth { get; }
@@ -90,6 +94,8 @@ namespace VerdantSiege.Battle
         public IReadOnlyList<DefenderRuntime> Defenders => _defenders;
         public IReadOnlyList<ProjectileRuntime> Projectiles => _projectiles;
         public IReadOnlyList<PickupRuntime> Pickups => _pickups;
+        public IReadOnlyList<GridCoord> SunlightPools => _sunPools;
+        public float SunlightPoolRemaining => _sunPoolActive;
         /// <summary>Fraction of the current fixed step already accumulated (for visual interpolation).</summary>
         public float Interpolation => _accumulator / FixedStep;
 
@@ -98,6 +104,9 @@ namespace VerdantSiege.Battle
         private readonly List<EnemyRuntime> _enemies = new List<EnemyRuntime>();
         private readonly List<ProjectileRuntime> _projectiles = new List<ProjectileRuntime>();
         private readonly List<PickupRuntime> _pickups = new List<PickupRuntime>();
+        private readonly List<GridCoord> _sunPools = new List<GridCoord>();
+        private float _sunPoolTimer;
+        private float _sunPoolActive;
         private readonly SimplePool<DefenderRuntime> _defenderPool = new SimplePool<DefenderRuntime>(() => new DefenderRuntime(), 16);
         private readonly SimplePool<EnemyRuntime> _enemyPool = new SimplePool<EnemyRuntime>(() => new EnemyRuntime(), 32);
         private readonly SimplePool<ProjectileRuntime> _projectilePool = new SimplePool<ProjectileRuntime>(() => new ProjectileRuntime(), 48);
@@ -126,6 +135,7 @@ namespace VerdantSiege.Battle
             HeartrootMaxHealth = HeartrootHealth = Math.Max(1, encounter.heartrootHealth);
             foreach (DefenderDefinition d in encounter.roster) if (d != null) _deck.Add(new DeckSlot(d));
             _skyTimer = encounter.skyDropFirstDelay;
+            _sunPoolTimer = encounter.sunlightPoolInterval > 0f ? encounter.prepTime + encounter.sunlightPoolInterval * 0.5f : 0f;
             _spawnCallback = (def, lane, wave) => SpawnEnemy(def, lane, wave);
             _waveStartedCallback = OnWaveStarted;
         }
@@ -154,8 +164,10 @@ namespace VerdantSiege.Battle
             _stats.elapsed += dt;
             foreach (DeckSlot s in _deck) if (s.cooldownRemaining > 0f) s.cooldownRemaining = Math.Max(0f, s.cooldownRemaining - dt);
 
-            Waves.Tick(dt, AliveInWave(Waves.CurrentWave), _spawnCallback, _waveStartedCallback);
+            if (!(HoldFirstWave && Waves.CurrentWave < 0))
+                Waves.Tick(dt, AliveInWave(Waves.CurrentWave), _spawnCallback, _waveStartedCallback);
             TickSkyDrops(dt);
+            TickSunlightPools(dt);
             TickDefenders(dt);
             TickProjectiles(dt);
             TickEnemies(dt);
@@ -303,6 +315,44 @@ namespace VerdantSiege.Battle
                     PickupRemoved?.Invoke(p, false);
                 }
             }
+        }
+
+        // ================================================================== sunlight pools
+
+        /// <summary>Action-speed multiplier for a defender at this cell (sunlight pools).</summary>
+        public float SpeedMultiplierAt(GridCoord c)
+        {
+            for (int i = 0; i < _sunPools.Count; i++) if (_sunPools[i] == c) return Encounter.sunlightBoost;
+            return 1f;
+        }
+
+        private void TickSunlightPools(float dt)
+        {
+            if (Encounter.sunlightPoolInterval <= 0f) return;
+            if (_sunPoolActive > 0f)
+            {
+                _sunPoolActive -= dt;
+                if (_sunPoolActive <= 0f)
+                {
+                    _sunPools.Clear();
+                    SunlightPoolsChanged?.Invoke();
+                }
+                return;
+            }
+            _sunPoolTimer -= dt;
+            if (_sunPoolTimer > 0f) return;
+            _sunPoolTimer = Encounter.sunlightPoolInterval;
+            _sunPoolActive = Encounter.sunlightPoolDuration;
+            _sunPools.Clear();
+            int guard = 0;
+            while (_sunPools.Count < Encounter.sunlightPoolCount && guard++ < 50)
+            {
+                // Pools favour the player's half of the field so they can be used.
+                var c = new GridCoord(_rng.Range(0, Lanes), _rng.Range(0, Math.Max(1, Columns - 3)));
+                if (Grid.GetTerrain(c) == CellTerrain.Blocked || _sunPools.Contains(c)) continue;
+                _sunPools.Add(c);
+            }
+            SunlightPoolsChanged?.Invoke();
         }
 
         // ================================================================== defenders
@@ -465,6 +515,8 @@ namespace VerdantSiege.Battle
                 e.alive = false;
                 _stats.enemiesDefeated++;
                 EnemyKilled?.Invoke(e);
+                if (e.Definition.vitalityDrop > 0)
+                    SpawnPickup(PickupSource.Enemy, e.Definition.vitalityDrop, Math.Min(e.x + 0.25f, Columns - 0.3f), e.lane - 0.15f);
             }
             return r;
         }

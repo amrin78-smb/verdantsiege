@@ -15,6 +15,17 @@ from mathutils import Vector, Matrix, Euler, Quaternion, noise
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 ART = os.path.join(ROOT_DIR, "Art")
+# Smoothness pass (owner feedback 0.1.0: "smoother curves"): smooth-shaded primitives get RES x more segments.
+RES = float(os.environ.get("VS_RES", "1.6"))
+
+
+def _res(n, smooth, lo=3):
+    return max(lo, int(round(n * RES))) if smooth else n
+
+
+def vnoise(p, scale=4.0, seed=0.0):
+    """Smooth value noise in [-1, 1] (for per-vertex colour variation on smooth surfaces)."""
+    return noise.noise(Vector((p.x * scale + seed, p.y * scale - seed, p.z * scale)))
 
 
 # ---------------------------------------------------------------- colour helpers
@@ -187,17 +198,41 @@ def to_bm(g):
 
 
 # ---------------------------------------------------------------- primitives
-def lathe(profile, sides=12, jitter=None, twist=0.0, smooth=True, cap_bottom=True, cap_top=True):
-    """Revolve [(r, z), ...] (bottom to top) around Z. r == 0 -> pole. jitter(pi, si, angle) -> radius scale."""
+def _round_profile(profile, times):
+    """Catmull-Rom subdivision of a lathe profile (keeps the original points, poles stay poles).
+    Returns [(r, z, original_index), ...]."""
+    pts = [(p[0], p[1], float(i)) for i, p in enumerate(profile)]
+    for _ in range(times):
+        out = []
+        n = len(pts)
+        for i in range(n - 1):
+            a = pts[max(0, i - 1)]; b = pts[i]; c = pts[i + 1]; d = pts[min(n - 1, i + 2)]
+            out.append(b)
+            r = (-a[0] + 9 * b[0] + 9 * c[0] - d[0]) / 16.0
+            z = (-a[1] + 9 * b[1] + 9 * c[1] - d[1]) / 16.0
+            if b[0] <= 1e-6 or c[0] <= 1e-6:      # next to a pole: keep straight, no overshoot
+                r = (b[0] + c[0]) / 2; z = (b[1] + c[1]) / 2
+            out.append((max(0.0005, r), z, (b[2] + c[2]) / 2))
+        out.append(pts[-1])
+        pts = out
+    return pts
+
+
+def lathe(profile, sides=12, jitter=None, twist=0.0, smooth=True, cap_bottom=True, cap_top=True, round_profile=0, boost=True):
+    """Revolve [(r, z), ...] (bottom to top) around Z. r == 0 -> pole. jitter(pi, si, angle) -> radius scale
+    (pi is the ORIGINAL profile index, rounded, also for rings added by round_profile)."""
     g = Geo()
     rings = []
-    for pi, (r, z) in enumerate(profile):
+    sides = _res(sides, smooth, 3) if (sides >= 6 and boost) else sides
+    prof3 = _round_profile(profile, round_profile) if round_profile else [(p[0], p[1], float(i)) for i, p in enumerate(profile)]
+    for (r, z, fi_) in prof3:
+        pi = int(round(fi_))
         if r <= 1e-6:
             rings.append([len(g.v)]); g.v.append(Vector((0, 0, z)))
             continue
         ring = []
         for s in range(sides):
-            a = 2 * math.pi * s / sides + twist * pi
+            a = 2 * math.pi * s / sides + twist * fi_
             rr = r * (jitter(pi, s, a) if jitter else 1.0)
             ring.append(len(g.v)); g.v.append(Vector((rr * math.cos(a), rr * math.sin(a), z)))
         rings.append(ring)
@@ -219,11 +254,14 @@ def lathe(profile, sides=12, jitter=None, twist=0.0, smooth=True, cap_bottom=Tru
 
 
 def ellipsoid(center=(0, 0, 0), radii=(1, 1, 1), sides=12, rings=8, jitter=None, smooth=True):
+    big = max(radii) >= 0.05
+    if smooth and rings >= 4 and big:
+        rings = _res(rings, True)
     prof = []
     for i in range(rings + 1):
         a = -math.pi / 2 + math.pi * i / rings
         prof.append((math.cos(a) if 0 < i < rings else 0.0, math.sin(a)))
-    g = lathe(prof, sides, jitter=jitter, smooth=smooth)
+    g = lathe(prof, sides if big or not smooth else sides, jitter=jitter, smooth=smooth, boost=big)
     g.transform(T(*center) @ S(*radii))
     return g
 
@@ -296,6 +334,15 @@ def tube(pts, radii, sides=8, cap0=True, cap1=True, round1=False, smooth=True, f
     pts = [Vector(p) for p in pts]
     if not isinstance(radii, (list, tuple)):
         radii = [radii] * len(pts)
+    if len(radii) != len(pts):          # resample radii to the point count
+        rr = list(radii)
+        radii = []
+        for i in range(len(pts)):
+            t = i / max(1, len(pts) - 1) * (len(rr) - 1)
+            j = min(int(t), len(rr) - 2)
+            radii.append(rr[j] + (rr[j + 1] - rr[j]) * (t - j))
+    if smooth and sides >= 5 and max(radii) >= 0.025:
+        sides = _res(sides, True)
     fr = _frames(pts)
     g = Geo()
     rings = []
@@ -328,6 +375,7 @@ def tube(pts, radii, sides=8, cap0=True, cap1=True, round1=False, smooth=True, f
 
 def bezier(p0, p1, p2, p3=None, n=8):
     p0, p1, p2 = Vector(p0), Vector(p1), Vector(p2)
+    n = max(n, int(round(n * RES)))
     out = []
     for i in range(n + 1):
         t = i / n
@@ -351,6 +399,8 @@ def leaf(length=0.5, width=0.2, segs=6, across=2, curl=0.15, fold=0.25, thick=0.
     if shape is None:
         def shape(u):
             return max(base_width, math.sin(math.pi * min(1.0, u) ** tip_power)) if u < 1 else 0.0
+    if smooth and length >= 0.12:
+        segs = _res(segs, True, 2)
     g = Geo()
     cols = 2 * across + 1
     def pos(u, v):
@@ -517,7 +567,7 @@ def vertex_material():
     return m
 
 
-def part(name, geo, root, pivot=(0, 0, 0), parent=None, sharp_angle=35.0):
+def part(name, geo, root, pivot=(0, 0, 0), parent=None, sharp_angle=48.0):
     """Create a mesh object `name` from model-space geo, origin at `pivot` (model space)."""
     pv = Vector(pivot)
     g = geo.copy().transform(T(*(-pv)))
@@ -669,7 +719,7 @@ def finish(root, category, previews=True, icon=False, view=None):
         render(root, spec, os.path.join(ART, "Previews", name + ".png"), 512, transparent=False, view=view)
         if os.environ.get("VS_GAMEVIEW"):
             # roughly the battle camera: elevated ~50 deg, looking across the lanes (from -Y)
-            render(root, spec, os.path.join(ART, "Previews", "_game", name + "_game.png"), 384, view=(90.0, 48.0))
+            render(root, spec, os.path.join(ART, "Previews", "_game", name + "_game.png"), 384, view=(90.0, 54.0))
         if icon:
             render(root, spec, os.path.join(ART, "Icons", name + "_icon.png"), 256, transparent=True, view=view, tight=True)
     return tris
@@ -778,12 +828,14 @@ def basis(xdir, zdir, origin=(0, 0, 0)):
 
 
 def shell(az, span, e0, e1, radii, thick=0.04, nu=4, nv=4, center=(0, 0, 0), point=1.6, bulge=0.0,
-          lift=0.0, smooth=False, jit=0.0, seed=0):
+          lift=0.0, smooth=True, jit=0.0, seed=0):
     """A thick curved scale/plate lying on an ellipsoid of `radii` around `center`.
     az: centre azimuth (deg, 0 = +X); span: angular width (deg) at the base; e0..e1 elevation (deg).
     The width narrows toward the top with exponent `point` (petal-shaped). bulge pushes the middle outward;
     lift tilts the plate tip away from the body (in metres at the top)."""
     rnd = random.Random(seed)
+    if smooth:
+        nu = _res(nu, True, 2); nv = max(nv, int(round(nv * (1 + (RES - 1) * 0.5))))
     cx = Vector(center)
     rx, ry, rz = radii
     def surf(u, v, off):
@@ -816,4 +868,52 @@ def shell(az, span, e0, e1, radii, thick=0.04, nu=4, nv=4, center=(0, 0, 0), poi
     for i in range(nu):
         g.add_face([outer[0][i], inner[0][i], inner[0][i + 1], outer[0][i + 1]], smooth)
         g.add_face([outer[nv][i], outer[nv][i + 1], inner[nv][i + 1], inner[nv][i]], smooth)
+    return g
+
+
+
+def soft_blob(center, radii, seed=0, lump=0.14, freq=1.6, sides=14, rings=9, flatten_bottom=False):
+    """Smooth, rounded, lumpy foliage/moss mass (smooth shaded, low-frequency noise)."""
+    g = ellipsoid((0, 0, 0), (1, 1, 1), sides=sides, rings=rings)
+    off = Vector((seed * 1.37, seed * 2.11, seed * 0.73))
+    g.displace(lambda p: p * (lump * noise.noise(p * freq + off)))
+    g.transform(T(*center) @ S(*radii))
+    if flatten_bottom:
+        for p in g.v:
+            if p.z < 0:
+                p.z = 0.0
+    return g
+
+
+def pebble(center, radii, seed=0, lump=0.09):
+    """Smooth river-stone / boulder: rounded, gently irregular, flat-ish bottom."""
+    g = soft_blob(center, radii, seed, lump=lump, freq=1.3, sides=14, rings=9)
+    for p in g.v:
+        if p.z < 0:
+            p.z = 0.0
+    return g
+
+
+def foliage_soft(lo, mid, hi, var=0.12, seed=0.0, sun=Vector((0.4, -0.5, 0.75))):
+    """Per-vertex foliage colour: darker underneath, sunlit tops, soft noise variation (no faceting)."""
+    sun = Vector(sun).normalized()
+    def fn(p, n, fc, fi):
+        t = smoothstep(-0.4, 0.9, n.z)
+        c = mix(lo, mid, t)
+        c = mix(c, hi, smoothstep(0.55, 1.0, n.dot(sun)) * 0.7)
+        return shade(c, 1.0 + var * vnoise(p, 3.0, seed))
+    return fn
+
+
+def paint_vertex_normals(g, fn):
+    """Paint using smooth per-vertex normals (averaged), so smooth-shaded colour has no face seams."""
+    acc = [Vector((0, 0, 0)) for _ in g.v]
+    for fi, f in enumerate(g.f):
+        n = g.face_normal(fi)
+        for i in f:
+            acc[i] += n
+    vn = [a.normalized() if a.length > 1e-9 else Vector((0, 0, 1)) for a in acc]
+    for fi, f in enumerate(g.f):
+        fc = g.face_center(fi)
+        g.c[fi] = [fn(g.v[i], vn[i], fc, fi) for i in f]
     return g

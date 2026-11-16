@@ -372,6 +372,8 @@ namespace VerdantSiege.UI
         }
 
         // ---------------------------------------------------------------- state updates
+        public Transform CardTransform(int slot) => slot >= 0 && slot < _cards.Count ? _cards[slot].transform : null;
+
         public void SetSelectedCard(int slot)
         {
             for (int i = 0; i < _cards.Count; i++) _cards[i].SetSelected(i == slot);

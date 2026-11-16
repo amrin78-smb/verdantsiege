@@ -30,7 +30,7 @@ def car_paint(p, n, fc, fi):
     # glossy highlight band
     c = shade(c, 1.0 + 0.35 * smoothstep(0.8, 0.98, n.z))
     return c
-car.paint(car_paint, per_face=True)
+car.paint(car_paint)
 # glow seams: ribs across the carapace + the central split
 seams = Geo()
 for k, xo in enumerate((-0.06, 0.12)):
@@ -74,13 +74,13 @@ def legg(i):
     hip = BC + Vector((x, 0.12 * side, -0.04))
     knee = Vector((x + (-0.08, 0.0, 0.08)[k], 0.33 * side, 0.5))
     foot = Vector((x + (-0.14, 0.0, 0.14)[k], 0.4 * side, 0.0))
-    up = tube([hip, knee], [0.036, 0.026], sides=5, smooth=False)
-    dn = tube([knee, foot], [0.026, 0.008], sides=5, smooth=False, round1=False)
+    up = tube([hip, (hip + knee) / 2 + Vector((0, 0, 0.03)), knee], [0.036, 0.031, 0.026], sides=6)
+    dn = tube([knee, (knee + foot) / 2 + Vector((0, 0.02 * side, 0.02)), foot], [0.026, 0.018, 0.008], sides=6)
     spike = cone(knee, knee + Vector((0, 0.03 * side, 0.07)), 0.018, sides=4)
     g = merge(up, dn, spike)
     g.paint(lambda p, n, fc, fi: mix(C_LEG0, C_LEG1, smoothstep(0.2, 0.5, p.z)))
     tip = cone(foot + Vector((0, 0, 0.05)), foot, 0.012, sides=4).fill(C_BONE)
-    knob = sphere(knee, 0.03, sides=6, rings=4).fill(C_SHELL1)
+    knob = sphere(knee, 0.034, sides=8, rings=5).fill(C_SHELL1)
     g = merge(g, tip, knob)
     return g, hip
 

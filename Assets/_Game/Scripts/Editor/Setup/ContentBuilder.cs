@@ -26,7 +26,7 @@ namespace VerdantSiege.EditorTools
 
             // ---- projectiles
             var seedBolt = EditorAssets.LoadOrCreateSO<ProjectileDefinition>(Data + "Projectiles/Projectile_SeedBolt.asset");
-            seedBolt.id = "seed_bolt"; seedBolt.speed = 7f; seedBolt.damage = 20f; seedBolt.damageType = DamageType.Physical;
+            seedBolt.id = "seed_bolt"; seedBolt.speed = 7.5f; seedBolt.damage = 25f; seedBolt.damageType = DamageType.Physical;
             seedBolt.pierceCount = 1; seedBolt.splashRadius = 0f; seedBolt.knockback = 0f; seedBolt.statusEffect = null;
             seedBolt.prefab = Get(prefabs, "SeedBolt"); seedBolt.trailColor = new Color(1f, 0.85f, 0.35f);
 
@@ -38,7 +38,7 @@ namespace VerdantSiege.EditorTools
             sunspore.accentColor = new Color(1f, 0.62f, 0.2f);
             sunspore.cost = 100; sunspore.cooldown = 5f; sunspore.startingCooldown = 0f; sunspore.maxHealth = 300f;
             sunspore.behaviour = DefenderBehaviourKind.LaneShooter; sunspore.projectile = seedBolt;
-            sunspore.attackInterval = 1.4f; sunspore.firstAttackDelay = 0.6f; sunspore.range = 0f;
+            sunspore.attackInterval = 1.3f; sunspore.firstAttackDelay = 0.5f; sunspore.range = 0f;
             sunspore.prefab = Get(prefabs, "Sunspore"); sunspore.icon = Get(icons, "Sunspore");
 
             var bulwark = EditorAssets.LoadOrCreateSO<DefenderDefinition>(Data + "Defenders/Defender_BulwarkBloom.asset");
@@ -52,24 +52,24 @@ namespace VerdantSiege.EditorTools
 
             var glowcap = EditorAssets.LoadOrCreateSO<DefenderDefinition>(Data + "Defenders/Defender_Glowcap.asset");
             glowcap.id = "glowcap"; glowcap.displayName = "Glowcap"; glowcap.role = DefenderRole.Generator;
-            glowcap.description = "Gathers light and releases a Sunmote worth 25 Vitality. Every fourth bloom is a double burst.";
+            glowcap.description = "Gathers light and releases a Sunmote worth 25 Vitality every 10 seconds. Every fourth bloom is a double burst.";
             glowcap.strengths = "Generates Vitality"; glowcap.weaknesses = "No defence of its own";
             glowcap.accentColor = new Color(0.3f, 0.9f, 0.85f);
             glowcap.cost = 75; glowcap.cooldown = 8f; glowcap.startingCooldown = 0f; glowcap.maxHealth = 300f;
             glowcap.behaviour = DefenderBehaviourKind.Generator;
-            glowcap.generateFirstDelay = 6f; glowcap.generateInterval = 13f; glowcap.generateAmount = 25; glowcap.burstEvery = 4; glowcap.burstAmount = 50;
+            glowcap.generateFirstDelay = 4f; glowcap.generateInterval = 10f; glowcap.generateAmount = 25; glowcap.burstEvery = 4; glowcap.burstAmount = 50;
             glowcap.prefab = Get(prefabs, "Glowcap"); glowcap.icon = Get(icons, "Glowcap");
 
             // ---- enemies
             var drifter = Enemy("Enemy_Drifter", "drifter", "Drifter", "A shambling husk of Blight. Slow, steady and hungry for roots.",
-                "Any steady lane damage stops it.", 200f, 0f, 0.22f, 1f, 0.5f, 30f, 1f, 1, 1, new Color(0.62f, 0.35f, 0.7f));
-            drifter.prefab = Get(prefabs, "Drifter"); drifter.icon = Get(icons, "Drifter");
+                "Any steady lane damage stops it.", 150f, 0f, 0.22f, 1f, 0.5f, 30f, 1f, 1, 1, new Color(0.62f, 0.35f, 0.7f));
+            drifter.vitalityDrop = 15; drifter.prefab = Get(prefabs, "Drifter"); drifter.icon = Get(icons, "Drifter");
             var skitter = Enemy("Enemy_Skitter", "skitter", "Skitter", "A fast, fragile rot-beetle that rushes past slow defences.",
-                "Shoot it early or block it with a Bulwark Bloom.", 90f, 0f, 0.55f, 1f, 0.45f, 12f, 0.6f, 1, 1, new Color(0.9f, 0.4f, 0.6f));
-            skitter.prefab = Get(prefabs, "Skitter"); skitter.icon = Get(icons, "Skitter");
+                "Shoot it early or block it with a Bulwark Bloom.", 70f, 0f, 0.5f, 1f, 0.45f, 12f, 0.6f, 1, 1, new Color(0.9f, 0.4f, 0.6f));
+            skitter.vitalityDrop = 10; skitter.prefab = Get(prefabs, "Skitter"); skitter.icon = Get(icons, "Skitter");
             var brute = Enemy("Enemy_PlatedBrute", "plated_brute", "Plated Brute", "A hulking beast in bone-and-bark plating. The plating absorbs hits until it shatters; then it charges.",
-                "Stall it with a Bulwark Bloom while several Sunspores break the plating.", 360f, 440f, 0.15f, 1.35f, 0.6f, 60f, 1.2f, 2, 4, new Color(0.8f, 0.72f, 0.55f));
-            brute.prefab = Get(prefabs, "PlatedBrute"); brute.icon = Get(icons, "PlatedBrute");
+                "Stall it with a Bulwark Bloom while several Sunspores break the plating.", 260f, 300f, 0.15f, 1.35f, 0.6f, 60f, 1.2f, 2, 4, new Color(0.8f, 0.72f, 0.55f));
+            brute.vitalityDrop = 50; brute.prefab = Get(prefabs, "PlatedBrute"); brute.icon = Get(icons, "PlatedBrute");
 
             // ---- battlefield
             var field = EditorAssets.LoadOrCreateSO<BattlefieldDefinition>(Data + "Biomes/Battlefield_Heartlands_5x9.asset");
@@ -81,7 +81,8 @@ namespace VerdantSiege.EditorTools
             e1.id = "vh_01"; e1.displayName = "First Roots";
             e1.briefing = "Grow Glowcaps for Vitality, then Sunspores to hold every lane.";
             e1.biomeId = "verdant_heartlands"; e1.battlefield = field; e1.heartrootHealth = 5;
-            e1.startingVitality = 150; e1.vitalityCap = 1500; e1.skyDropInterval = 9f; e1.skyDropFirstDelay = 3f; e1.skyDropAmount = 25; e1.pickupLifetime = 12f;
+            e1.startingVitality = 225; e1.vitalityCap = 2000; e1.skyDropInterval = 6.5f; e1.skyDropFirstDelay = 3f; e1.skyDropAmount = 25; e1.pickupLifetime = 12f;
+            e1.sunlightPoolInterval = 24f; e1.sunlightPoolDuration = 10f; e1.sunlightPoolCount = 2; e1.sunlightBoost = 1.6f;
             e1.prepTime = 22f; e1.interWaveGap = 5f; e1.fixedSeed = 0; e1.roster = roster; e1.seedReward = 50; e1.flawlessBonus = 25;
             e1.waves = new List<WaveDefinition>
             {
@@ -98,7 +99,8 @@ namespace VerdantSiege.EditorTools
             e2.id = "vh_02"; e2.displayName = "Plated March";
             e2.briefing = "Brutes lead this assault. Wall them with Bulwark Blooms and focus fire.";
             e2.biomeId = "verdant_heartlands"; e2.battlefield = field; e2.heartrootHealth = 5;
-            e2.startingVitality = 175; e2.vitalityCap = 1500; e2.skyDropInterval = 10f; e2.skyDropFirstDelay = 3f; e2.skyDropAmount = 25; e2.pickupLifetime = 12f;
+            e2.startingVitality = 225; e2.vitalityCap = 2000; e2.skyDropInterval = 7f; e2.skyDropFirstDelay = 3f; e2.skyDropAmount = 25; e2.pickupLifetime = 12f;
+            e2.sunlightPoolInterval = 22f; e2.sunlightPoolDuration = 10f; e2.sunlightPoolCount = 2; e2.sunlightBoost = 1.6f;
             e2.prepTime = 22f; e2.interWaveGap = 5f; e2.fixedSeed = 0; e2.roster = roster; e2.seedReward = 75; e2.flawlessBonus = 35;
             e2.waves = new List<WaveDefinition>
             {

@@ -25,6 +25,12 @@ namespace VerdantSiege.Data
         [Min(1)] public int skyDropAmount = 25;
         [Tooltip("Seconds a pickup stays collectable.")] [Min(2f)] public float pickupLifetime = 12f;
 
+        [Header("Sunlight Pools (Verdant Heartlands)")]
+        [Tooltip("Seconds between sunlight pools appearing (0 = feature off).")] [Min(0f)] public float sunlightPoolInterval = 0f;
+        [Min(1f)] public float sunlightPoolDuration = 9f;
+        [Min(1)] public int sunlightPoolCount = 2;
+        [Tooltip("Attack/generation speed multiplier for defenders standing in a pool.")] [Min(1f)] public float sunlightBoost = 1.6f;
+
         [Header("Flow")]
         [Tooltip("Seconds of calm before the first wave.")] [Min(0f)] public float prepTime = 20f;
         [Tooltip("Seconds between a cleared wave and the next.")] [Min(0f)] public float interWaveGap = 5f;

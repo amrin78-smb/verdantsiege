@@ -40,7 +40,6 @@ namespace VerdantSiege.Battle
         private bool _dragging;
         private float _resultDelay = -1f;
         private bool _resultShown;
-        private bool _firstPickupHint;
         private EncounterDefinition _encounter;
 
         private void Awake()
@@ -101,10 +100,27 @@ namespace VerdantSiege.Battle
 
             if (_app.Audio != null) _app.Audio.PlayMusic(_app.Config.audio != null ? _app.Config.audio.battleMusic : null);
             Hud.ShowBanner(_encounter.displayName, _encounter.briefing, UIPalette.Parchment, 3.2f);
-            if (!settings.tutorialSeen) Invoke(nameof(FirstHint), 3.4f);
+            var sunGo = new GameObject("Sunlight");
+            sunGo.transform.SetParent(transform, false);
+            sunGo.AddComponent<SunlightView>().Init(Sim, Layout, _lib, _vfx);
+            var barsGo = new GameObject("HealthBars");
+            barsGo.AddComponent<EnemyHealthBars>().Init(Sim, Layout, battleCamera, Hud.Canvas.transform);
+            if (!settings.tutorialSeen && _app.Config.content.encounters.IndexOf(_encounter) == 0)
+                TutorialController.Create(this, Hud);
+            _shakeEnabled = !settings.reducedShake;
         }
 
-        private void FirstHint() => Hud.ShowToast("Tap a card, then tap the lawn to plant it", 4f);
+        private bool _shakeEnabled = true;
+        private float _shake;
+
+        private void LateUpdateShake()
+        {
+            if (battleCamera == null) return;
+            if (_shake <= 0f) return;
+            _shake = Mathf.Max(0f, _shake - Time.unscaledDeltaTime);
+            var rig = battleCamera.GetComponent<BattleCameraRig>();
+            if (rig != null) rig.ShakeOffset = _shake > 0f ? Random.insideUnitSphere * (_shake * 0.25f) : Vector3.zero;
+        }
 
         private void BuildGround()
         {
@@ -148,15 +164,10 @@ namespace VerdantSiege.Battle
             {
                 Hud.SetHeartroot(remaining, Sim.HeartrootMaxHealth);
                 if (remaining > 0) Hud.ShowToast("The Heartroot is wounded!");
+                if (_shakeEnabled) _shake = 0.45f;
             };
             Sim.WaveStarted += OnWaveStarted;
             Sim.StateChanged += s => { if (s != BattleState.Running) _resultDelay = 1.4f; };
-            Sim.PickupSpawned += p =>
-            {
-                if (_firstPickupHint || _app.Settings.tutorialSeen || _app.Settings.autoCollect) return;
-                _firstPickupHint = true;
-                Hud.ShowToast("Tap glowing Sunmotes to gather Vitality", 3.5f);
-            };
         }
 
         private void OnWaveStarted(int index, bool major)
@@ -288,7 +299,6 @@ namespace VerdantSiege.Battle
             if (r == DeployResult.Ok)
             {
                 Deselect();
-                if (!_app.Settings.tutorialSeen && Sim.Stats.defendersPlanted == 1) Hud.ShowToast("Tap a plant to inspect it or undo for a few seconds", 3f);
                 return r;
             }
             _overlay.FlashInvalid(c);
@@ -336,6 +346,7 @@ namespace VerdantSiege.Battle
                 else SetPaused(!Paused);
             }
             if (!Paused) Sim.Advance(Time.deltaTime);
+            LateUpdateShake();
 
             if (_resultDelay > 0f)
             {

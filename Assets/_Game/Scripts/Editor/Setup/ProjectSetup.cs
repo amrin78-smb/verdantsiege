@@ -96,6 +96,7 @@ namespace VerdantSiege.EditorTools
             var icons = new Dictionary<string, Sprite>();
             foreach (string n in new[] { "Sunspore", "BulwarkBloom", "Glowcap", "Drifter", "Skitter", "PlatedBrute" }) icons[n] = ArtBuilder.Icon(n);
 
+            BrandingBuilder.Build();
             AudioLibrary audio = AudioSynth.BuildAll();
             ContentDatabase db = ContentBuilder.Build(prefabs, icons);
 

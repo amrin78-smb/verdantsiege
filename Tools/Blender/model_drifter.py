@@ -3,6 +3,7 @@ tendrils, one big lime eye, long clawed arms, stubby legs. Facing -X: its LEFT s
 import sys, os, math
 sys.path.insert(0, os.path.dirname(__file__))
 from vskit import *
+import vskit; vskit.RES = 1.3  # per-model smoothness within the 4500 budget
 
 C_BODY0, C_BODY1 = hexc("#2E1A36"), hexc("#6E4577")
 C_BELLY = hexc("#A07A98")
@@ -35,10 +36,10 @@ frills = Geo()
 for k, (x, y, z, s_) in enumerate(((0.17, -0.08, 0.5, 1.0), (0.14, 0.1, 0.62, 1.2), (0.1, -0.04, 0.76, 0.95),
                                     (0.16, 0.14, 0.44, 0.75), (0.04, 0.16, 0.84, 0.7))):
     br = ellipsoid((0, 0, 0), (0.085 * s_, 0.11 * s_, 0.032 * s_), sides=10, rings=4,
-                   jitter=lambda pi, si, aa, k=k: 1 + 0.12 * math.sin(aa * 4 + k), smooth=False)
+                   jitter=lambda pi, si, aa, k=k: 1 + 0.12 * math.sin(aa * 4 + k))
     br.transform(T(x, y, z) @ rot(0, -12, 0))
     frills.extend(br)
-frills.paint(lambda p, n, fc, fi: shade(C_FRILL1 if n.z > 0.1 else C_FRILL0, 0.9 + 0.2 * hash01(fc.x, fc.y)), per_face=True)
+paint_vertex_normals(frills, lambda p, n, fc, fi: mix(C_FRILL0, C_FRILL1, smoothstep(-0.2, 0.4, n.z)))
 # glowing spore nodules on the shoulders/back
 nod = Geo()
 for k, (x, y, z, r) in enumerate(((0.02, 0.17, 0.78, 0.035), (0.08, -0.15, 0.7, 0.03), (0.12, 0.02, 0.86, 0.028),
@@ -72,7 +73,7 @@ for k in range(8):
     ln = 0.2 + 0.08 * hash01(k, 3)
     sw = Vector((d.x, d.y, 0)) * 0.05
     pts = bezier(p0, p0 + sw - Vector((0, 0, ln * 0.45)), p0 + sw * 0.6 - Vector((0, 0, ln)), n=4)
-    tend.extend(tube(pts, taper(len(pts), 0.026, 0.012), sides=5, cap0=True, cap1=True).paint(
+    tend.extend(tube(pts, taper(len(pts), 0.024, 0.012), sides=6, cap0=True, cap1=True).paint(
         lambda p, n, fc, fi: mix(C_HOOD1, C_HOOD0, 0.3)))
     tend.extend(sphere(pts[-1] - Vector((0, 0, 0.015)), 0.026, sides=6, rings=4).fill(C_GLOW))
 # eye: big lime orb with a dark slit, set in a socket on the -X face
