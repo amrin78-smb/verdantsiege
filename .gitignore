@@ -39,3 +39,6 @@ sysinfo.txt
 # Blender
 __pycache__/
 *.pyc
+
+# Tester builds are committed on purpose
+!/Releases/*.apk
