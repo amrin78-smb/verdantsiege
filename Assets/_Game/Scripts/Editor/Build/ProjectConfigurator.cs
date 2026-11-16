@@ -13,8 +13,8 @@ namespace VerdantSiege.EditorTools
     /// </summary>
     public static class ProjectConfigurator
     {
-        public const string AppVersion = "0.1.0";
-        public const int AppVersionCode = 1;
+        public const string AppVersion = "0.2.0";
+        public const int AppVersionCode = 2;
         public const string ApplicationId = "com.nocvault.verdantsiege";
         public const string ProductName = "Verdant Siege";
         public const string CompanyName = "Nocvault";
