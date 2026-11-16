@@ -16,4 +16,4 @@ MonoBehaviour:
   visuals: {fileID: 11400000, guid: 6c101be9ae268a79aa202209253d8cde, type: 2}
   audio: {fileID: 11400000, guid: f351663d297b15383848d22077af8511, type: 2}
   firstEncounterId: vh_01
-  versionLabel: 0.4.1 prototype (M3 + evolution)
+  versionLabel: 0.5.0 prototype (M4 campaign)
