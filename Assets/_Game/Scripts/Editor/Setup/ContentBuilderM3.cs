@@ -183,28 +183,37 @@ namespace VerdantSiege.EditorTools
             var maw = EditorAssets.LoadOrCreateSO<BossDefinition>(Data + "Bosses/Boss_RootMaw.asset");
             maw.id = "root_maw"; maw.displayName = "The Root Maw";
             maw.description = "A vast mouth of roots beneath the meadow. It erupts under your plants, walls off the ground and calls the Blight.";
-            maw.counterHint = "Spread out: it strikes the most crowded column. Hit its glowing Core while it is exposed.";
-            maw.maxHealth = 12500f; maw.guardedDamageMultiplier = 0.4f; maw.exposedDamageMultiplier = 2.2f;
-            maw.entranceSeconds = 3.5f; maw.phaseTransitionSeconds = 3f; maw.uprootRefund = 0.5f;
+            maw.counterHint = "Spread out. When glowing pods appear, shoot all of them to stagger it.";
+            // Tuned for a 4-6 min bot fight (TD-23): more health, the weak-point stagger is the big damage window.
+            maw.maxHealth = 42000f; maw.guardedDamageMultiplier = 0.4f; maw.exposedDamageMultiplier = 2.2f;
+            maw.entranceSeconds = 4.5f; maw.phaseTransitionSeconds = 3f; maw.uprootRefund = 0.5f;
+            maw.weakPointCount = 3; maw.weakPointLanes = new List<int> { 0, 2, 4 }; maw.weakPointHealth = 260f;
+            maw.weakPointWindowSeconds = 10f; maw.staggerSeconds = 6f; maw.staggerDamageMultiplier = 3f;
+            maw.bonusSeeds = 150; maw.essenceFirstDefeat = 3; maw.essenceRepeatDefeat = 1;
             maw.prefab = Get(prefabs, "RootMaw"); maw.accentColor = new Color(0.6f, 0.3f, 0.55f);
             maw.phases = new List<BossPhase>
             {
-                new BossPhase { name = "The Ground Stirs", startsAtHealthFraction = 1f, attackInterval = 7f, pattern = new List<BossAttack>
+                new BossPhase { name = "The Ground Stirs", startsAtHealthFraction = 1f, attackInterval = 7.5f, pattern = new List<BossAttack>
                 {
-                    Eruption(2, 2.8f, 9f, 5f),
+                    Slam(2, 2.8f, 9f, 5f),
                     Summon(b.drifter, 2, 2f),
+                    Slam(2, 2.8f, 9f, 5f),
+                    Special(4, 8f),
                 }},
-                new BossPhase { name = "Grasping Roots", startsAtHealthFraction = 0.66f, attackInterval = 6.5f, pattern = new List<BossAttack>
+                new BossPhase { name = "Grasping Roots", startsAtHealthFraction = 0.66f, attackInterval = 7f, pattern = new List<BossAttack>
                 {
-                    Eruption(3, 2.6f, 10f, 5f),
+                    Sweep(3, 2.6f, 9f, 5f),
                     Summon(b.skitter, 2, 1.8f),
-                    Eruption(2, 2.4f, 9f, 4f),
+                    Special(4, 8f),
+                    Sweep(3, 2.6f, 9f, 4f),
                     Summon(spore, 1, 1.8f),
                 }},
-                new BossPhase { name = "Heartrot Frenzy", startsAtHealthFraction = 0.33f, attackInterval = 6f, pattern = new List<BossAttack>
+                new BossPhase { name = "Heartrot Frenzy", startsAtHealthFraction = 0.33f, attackInterval = 6.5f, pattern = new List<BossAttack>
                 {
-                    Eruption(5, 2.8f, 8f, 6f),
+                    Frenzy(3, 2, 2.4f, 7f, 5f),
                     Summon(vaultling, 2, 1.8f),
+                    Special(4, 8f),
+                    Frenzy(3, 2, 2.4f, 7f, 5f),
                     Summon(b.drifter, 3, 1.8f),
                 }},
             };
@@ -351,8 +360,25 @@ namespace VerdantSiege.EditorTools
             return e;
         }
 
-        private static BossAttack Eruption(int cells, float telegraph, float block, float expose) =>
-            new BossAttack { kind = BossAttackKind.RootEruption, cells = cells, telegraphSeconds = telegraph, blockSeconds = block, exposeCoreSeconds = expose };
+        /// <summary>Phase 1 Root Slam: part of the most crowded column.</summary>
+        private static BossAttack Slam(int cells, float telegraph, float block, float expose) =>
+            new BossAttack { kind = BossAttackKind.RootEruption, label = "Root Slam", shape = BossStrikeShape.Column, cells = cells,
+                telegraphSeconds = telegraph, blockSeconds = block, exposeCoreSeconds = expose };
+
+        /// <summary>Phase 2 Sweeping Grasp: a strip along the most crowded lane.</summary>
+        private static BossAttack Sweep(int cells, float telegraph, float block, float expose) =>
+            new BossAttack { kind = BossAttackKind.RootEruption, label = "Sweeping Grasp", shape = BossStrikeShape.LaneSweep, cells = cells,
+                telegraphSeconds = telegraph, blockSeconds = block, exposeCoreSeconds = expose };
+
+        /// <summary>Phase 3 Frenzy: several columns at once.</summary>
+        private static BossAttack Frenzy(int columns, int cells, float telegraph, float block, float expose) =>
+            new BossAttack { kind = BossAttackKind.RootEruption, label = "Frenzy", shape = BossStrikeShape.MultiColumn, columns = columns, cells = cells,
+                telegraphSeconds = telegraph, blockSeconds = block, exposeCoreSeconds = expose };
+
+        /// <summary>Special: exposes the weak points for the boss's window; lands on a crowded column unless every pod breaks.</summary>
+        private static BossAttack Special(int cells, float block) =>
+            new BossAttack { kind = BossAttackKind.RootEruption, label = "Heartrot Crush", shape = BossStrikeShape.Column, cells = cells,
+                telegraphSeconds = 10f, blockSeconds = block, exposeCoreSeconds = 0f, exposesWeakPoints = true };
 
         private static BossAttack Summon(EnemyDefinition e, int count, float telegraph) =>
             new BossAttack { kind = BossAttackKind.Summon, summonEnemy = e, summonCount = count, telegraphSeconds = telegraph, exposeCoreSeconds = 0f };

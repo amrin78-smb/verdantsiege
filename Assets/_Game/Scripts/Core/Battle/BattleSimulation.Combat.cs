@@ -492,7 +492,7 @@ namespace VerdantSiege.Battle
                 ChainPoints[n++] = new ChainPoint { x = BossFrontX + 0.4f, lane = d.Coord.lane, boss = true };
                 DefenderActed?.Invoke(d);
                 ChainCast?.Invoke(d, n);
-                DamageBoss(AbilityDamage(d), def.abilityDamageType);
+                DamageBossInLane(d.Coord.lane, AbilityDamage(d), def.abilityDamageType); // pods first, evolved damage
                 return true;
             }
             int hitCount = 0;

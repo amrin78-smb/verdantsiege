@@ -12,16 +12,32 @@ namespace VerdantSiege.Data
         Summon = 1
     }
 
+    /// <summary>Which cells a Root Eruption strikes (also selects the attack's animation and warning colour).</summary>
+    public enum BossStrikeShape
+    {
+        /// <summary>Root Slam: up to <see cref="BossAttack.cells"/> cells of the most crowded column.</summary>
+        Column = 0,
+        /// <summary>Sweeping Grasp: a strip of <see cref="BossAttack.cells"/> adjacent cells along the most crowded lane.</summary>
+        LaneSweep = 1,
+        /// <summary>Frenzy: <see cref="BossAttack.columns"/> different columns, <see cref="BossAttack.cells"/> cells each.</summary>
+        MultiColumn = 2
+    }
+
     /// <summary>One attack in a phase's repeating pattern.</summary>
     [Serializable]
     public sealed class BossAttack
     {
         public BossAttackKind kind = BossAttackKind.RootEruption;
+        [Tooltip("Short name shown on the boss bar while it winds up, e.g. \"Root Slam\". Empty = generic.")]
+        public string label = "";
         [Tooltip("Warning time before the attack lands (cells glow, the boss winds up).")]
         [Min(0.5f)] public float telegraphSeconds = 2.5f;
         [Header("Root Eruption")]
         [Tooltip("Cells hit in the chosen column (lanes with defenders first). >= lanes = the whole column.")]
         [Min(1)] public int cells = 2;
+        public BossStrikeShape shape = BossStrikeShape.Column;
+        [Tooltip("MultiColumn only: how many different columns are struck.")]
+        [Min(1)] public int columns = 1;
         [Tooltip("Seconds the struck cells stay blocked by roots.")]
         [Min(0f)] public float blockSeconds = 10f;
         [Header("Summon")]
@@ -30,6 +46,10 @@ namespace VerdantSiege.Data
         [Header("Vulnerability window")]
         [Tooltip("After the attack the Core is exposed for this long (takes extra damage). 0 = no window.")]
         [Min(0f)] public float exposeCoreSeconds = 0f;
+        [Header("Weak points (special attack)")]
+        [Tooltip("The wind-up exposes the boss's weak points for BossDefinition.weakPointWindowSeconds (replaces telegraphSeconds). " +
+                 "Destroying all of them before it ends interrupts the attack and staggers the boss.")]
+        public bool exposesWeakPoints = false;
     }
 
     /// <summary>A boss phase: entered when health falls to or below its threshold.</summary>
@@ -71,8 +91,55 @@ namespace VerdantSiege.Data
         [Range(0f, 1f)] public float uprootRefund = 0.5f;
         public List<BossPhase> phases = new List<BossPhase>();
 
+        [Header("Weak points (exposed by attacks with exposesWeakPoints)")]
+        [Tooltip("How many weak points appear (clamped to the lane count).")]
+        [Min(0)] public int weakPointCount = 3;
+        [Tooltip("Lane of each weak point; projectiles in that lane hit the pod before the boss. Missing entries are spread evenly.")]
+        public List<int> weakPointLanes = new List<int> { 0, 2, 4 };
+        [Min(1f)] public float weakPointHealth = 300f;
+        [Tooltip("Seconds the weak points stay exposed before the special attack lands.")]
+        [Min(1f)] public float weakPointWindowSeconds = 9f;
+        [Tooltip("Seconds the boss is staggered (Core exposed) after all weak points break.")]
+        [Min(0f)] public float staggerSeconds = 6f;
+        [Tooltip("Damage multiplier on the boss while staggered.")]
+        [Min(0f)] public float staggerDamageMultiplier = 3f;
+
+        [Header("Rewards")]
+        [Tooltip("Extra Seeds on top of the encounter reward when the boss is defeated.")]
+        [Min(0)] public int bonusSeeds = 150;
+        [Tooltip("Essence (rare meta currency) for the first defeat.")]
+        [Min(0)] public int essenceFirstDefeat = 3;
+        [Tooltip("Essence for every later defeat.")]
+        [Min(0)] public int essenceRepeatDefeat = 1;
+
         [Header("Presentation")]
         public GameObject prefab;
         public Color accentColor = new Color(0.55f, 0.25f, 0.5f);
+
+        public int EssenceReward(bool firstDefeat) => firstDefeat ? essenceFirstDefeat : essenceRepeatDefeat;
+
+        /// <summary>
+        /// Fills <paramref name="lanes"/> with the weak point lanes for a battlefield of <paramref name="laneCount"/> lanes:
+        /// authored lanes first (in range, distinct), then evenly spread lanes for any missing entries.
+        /// </summary>
+        public void ResolveWeakPointLanes(int laneCount, List<int> lanes)
+        {
+            lanes.Clear();
+            int count = Math.Min(weakPointCount, laneCount);
+            if (count <= 0) return;
+            if (weakPointLanes != null)
+                foreach (int l in weakPointLanes)
+                {
+                    if (lanes.Count >= count) break;
+                    if (l >= 0 && l < laneCount && !lanes.Contains(l)) lanes.Add(l);
+                }
+            for (int i = 0; lanes.Count < count && i < count; i++)
+            {
+                int l = count == 1 ? laneCount / 2 : (int)Math.Round(i * (laneCount - 1) / (double)(count - 1));
+                if (!lanes.Contains(l)) lanes.Add(l);
+            }
+            for (int l = 0; lanes.Count < count && l < laneCount; l++) if (!lanes.Contains(l)) lanes.Add(l);
+            lanes.Sort();
+        }
     }
 }

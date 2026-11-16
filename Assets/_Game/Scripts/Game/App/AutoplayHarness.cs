@@ -35,6 +35,7 @@ namespace VerdantSiege.App
         private bool _resultLogged;
         private float _resultTimer = -1f;
         private bool _pausedTested;
+        private float _bossDeadTimer, _crestTimer, _victoryHold;
         private readonly ScriptedPlayer _player = new ScriptedPlayer();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -118,6 +119,20 @@ namespace VerdantSiege.App
                 if (boss.phase >= 1 && boss.state == BossState.Idle) Shot("boss_phase2");
                 if (boss.phase >= 2 && boss.state == BossState.Idle) Shot("boss_phase3");
                 if (sim.RootBlockedCount > 0) Shot("boss_roots");
+                // Boss polish moments.
+                if (boss.state == BossState.Rising && boss.stateTimer < boss.stateDuration * 0.4f) Shot("boss_entrance");
+                if (boss.state == BossState.Telegraph && boss.WeakPointsExposed && boss.stateDuration - boss.stateTimer > 2f) Shot("boss_weakpoints");
+                if (boss.state == BossState.Staggered && boss.stateDuration - boss.stateTimer > 0.7f) Shot("boss_stagger");
+                if (boss.state == BossState.Telegraph && boss.currentAttack != null && boss.currentAttack.shape == BossStrikeShape.LaneSweep
+                    && !boss.WeakPointsExposed && boss.stateTimer < 1.2f) Shot("boss_sweep");
+                if (boss.state == BossState.Telegraph && boss.currentAttack != null && boss.currentAttack.shape == BossStrikeShape.MultiColumn
+                    && boss.stateTimer < 1.2f) Shot("boss_frenzy");
+                if (boss.state == BossState.Defeated)
+                {
+                    _bossDeadTimer += dt;
+                    if (_bossDeadTimer > 0.6f) Shot("boss_death");
+                    if (_bossDeadTimer > 2.2f) Shot("boss_death_collapse");
+                }
             }
             foreach (EnemyRuntime e in sim.Enemies)
             {
@@ -143,6 +158,16 @@ namespace VerdantSiege.App
 
             if (sim.State != BattleState.Running)
             {
+                if (boss != null && boss.state == BossState.Defeated)
+                {
+                    // Boss victory: wait for the crest moment and the result panel (fallback after 14 s).
+                    BossVictoryScreen v = FindAnyObjectByType<BossVictoryScreen>();
+                    if (v != null && !v.PanelShown) { _crestTimer += dt; if (_crestTimer > 0.9f) Shot("boss_victory_crest"); }
+                    if (_resultTimer < 0f) _resultTimer = 40f; // software GL can run at 1-3 FPS
+                    _resultTimer -= dt;
+                    if (((v != null && v.PanelShown && (_victoryHold += dt) > 0.8f) || _resultTimer <= 0f) && !_resultLogged) Finish(sim);
+                    return;
+                }
                 if (_resultTimer < 0f) _resultTimer = 3f;
                 _resultTimer -= dt;
                 if (_resultTimer <= 0f && !_resultLogged) Finish(sim);
@@ -279,6 +304,9 @@ namespace VerdantSiege.App
             BattleStats st = sim.Stats;
             sb.AppendLine($"stats: elapsed={st.elapsed:0.0}s defeated={st.enemiesDefeated} planted={st.defendersPlanted} lost={st.defendersLost} vitality={st.vitalityCollected} breaches={st.breaches}");
             sb.AppendLine($"evolutions={_evolutions}");
+            if (sim.Boss != null)
+                sb.AppendLine($"boss: state={sim.Boss.state} phase={sim.Boss.phase + 1}/{sim.Boss.PhaseCount} staggers={sim.Boss.staggerCount} specialsLanded={sim.Boss.specialsLanded} " +
+                              $"victoryScreen={(FindAnyObjectByType<BossVictoryScreen>() != null)} rewards=[{(FindAnyObjectByType<BossVictoryScreen>() != null ? FindAnyObjectByType<BossVictoryScreen>().RewardText : "")}] essence={AppRoot.Ensure().Save.Data.essence}");
             sb.AppendLine($"errors={_errors}");
             foreach (string e in _errorLines) sb.AppendLine("  " + e);
             sb.AppendLine($"RESULT: {sim.State} heartroot={sim.HeartrootHealth}/{sim.HeartrootMaxHealth}");

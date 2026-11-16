@@ -26,6 +26,8 @@ namespace VerdantSiege.Save
         public bool flawless;
         public int bestHeartroot;
         public int attempts;
+        /// <summary>Times this encounter's boss was defeated (v2; 0 for non-boss encounters).</summary>
+        public int bossDefeats;
     }
 
     /// <summary>
@@ -35,11 +37,13 @@ namespace VerdantSiege.Save
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentVersion = 1;
+        public const int CurrentVersion = 2;
 
         public int version = CurrentVersion;
         public long savedAtUnix;
         public int seeds;
+        /// <summary>Rare meta currency earned by defeating bosses (v2).</summary>
+        public int essence;
         public List<EncounterRecord> encounters = new List<EncounterRecord>();
         public List<string> unlockedDefenders = new List<string>();
         public SettingsData settings = new SettingsData();
@@ -50,6 +54,19 @@ namespace VerdantSiege.Save
             var rec = new EncounterRecord { encounterId = encounterId };
             encounters.Add(rec);
             return rec;
+        }
+
+        /// <summary>
+        /// Records a boss defeat in an encounter and adds its Essence: <paramref name="firstEssence"/> the first time,
+        /// <paramref name="repeatEssence"/> afterwards. Returns the Essence awarded.
+        /// </summary>
+        public int AwardBossVictory(string encounterId, int firstEssence, int repeatEssence)
+        {
+            EncounterRecord rec = GetOrCreate(encounterId);
+            int award = rec.bossDefeats == 0 ? firstEssence : repeatEssence;
+            rec.bossDefeats++;
+            essence += Math.Max(0, award);
+            return Math.Max(0, award);
         }
 
         public bool IsCompleted(string encounterId)

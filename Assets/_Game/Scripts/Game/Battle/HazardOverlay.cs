@@ -1,4 +1,5 @@
 using UnityEngine;
+using VerdantSiege.Data;
 using VerdantSiege.Grid;
 using VerdantSiege.Visual;
 
@@ -12,7 +13,10 @@ namespace VerdantSiege.Battle.View
     public sealed class HazardOverlay : MonoBehaviour
     {
         private static readonly int ColorId = Shader.PropertyToID("_BaseColor");
-        private static readonly Color Warning = new Color(1f, 0.12f, 0.1f, 0.95f);
+        private static readonly Color Warning = new Color(1f, 0.12f, 0.1f, 0.95f);       // Root Slam (column)
+        private static readonly Color SweepWarning = new Color(1f, 0.55f, 0.08f, 0.95f); // Sweeping Grasp (lane strip)
+        private static readonly Color FrenzyWarning = new Color(1f, 0.15f, 0.75f, 0.95f); // Frenzy (multi-column)
+        private static readonly Color CrushWarning = new Color(1f, 0.05f, 0.3f, 0.98f); // special (weak points)
         private static readonly Color Roots = new Color(0.3f, 0.08f, 0.22f, 0.92f);
         private static readonly Color Cloud = new Color(0.7f, 0.95f, 0.2f, 0.8f);
 
@@ -86,10 +90,16 @@ namespace VerdantSiege.Battle.View
             System.Array.Clear(_warn, 0, _warn.Length);
             BossRuntime boss = _sim.Boss;
             float urgency = 0f;
+            Color warnColor = Warning;
+            BossStrikeShape shape = BossStrikeShape.Column;
+            bool crush = false;
             if (boss != null && boss.state == BossState.Telegraph && boss.currentAttack != null)
             {
                 foreach (GridCoord g in boss.targetCells) if (_layout.InBounds(g)) _warn[g.lane, g.column] = true;
-                urgency = 1f - Mathf.Clamp01(boss.stateTimer / Mathf.Max(0.1f, boss.currentAttack.telegraphSeconds));
+                urgency = 1f - Mathf.Clamp01(boss.stateTimer / Mathf.Max(0.1f, boss.stateDuration));
+                shape = boss.currentAttack.shape;
+                crush = boss.currentAttack.exposesWeakPoints;
+                warnColor = crush ? CrushWarning : shape == BossStrikeShape.LaneSweep ? SweepWarning : shape == BossStrikeShape.MultiColumn ? FrenzyWarning : Warning;
             }
             _puffTimer -= Time.deltaTime;
             bool puff = _puffTimer <= 0f;
@@ -104,8 +114,12 @@ namespace VerdantSiege.Battle.View
                 bool show = false;
                 if (_warn[l, c])
                 {
-                    float pulse = 0.5f + 0.5f * Mathf.Sin(time * (8f + urgency * 14f));
-                    col = Warning;
+                    // Each attack reads differently: the frenzy flashes column by column on a fast beat, the sweep
+                    // ripples from the boss side, the special throbs slowly and heavily until the last seconds.
+                    float speed = crush ? 3f + urgency * urgency * 16f : 8f + urgency * 14f;
+                    float offset = shape == BossStrikeShape.MultiColumn && !crush ? c * 1.9f : shape == BossStrikeShape.LaneSweep ? -c * 0.8f : 0f;
+                    float pulse = 0.5f + 0.5f * Mathf.Sin(time * speed + offset);
+                    col = warnColor;
                     col.a = Mathf.Lerp(0.6f, 1f, urgency) * (0.7f + 0.3f * pulse);
                     show = true;
                 }

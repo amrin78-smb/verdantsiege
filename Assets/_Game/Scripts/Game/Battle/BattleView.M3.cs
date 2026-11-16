@@ -37,11 +37,12 @@ namespace VerdantSiege.Battle.View
             BossRuntime boss = _sim.Boss;
             if (boss != null && boss.Definition.prefab != null)
             {
-                Vector3 home = _layout.ToWorld(_sim.Columns + 1.45f, (_sim.Lanes - 1) * 0.5f);
+                // Readability (boss polish): pushed right and scaled so no lane cell is covered; see BossStage.
+                Vector3 home = _layout.ToWorld(_sim.Columns + BossStage.OffsetColumns, (_sim.Lanes - 1) * 0.5f) + Vector3.down * BossStage.Sink;
                 GameObject go = Instantiate(boss.Definition.prefab, home, Quaternion.identity, _unitsRoot);
                 _bossView = go.GetComponent<BossView>();
                 if (_bossView == null) _bossView = go.AddComponent<BossView>();
-                _bossView.Bind(boss, home, _vfx);
+                _bossView.Bind(boss, home, BossStage.Scale, _vfx, _layout, _lib, _sim.BossFrontX);
             }
 
             _sim.DefenderTelegraphed += OnDefenderTelegraphed;
@@ -184,8 +185,10 @@ namespace VerdantSiege.Battle.View
 
         private void OnProjectileHitBoss(ProjectileRuntime p)
         {
+            bool pod = _sim.Boss.WeakPointInLane(p.lane) != null;
             Vector3 pos = _layout.ToWorld(_sim.BossFrontX + 0.2f, p.lane) + Vector3.up * 0.8f;
-            bool exposed = _sim.Boss.CoreExposed;
+            if (pod && _bossView != null && _bossView.WeakPoints != null && _bossView.WeakPoints.TryPodCentreForLane(p.lane, out Vector3 c)) pos = c;
+            bool exposed = _sim.Boss.CoreExposed || pod;
             _vfx.Burst(VfxKind.HitSpark, pos, exposed ? new Color(1f, 0.5f, 0.9f) : _lib.armorDebris, exposed ? 10 : 6, 2.2f, 0.13f, 0.3f);
             Play(exposed ? Sfx.Hit : Sfx.ArmorHit, 0.7f);
         }
@@ -233,10 +236,11 @@ namespace VerdantSiege.Battle.View
         }
 
         // ------------------------------------------------------------ boss
-        private void OnBossArrived(BossRuntime b) => Play(Sfx.BossRoar);
+        private void OnBossArrived(BossRuntime b) => Play(Sfx.BossRumble); // the roar comes with the eruption (BossCinematics)
 
         private void OnBossTelegraphed(BossRuntime b, BossAttack a)
         {
+            if (_bossView != null) _bossView.OnTelegraph(a);
             Play(a.kind == BossAttackKind.RootEruption ? Sfx.BossRumble : Sfx.EnemyGroan, 0.9f);
             if (a.kind != BossAttackKind.RootEruption) return;
             foreach (GridCoord c in b.targetCells)
@@ -256,14 +260,12 @@ namespace VerdantSiege.Battle.View
 
         private void OnBossPhase(BossRuntime b, int phase)
         {
-            if (_bossView != null) _bossView.OnPhaseChanged();
-            Play(Sfx.BossRoar);
+            if (_bossView != null) _bossView.OnPhaseChanged(); // roar sound via BossView.Roared -> BossCinematics
         }
 
         private void OnBossDefeated(BossRuntime b)
         {
             if (_bossView != null) _bossView.OnDefeated();
-            Play(Sfx.BossRoar);
         }
 
         private void OnUprooted(DefenderRuntime d, int refund)
