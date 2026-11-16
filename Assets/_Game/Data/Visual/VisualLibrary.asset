@@ -22,6 +22,10 @@ MonoBehaviour:
   heartroot: {fileID: 3768392651531258672, guid: 685f6f49d9519db82bc5fc808af1d9a7, type: 3}
   sunmote: {fileID: 4543682256015063937, guid: cc1ed92cb481e8533b464c3198c4115f, type: 3}
   quadMesh: {fileID: 4300000, guid: b5ddd5a057913e4de9aea8086db0efcf, type: 2}
+  evoSolar: {fileID: 362492999001223688, guid: 26a0f231839c9e82ab77929ec0fb931e, type: 3}
+  evoPrism: {fileID: 8587207122029563172, guid: 57518ee5e2dab2cc4b18c1cfe79f319a, type: 3}
+  evoRoot: {fileID: 1332236870502808839, guid: 3bc059425247d2f0d9802b243a8f2a22, type: 3}
+  evoBloom: {fileID: 6917473745560720039, guid: 0ddc4eee255d0b83cab4b32ae3674e23, type: 3}
   validCell: {r: 0.55, g: 1, b: 0.55, a: 0.55}
   invalidCell: {r: 1, g: 0.35, b: 0.3, a: 0.65}
   hitSpark: {r: 1, g: 0.85, b: 0.45, a: 1}

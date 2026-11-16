@@ -87,6 +87,52 @@ vh_01..vh_04: 8/8 wins, avg Heartroot 4.0-5.0, 3.8-4.4 min. vh_05: 8/8 (4.4). vh
 - Enemy health bars only on elites; lure applies once per enemy; Herald affects all enemies on the field, not just its wave.
 - Linux autoplay runs at ~2-3 FPS under software GL; says nothing about phone performance. New VFX budgets not yet profiled on device.
 
+## Living Evolution (implemented on branch; device validation pending)
+
+Owner request: upgrade a defender mid-battle by choosing between abilities, not by adding damage. Design and rules: TD-23.
+
+| Feature | Status |
+|---|---|
+| In-battle XP per defender, by role (damage dealt / absorbed, Vitality produced, healing, trap triggers) + slow passive growth after the first wave; one evolution level per defender | Verified (automated test) |
+| XP thresholds tuned to 45-90 s after planting | Verified (BalanceReport, bot play: p25 ≈ 44 s, median 55-80 s, p75 85-107 s on vh_01..vh_06) |
+| Data-driven `EvolutionDefinition` assets (26 branches, 2-3 per defender, cost 25-75), atomic purchase | Verified (automated test) |
+| Gold "Evolve" badge over ready defenders (tappable), chooser card (icon, name, one-line description, cost), time keeps running, closes on tapping elsewhere / picking a card | Chooser rules verified (automated test); UI verified in Linux autoplay screenshots (see below) |
+| Evolution moment: flash, pop, light column, expanding accent ring, sparkles, procedural "evolve" SFX; ready chime; Capacitor release SFX | Verified visually (autoplay); SFX not yet listened to on device |
+| Evolved look: 1.12x scale, accent glow ring at the base, accent tint, Evo accessory model (EvoSolar/EvoPrism/EvoBloom on the top part, EvoRoot at the base) | Verified (autoplay screenshots) |
+| Aura links (Solar Network, Living Sap) drawn as swaying light vines between linked plants | Verified (autoplay screenshot) |
+| Inspect panel growth strip: XP %, "Evolve!" button when ready, chosen branch, Capacitor charge | Built; not captured by autoplay (the bot does not open the inspect panel) |
+| Shared ScriptedPlayer evolves sensibly (formation-aware Sunspore choice, counters seen threats) in balance tests and autoplay | Verified (automated test + autoplay) |
+
+### Branches per defender
+| Defender (XP source, threshold) | Branches (cost) |
+|---|---|
+| Sunspore (damage, 550) | Solar Cannon: slow armour-piercing sun-lance (50) · Sunburst: fires down its lane and both neighbours (50) · Solar Network: touching plants act 20% faster, +3 Vitality per link every 10 s (50) |
+| Glowcap (Vitality, 150) | Abundant: Sunmotes 40% more often (25) · Capacitor: stores up to 6 Sunmotes, tap to release x1.5 (25) |
+| Bulwark Bloom (absorbed, 700) | Thornhide: 75% of each bite back as piercing (50) · Heartwood: regrows 20 HP/s (50) · Bramble Snare: biters 45% slower for 2 s (50) |
+| Thorncaster (damage, 750) | Bramble Volley: thorns into both neighbouring lanes (75) · Ironbark Spike: slow spike that skewers 5 foes (75) |
+| Frost Fern (damage, 320) | Deep Freeze: every 2nd shard freezes for 2.4 s (50) · Glacial Shards: triple damage to chilled/frozen foes (50) |
+| Ember Lily (damage, 800) | Wildfire: bursts spill into both neighbouring lanes (75) · Firestorm: each lob splits into 3 seeds down the lane (75) |
+| Whirlseed (damage, 650) | Cyclone: 6 ricochets, less falloff (50) · Gale: knockback half a tile, 2 ricochets (50) |
+| Snapjaw Vine (damage incl. devoured health, 900) | Quick Digest: digests in 40% of the time (50) · Grasping Vines: 2-tile reach, snatches Gliders (50) |
+| Mender Moss (healing, 600) | Wide Bloom: 5x5 area at 70% (50) · Living Sap: touching plants act 20% faster (50) |
+| Burrowroot (triggers, 3) | Quickroot: rearms 2.5x faster (50) · Bramble Web: erupts across 3 lanes, roots for 1.5 s (50) |
+| Storm Orchid (damage, 1000) | Tempest: 7 targets, barely weakens (75) · Thunderhead: one huge bolt that stuns any foe (75) |
+| Mirrorleaf (absorbed, 600) | Hall of Mirrors: lures from 2 lanes away, more often (50) · Prism Guard: biters take 60% back, spit returns x3 (50) |
+
+### Balance with evolution (scripted player, 8 seeds)
+All seven encounters still 8/8 wins; average Heartroot unchanged (5.0, vh_05 4.5) and lengths 3-6% shorter than the same bot without evolving (e.g. vh_01 3.2 → 3.1 min, vh_07 2.9 → 2.7 min). The bot already won comfortably before, so evolution adds options without making the encounters a walkover for the bot. Human difficulty still needs a play-test.
+
+### Test results (Evolution, 2026-11-16)
+- EditMode: **115/115 passed** (+1 explicit `BalanceReport`), including 23 EvolutionTests and the shipped-content evolution check.
+- Linux autoplay (real taps: tap the ready plant, then the chooser option), all **PASS**, 0 errors: vh_01 1920x1080 Won 5/5 with 14 evolutions; vh_04 1920x1080 Won 5/5 with 19 evolutions (Abundant, Solar Network, Sunburst, Solar Cannon, Bramble Web); vh_01 2400x1080 with 90 px notch Won 5/5 with 15 evolutions.
+- Screenshots reviewed: ready badge, chooser card (1920x1080 and 2400x1080 notch), evolution moment, evolved look, aura links, a full evolved formation in vh_04 (sun crowns, bloom halos, vine rings, link lines). Fixes from the review: the chooser screenshot showed nothing because the card was closed within the same frame (harness now waits one think, like a player reading it); badges never appeared (a Vector2 conversion dropped the depth so every badge was culled); badges moved lower and to the side so they cover less of the plant behind; the base ring was invisible on grass for green branches (brighter, larger); option descriptions overlapped the cost pill (narrower text box); aura links brightened.
+
+### Known limitations (Evolution)
+- One evolution level; no reversal or persistent loadout yet (GDD 7.4 sanctuary respec is a meta feature).
+- Boss hits and status damage-over-time do not grant XP (boss files are being reworked on another branch); the passive growth covers boss fights.
+- The inspect growth strip and the Capacitor tap are not exercised by autoplay (the bot picks Abundant).
+- Aura bonuses do not stack (strongest applies); auras use Chebyshev radius 1.
+
 ## Next actions
 1. Pair the S23 Ultra over wireless debugging, install the APK, run `Docs/ANDROID_TEST_CHECKLIST.md`; TCL Tab 10 after 21:00; Redmi A3 when available.
 2. Milestone 2 (vertical slice polish): environment composition and lighting, Heartroot placement, sunlight pools, proper tutorial, better VFX (hit, armour break, death), damage numbers option, card/HUD polish, tuned quality profiles after device profiling.

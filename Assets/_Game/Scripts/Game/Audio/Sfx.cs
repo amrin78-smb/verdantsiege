@@ -45,6 +45,10 @@ namespace VerdantSiege.Audio
         EliteArrive,
         BossRoar,
         BossRumble,
-        RootStrike
+        RootStrike,
+        // ---- Living Evolution (append only)
+        EvolveReady,
+        Evolve,
+        CapacitorRelease
     }
 }

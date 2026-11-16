@@ -128,6 +128,18 @@ namespace VerdantSiege.App
                 if (e.IsFlying && e.x < sim.Columns - 2f) Shot("glider");
             }
             if (sim.Clouds.Count > 0) Shot("spore_cloud");
+            // Living Evolution moments.
+            foreach (DefenderRuntime d in sim.Defenders)
+                if (d.EvolutionReady && _battle.Evolution != null && !_shotsTaken.Contains("evolve_ready_badge"))
+                {
+                    Shot("evolve_ready_badge");
+                    Debug.Log("[VS Autoplay] badges: " + _battle.Evolution.Badges.Describe());
+                    break;
+                }
+            if (sim.AuraLinks.Count >= 3) Shot("evolve_aura_links");
+            if (_evolvedAt > 0f && Time.unscaledTime - _evolvedAt > 0.25f) Shot("evolve_moment");
+            if (_evolvedAt > 0f && Time.unscaledTime - _evolvedAt > 2.5f) Shot("evolve_evolved_look");
+            if (_evolutions >= 4) Shot("evolve_many");
 
             if (sim.State != BattleState.Running)
             {
@@ -154,8 +166,58 @@ namespace VerdantSiege.App
             if (_thinkTimer > 0f) return;
             _thinkTimer = 0.35f;
             if (_strategy == "none") return;
+            if (Evolve(sim)) return;
             CollectPickups(sim);
             Plant(sim);
+        }
+
+        private DefenderRuntime _evolveTarget;
+        private bool _chooserShown;
+        private int _evolveOption = -1;
+        private float _evolvedAt = -1f;
+        private int _evolutions;
+
+        /// <summary>
+        /// Evolves like a player: taps the ready defender on the battlefield (the chooser opens), then on the next
+        /// think taps the option the shared ScriptedPlayer picked. Returns true when it used this think.
+        /// </summary>
+        private bool Evolve(BattleSimulation sim)
+        {
+            EvolutionChooser chooser = _battle.Evolution;
+            if (chooser == null) return false;
+            if (_evolveTarget != null)
+            {
+                DefenderRuntime d = _evolveTarget;
+                if (!chooser.IsOpen || chooser.State.Target != d) { _evolveTarget = null; return false; }
+                if (!_chooserShown)
+                {
+                    // Leave the card on screen for one think (a player reads it), then pick.
+                    _chooserShown = true;
+                    Shot("evolve_chooser");
+                    Debug.Log("[VS Autoplay] badges: " + chooser.Badges.Describe());
+                    return true;
+                }
+                _evolveTarget = null;
+                EvolveResult r = chooser.Choose(_evolveOption);
+                if (r == EvolveResult.Ok)
+                {
+                    _evolutions++;
+                    if (_evolvedAt < 0f) _evolvedAt = Time.unscaledTime;
+                    Debug.Log($"[VS Autoplay] evolved {d.Definition.id} -> {d.evolution.id} at t={sim.Stats.elapsed:0.0}s (xp threshold {d.Definition.evolutionXp})");
+                }
+                else chooser.State.Close();
+                return true;
+            }
+            if (_battle.SelectedSlot >= 0 || !_player.DecideEvolution(sim, out DefenderRuntime target, out int option)) return false;
+            _battle.SimulateTap(_battle.CoordToScreen(target.Coord)); // the same tap a player makes on the plant
+            if (chooser.IsOpen && chooser.State.Target == target)
+            {
+                _evolveTarget = target;
+                _evolveOption = option;
+                return true;
+            }
+            chooser.State.Close();
+            return false; // the tap landed on a pickup or a neighbour: try again next think
         }
 
         private void CollectPickups(BattleSimulation sim)
@@ -216,6 +278,7 @@ namespace VerdantSiege.App
             sb.AppendLine($"frames={_frames} avgFps={(avg > 0 ? 1f / avg : 0):0.0} worstFrame={_worstFrame * 1000f:0}ms (software GL: not representative of phones)");
             BattleStats st = sim.Stats;
             sb.AppendLine($"stats: elapsed={st.elapsed:0.0}s defeated={st.enemiesDefeated} planted={st.defendersPlanted} lost={st.defendersLost} vitality={st.vitalityCollected} breaches={st.breaches}");
+            sb.AppendLine($"evolutions={_evolutions}");
             sb.AppendLine($"errors={_errors}");
             foreach (string e in _errorLines) sb.AppendLine("  " + e);
             sb.AppendLine($"RESULT: {sim.State} heartroot={sim.HeartrootHealth}/{sim.HeartrootMaxHealth}");

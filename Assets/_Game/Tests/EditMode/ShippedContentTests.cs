@@ -55,6 +55,27 @@ namespace VerdantSiege.Tests
         }
 
         [Test]
+        public void Evolution_EveryDefenderHasTwoOrThreeDistinctBranches()
+        {
+            var ids = new HashSet<string>();
+            foreach (DefenderDefinition d in Db().defenders)
+            {
+                Assert.IsTrue(d.CanEvolve, d.id + " can evolve");
+                Assert.That(d.evolutions.Count, Is.InRange(2, 3), d.id + " branch count");
+                Assert.Greater(d.evolutionXp, 0f, d.id);
+                foreach (EvolutionDefinition e in d.evolutions)
+                {
+                    Assert.IsNotNull(e, d.id);
+                    Assert.IsTrue(ids.Add(e.id), "duplicate evolution id " + e.id);
+                    Assert.That(e.cost, Is.InRange(0, 75), e.id + " cost");
+                    Assert.IsFalse(string.IsNullOrEmpty(e.displayName), e.id);
+                    Assert.That(e.description.Length, Is.InRange(10, 72), e.id + " description must be one short line");
+                    Assert.AreEqual(1f, e.accentColor.a, 1e-3f, e.id + " accent opaque");
+                }
+            }
+        }
+
+        [Test]
         public void Ids_AreUnique()
         {
             ContentDatabase db = Db();
@@ -101,6 +122,8 @@ namespace VerdantSiege.Tests
                 int wins = 0;
                 var breaches = new Dictionary<string, int>();
                 var planted = new Dictionary<string, int>();
+                var evolved = new Dictionary<string, int>();
+                var readyTimes = new List<float>();
                 float minutesSum = 0f, heartSum = 0f;
                 foreach (int seed in new[] { 1, 7, 42, 1234, 99999, 5, 77, 314 })
                 {
@@ -108,6 +131,8 @@ namespace VerdantSiege.Tests
                     {
                         s.EnemyBreached += en => { breaches.TryGetValue(en.Definition.id, out int n); breaches[en.Definition.id] = n + 1; };
                         s.DefenderPlaced += d => { planted.TryGetValue(d.Definition.id, out int n); planted[d.Definition.id] = n + 1; };
+                        s.DefenderEvolved += (d, ev) => { evolved.TryGetValue(ev.id, out int n); evolved[ev.id] = n + 1; };
+                        s.DefenderEvolutionReady += d => readyTimes.Add(d.age);
                     });
                     if (sim.State == BattleState.Won) wins++;
                     minutesSum += minutes;
@@ -117,6 +142,11 @@ namespace VerdantSiege.Tests
                 foreach (var kv in breaches) sb.Append($"{kv.Key}={kv.Value} ");
                 sb.Append("| planted ");
                 foreach (var kv in planted) sb.Append($"{kv.Key}={kv.Value} ");
+                readyTimes.Sort();
+                sb.Append($"| evolved ");
+                foreach (var kv in evolved) sb.Append($"{kv.Key}={kv.Value} ");
+                if (readyTimes.Count > 0)
+                    sb.Append($"| ready after planting: n={readyTimes.Count} p25={readyTimes[readyTimes.Count / 4]:0}s median={readyTimes[readyTimes.Count / 2]:0}s p75={readyTimes[readyTimes.Count * 3 / 4]:0}s");
                 sb.Append('\n');
             }
             Debug.Log(sb.ToString());
@@ -139,6 +169,8 @@ namespace VerdantSiege.Tests
                 think = 0.5f;
                 foreach (PickupRuntime p in sim.Pickups)
                     if (p.alive && p.age > 1.5f) { sim.CollectPickup(p.Id); break; }
+                if (player.DecideEvolution(sim, out DefenderRuntime evolving, out int option))
+                    Assert.AreEqual(EvolveResult.Ok, sim.TryEvolve(evolving, option), "ScriptedPlayer chose an invalid evolution");
                 if (player.Decide(sim, out int slot, out GridCoord cell))
                     Assert.AreEqual(DeployResult.Ok, sim.TryDeploy(slot, cell), "ScriptedPlayer chose an invalid deployment");
             }

@@ -173,6 +173,7 @@ namespace VerdantSiege.Battle
             TickSkyDrops(dt);
             TickSunlightPools(dt);
             RefreshAuras();
+            RefreshDefenderAuras(dt); // Evolution: formation auras (BattleSimulation.Evolution.cs)
             TickDefenders(dt);
             TickProjectiles(dt);
             TickEnemies(dt);
@@ -371,6 +372,7 @@ namespace VerdantSiege.Battle
                 DefenderRuntime d = _defenders[i];
                 if (!d.alive) continue;
                 d.age += dt;
+                TickEvolution(d, dt); // passive XP + evolved regeneration
                 float bdt = dt;
                 if (d.statuses.Count > 0)
                 {
@@ -387,6 +389,7 @@ namespace VerdantSiege.Battle
         public void DamageDefender(DefenderRuntime d, float amount)
         {
             if (d == null || !d.alive || amount <= 0f) return;
+            GrantXp(d, EvolutionXpSource.DamageAbsorbed, Math.Min(amount, d.health));
             d.health -= amount;
             DefenderDamaged?.Invoke(d, amount);
             if (d.health <= 0f)

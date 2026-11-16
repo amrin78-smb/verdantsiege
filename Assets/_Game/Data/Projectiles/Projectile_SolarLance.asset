@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa54fd0bf9e109da6af69290009841d2, type: 3}
+  m_Name: Projectile_SolarLance
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.ProjectileDefinition
+  id: solar_lance
+  motion: 0
+  speed: 11
+  damage: 95
+  damageType: 1
+  pierceCount: 1
+  splashRadius: 0
+  splashDamageFraction: 0.5
+  knockback: 0
+  statusEffect: {fileID: 0}
+  canHitAir: 0
+  bounces: 0
+  bounceFalloff: 0.75
+  bounceRange: 2.2
+  freezeAfterHits: 0
+  freezeStatus: {fileID: 0}
+  damageMultiplierVsChilled: 1
+  splashSideLanes: 0
+  ignitesClouds: 0
+  prefab: {fileID: 3357296160163067545, guid: 3f0498d1deca28602bea6c788a0d2570, type: 3}
+  trailColor: {r: 1, g: 0.9, b: 0.45, a: 1}

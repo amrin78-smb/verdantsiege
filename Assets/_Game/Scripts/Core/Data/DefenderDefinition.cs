@@ -85,11 +85,20 @@ namespace VerdantSiege.Data
         [Tooltip("Enemies prefer this defender (ranged targeting, lure from adjacent lanes).")]
         public bool taunts;
 
+        [Header("Evolution (one level per battle; see EvolutionDefinition)")]
+        [Tooltip("In-battle branches offered when the XP threshold is reached (2-3).")]
+        public System.Collections.Generic.List<EvolutionDefinition> evolutions = new System.Collections.Generic.List<EvolutionDefinition>();
+        [Tooltip("XP needed to evolve, in units of xpSource (0 = cannot evolve).")]
+        [Min(0f)] public float evolutionXp = 0f;
+        public EvolutionXpSource xpSource = EvolutionXpSource.DamageDealt;
+
         [Header("Presentation")]
         public GameObject prefab;
         public Sprite icon;
 
         /// <summary>True if this defender's attacks reach flying enemies.</summary>
+        public bool CanEvolve => evolutionXp > 0f && evolutions != null && evolutions.Count > 0;
+
         public bool HitsAir => projectile != null && behaviour == DefenderBehaviourKind.LaneShooter ? projectile.canHitAir : canHitAir;
     }
 }

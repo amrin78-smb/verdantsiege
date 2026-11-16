@@ -74,6 +74,7 @@ namespace VerdantSiege.Battle.View
             sim.PickupRemoved += OnPickupRemoved;
             sim.HeartrootDamaged += OnHeartrootDamaged;
             InitM3(); // Milestone 3 wiring (BattleView.M3.cs)
+            InitEvolution(); // Living Evolution wiring (BattleView.Evolution.cs)
         }
 
         private void OnDestroy()
@@ -101,6 +102,7 @@ namespace VerdantSiege.Battle.View
             _sim.PickupRemoved -= OnPickupRemoved;
             _sim.HeartrootDamaged -= OnHeartrootDamaged;
             UnsubscribeM3();
+            UnsubscribeEvolution();
         }
 
         private void Play(Sfx s, float vol = 1f) { if (_audio != null) _audio.Play(s, vol); }

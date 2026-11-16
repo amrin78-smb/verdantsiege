@@ -42,6 +42,28 @@ namespace VerdantSiege.Battle
         /// <summary>Harmful effects from spore clouds and Sapper spit (Mender Moss cleanses these).</summary>
         public readonly StatusEffectSet statuses = new StatusEffectSet();
 
+        // ---- evolution (see BattleSimulation.Evolution)
+        /// <summary>Evolution XP earned this battle (units depend on Definition.xpSource).</summary>
+        public float xp;
+        /// <summary>Chosen branch (null = not evolved).</summary>
+        public EvolutionDefinition evolution;
+        /// <summary>The ready notification has been raised.</summary>
+        public bool evolutionAnnounced;
+        /// <summary>Strongest aura action-speed bonus from evolved neighbours this step.</summary>
+        public float auraSpeedBonus;
+        /// <summary>Evolved aura source: number of linked neighbours this step, and its Vitality trickle timer.</summary>
+        public int auraLinks;
+        public float auraTimer;
+        /// <summary>Capacitor (evolved generator): Vitality stored and pulses stored.</summary>
+        public int storedVitality;
+        public int storedPulses;
+
+        public bool IsEvolved => evolution != null;
+        public bool CanEvolveEver => Definition != null && Definition.CanEvolve && evolution == null;
+        /// <summary>Alive, not yet evolved and over the XP threshold.</summary>
+        public bool EvolutionReady => alive && CanEvolveEver && xp >= Definition.evolutionXp;
+        public float XpFraction => Definition == null || Definition.evolutionXp <= 0f ? 0f : (evolution != null ? 1f : System.Math.Min(1f, xp / Definition.evolutionXp));
+
         public bool IsAlive => alive;
         public float Health => health;
         public float MaxHealth => Definition != null ? Definition.maxHealth : 1f;
@@ -54,6 +76,8 @@ namespace VerdantSiege.Battle
             Id = 0; Definition = null; Coord = GridCoord.Invalid; health = 0f; attackTimer = 0f;
             generateTimer = 0f; generatePulses = 0; age = 0f; slotIndex = -1; alive = false;
             abilityState = DefenderAbilityState.Ready; abilityTimer = 0f; abilityTargetId = 0;
+            xp = 0f; evolution = null; evolutionAnnounced = false; auraSpeedBonus = 0f; auraLinks = 0; auraTimer = 0f;
+            storedVitality = 0; storedPulses = 0;
             statuses.Clear();
         }
     }
@@ -143,6 +167,8 @@ namespace VerdantSiege.Battle
         public float startX;
         public int hitsRemaining;
         public int sourceDefenderId;
+        /// <summary>Firing defender (validated against sourceDefenderId before use: runtimes are pooled).</summary>
+        public DefenderRuntime sourceDefender;
         public bool alive;
         /// <summary>Current damage (bounce falloff and reflection change it).</summary>
         public float damage;
@@ -177,7 +203,7 @@ namespace VerdantSiege.Battle
         public void ResetForPool()
         {
             Id = 0; Definition = null; lane = 0; x = 0f; prevX = 0f; startX = 0f; hitsRemaining = 0;
-            sourceDefenderId = 0; alive = false; hitCount = 0; damage = 0f; hostile = false; sourceEnemyId = 0;
+            sourceDefenderId = 0; sourceDefender = null; alive = false; hitCount = 0; damage = 0f; hostile = false; sourceEnemyId = 0;
             targetColumn = 0; targetX = 0f; homingEnemyId = 0; bouncesRemaining = 0; reflected = false; fromLane = 0; hopFromX = 0f;
         }
     }

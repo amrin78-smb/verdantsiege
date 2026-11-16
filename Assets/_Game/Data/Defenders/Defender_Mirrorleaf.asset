@@ -46,5 +46,10 @@ MonoBehaviour:
   reflectsProjectiles: 1
   reflectMultiplier: 2
   taunts: 1
+  evolutions:
+  - {fileID: 11400000, guid: 1bde86d508561cdad9ea7ad978d5d6ed, type: 2}
+  - {fileID: 11400000, guid: 18908b872fdbebf31a3b66ef62cfafeb, type: 2}
+  evolutionXp: 600
+  xpSource: 1
   prefab: {fileID: 4628651812791432379, guid: 18af1e0aa5c7d4d7c9b67f68ed55cb99, type: 3}
   icon: {fileID: 21300000, guid: 910dfa99e82b6fda89c119ec173f1a55, type: 3}

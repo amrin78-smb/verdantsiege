@@ -16,7 +16,7 @@ namespace VerdantSiege.Battle
             Burrow = "burrowroot", Storm = "storm_orchid", Mirror = "mirrorleaf";
 
         private BattleSimulation _sim;
-        private bool _seenFlyer, _seenFast, _seenBurrower, _seenSapper;
+        private bool _seenFlyer, _seenFast, _seenBurrower, _seenSapper, _seenArmour;
 
         public bool Decide(BattleSimulation sim, out int slot, out GridCoord cell)
         {
@@ -93,6 +93,78 @@ namespace VerdantSiege.Battle
             return false;
         }
 
+        // ------------------------------------------------------------------ evolution
+
+        /// <summary>
+        /// Picks a ready defender and a branch that suits the situation (formation, threats seen), once every lane
+        /// has a damage dealer and the Vitality is there. No side effects; the caller performs it (directly or by
+        /// tapping the defender and the chooser option).
+        /// </summary>
+        public bool DecideEvolution(BattleSimulation sim, out DefenderRuntime defender, out int option)
+        {
+            _sim = sim;
+            defender = null;
+            option = -1;
+            Observe();
+            for (int l = 0; l < sim.Lanes; l++) if (Attackers(l) == 0) return false; // planting the gap comes first
+            foreach (DefenderRuntime d in sim.Defenders)
+            {
+                if (!d.EvolutionReady) continue;
+                int o = ChooseBranch(d);
+                if (o < 0 || sim.CanEvolve(d, o) != EvolveResult.Ok) continue;
+                defender = d;
+                option = o;
+                return true;
+            }
+            return false;
+        }
+
+        private int ChooseBranch(DefenderRuntime d)
+        {
+            bool armourSeen = _seenArmour;
+            int neighbours = Neighbours(d);
+            switch (d.Definition.id)
+            {
+                // A network pays off in a dense block; otherwise answer armour with the cannon, crowds with the fan.
+                case Sunspore: return neighbours >= 4 && CountEvolved("solar_network") < 2 ? Branch(d, "solar_network")
+                    : armourSeen && d.Coord.lane % 2 == 0 ? Branch(d, "solar_cannon") : Branch(d, "sunburst");
+                case Glowcap: return Branch(d, "abundant");
+                case Bulwark: return Attackers(d.Coord.lane) >= 2 ? Branch(d, "bramble_snare") : Branch(d, "thornhide");
+                case Thorn: return armourSeen ? Branch(d, "ironbark_spike") : Branch(d, "bramble_volley");
+                case Frost: return Attackers(d.Coord.lane) >= 2 ? Branch(d, "glacial_shards") : Branch(d, "deep_freeze");
+                case Ember: return Branch(d, "wildfire");
+                case Whirl: return _seenFlyer ? Branch(d, "cyclone") : Branch(d, "gale");
+                case Mender: return neighbours >= 3 ? Branch(d, "living_sap") : Branch(d, "wide_bloom");
+                case Burrow: return Branch(d, "bramble_web");
+                case Storm: return Branch(d, "tempest");
+                case Mirror: return _seenSapper ? Branch(d, "prism_guard") : Branch(d, "hall_of_mirrors");
+                case Snapjaw: return Branch(d, "quick_digest");
+                default: return 0;
+            }
+        }
+
+        private int CountEvolved(string evolutionId)
+        {
+            int n = 0;
+            foreach (DefenderRuntime o in _sim.Defenders) if (o.alive && o.evolution != null && o.evolution.id == evolutionId) n++;
+            return n;
+        }
+
+        private static int Branch(DefenderRuntime d, string id)
+        {
+            var list = d.Definition.evolutions;
+            for (int i = 0; i < list.Count; i++) if (list[i] != null && list[i].id == id) return i;
+            return list.Count > 0 ? 0 : -1;
+        }
+
+        private int Neighbours(DefenderRuntime d)
+        {
+            int n = 0;
+            foreach (DefenderRuntime o in _sim.Defenders)
+                if (o != d && o.alive && System.Math.Abs(o.Coord.lane - d.Coord.lane) <= 1 && System.Math.Abs(o.Coord.column - d.Coord.column) <= 1) n++;
+            return n;
+        }
+
         // ------------------------------------------------------------------ observation
 
         private bool _scanned;
@@ -115,6 +187,7 @@ namespace VerdantSiege.Battle
                 if (d.moveSpeed >= 0.4f || d.ability == EnemyAbilityKind.Vault) _seenFast = true;
                 if (d.ability == EnemyAbilityKind.Burrow) _seenBurrower = true;
                 if (d.ability == EnemyAbilityKind.RangedSpit) _seenSapper = true;
+                if (d.armorHealth > 0f || d.elite) _seenArmour = true;
             }
         }
 
@@ -141,7 +214,7 @@ namespace VerdantSiege.Battle
         private bool LaneCanHit(int lane, bool air)
         {
             foreach (DefenderRuntime d in _sim.Defenders)
-                if (d.alive && d.Coord.lane == lane && IsAttacker(d.Definition) && (!air || d.Definition.HitsAir)) return true;
+                if (d.alive && d.Coord.lane == lane && IsAttacker(d.Definition) && (!air || _sim.HitsAir(d))) return true;
             return false;
         }
 

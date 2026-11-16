@@ -74,6 +74,7 @@ namespace VerdantSiege.EditorTools
             };
             M3Assets.AddPrefabs(prefabs, lib); // Milestone 3 defenders, enemies, boss, projectiles (M3Assets.cs)
             lib.sunmote = ArtBuilder.PickupPrefab(lib);
+            EvolutionAssets.Build(lib); // Living Evolution accessories (optional art; missing models fall back to a glow ring)
             lib.groundTileA = ArtBuilder.TilePrefab(lib, "GroundTileA", new Color(0.5f, 0.72f, 0.3f));
             lib.groundTileB = ArtBuilder.TilePrefab(lib, "GroundTileB", new Color(0.42f, 0.64f, 0.26f));
             lib.heartroot = ArtBuilder.HeartrootPrefab(lib);

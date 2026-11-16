@@ -31,6 +31,7 @@ namespace VerdantSiege.Battle
         public bool Paused { get; private set; }
         public float Speed { get; private set; } = 1f;
         public int SelectedSlot => _selected;
+        public EvolutionChooser Evolution { get; private set; } // Living Evolution chooser, badges, growth strip
 
         private AppRoot _app;
         private VisualLibrary _lib;
@@ -95,6 +96,7 @@ namespace VerdantSiege.Battle
             Hud = hudGo.AddComponent<BattleHud>();
             Hud.Build(Sim, settings.autoCollect, settings.musicVolume, settings.sfxVolume, Debug.isDebugBuild);
             hudGo.AddComponent<EncounterAlertsHud>().Build(Sim, Hud); // M3: boss bar, Herald banner, elite/new-foe callouts
+            Evolution = EvolutionChooser.Create(this, Hud, battleCamera, Layout); // Living Evolution UI (EvolutionChooser.cs)
             WireHud();
             WireSim();
             FitCamera();
@@ -290,6 +292,7 @@ namespace VerdantSiege.Battle
             if (pickup >= 0) { Sim.CollectPickup(pickup); return; }
             // 2) inspect a defender (nearest on screen, since tall models overlap the lane behind)
             DefenderRuntime d = DefenderAtScreen(screen);
+            if (Evolution != null && Evolution.OnDefenderTapped(d)) return; // Living Evolution: a ready defender opens the chooser
             Hud.ShowInspect(d);
         }
 

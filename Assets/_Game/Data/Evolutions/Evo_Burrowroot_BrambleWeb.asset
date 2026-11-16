@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aad98b8fb52e4c8a4b4abbfa3a1e8e62, type: 3}
+  m_Name: Evo_Burrowroot_BrambleWeb
+  m_EditorClassIdentifier: VerdantSiege.Core::VerdantSiege.Data.EvolutionDefinition
+  id: bramble_web
+  displayName: Bramble Web
+  description: Erupts across 3 lanes and roots foes for 1.5 s.
+  accentColor: {r: 0.8, g: 0.6, b: 0.35, a: 1}
+  cost: 50
+  accessory: 3
+  glyph: BW
+  projectileOverride: {fileID: 0}
+  attackIntervalMultiplier: 1
+  multishotSideLanes: 0
+  sideShotDamageFraction: 0.7
+  lobClusterCount: 1
+  lobClusterSpacing: 0.9
+  lobClusterDamageFraction: 0.6
+  auraRadius: 0
+  auraActionSpeedBonus: 0
+  auraVitalityPerLink: 0
+  auraVitalityInterval: 10
+  generateIntervalMultiplier: 1
+  capacitorPulses: 0
+  capacitorReleaseMultiplier: 1.5
+  thornsFraction: 0
+  regenPerSecond: 0
+  onBittenStatus: {fileID: 0}
+  reflectMultiplierOverride: 0
+  lureLaneReach: 0
+  abilityRechargeMultiplier: 1
+  abilityRangeBonus: 0
+  abilityDamageMultiplier: 1
+  abilityCountBonus: 0
+  abilityCountOverride: 0
+  abilityFalloffOverride: 0
+  abilityStatusOverride: {fileID: 11400000, guid: d46424a9ad0ed597f853fae94d45dc5a, type: 2}
+  abilityStatusOnAll: 0
+  blastSideLanes: 1
+  grantsAntiAir: 0

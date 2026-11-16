@@ -33,8 +33,8 @@ namespace VerdantSiege.Battle.View
             _p = p;
             _layout = layout;
             _spin = Random.Range(0f, 360f);
-            _visLane = p.lane;
-            transform.position = _layout.ToWorld(p.x, p.lane) + Vector3.up * Height;
+            _visLane = p.fromLane; // evolved fan shots peel off from the shooter's lane
+            transform.position = _layout.ToWorld(p.x, _visLane) + Vector3.up * Height;
             if (_trail != null) _trail.Clear();
         }
 
