@@ -106,14 +106,14 @@ namespace VerdantSiege.UI
             UIKit.Place(_title, new Vector2(0.5f, 0.5f), new Vector2(0f, -220f), new Vector2(760f, 120f));
             TextMeshProUGUI tt = UIKit.Text("Text", _title, "BOSS DEFEATED!", 76f, UIPalette.Gold, TextAlignmentOptions.Center, true);
             UIKit.Stretch(tt.rectTransform, 6f);
-            TextMeshProUGUI sub = UIKit.Text("Sub", root, $"{_d.bossName} has fallen. The Blight withers.", 36f, UIPalette.Parchment);
-            UIKit.Place(sub.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -310f), new Vector2(1000f, 50f));
+            TextMeshProUGUI sub = UIKit.Text("Sub", root, $"{_d.bossName} has fallen. The Blight withers.", 42f, UIPalette.Parchment);
+            UIKit.Place(sub.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -310f), new Vector2(1300f, 60f));
             _subGroup = UIKit.Group(sub.gameObject);
 
             // ---- result panel (appears after the crest moment)
             Image panel = UIKit.Panel("Panel", root, UIPalette.Panel, true, true);
             _panel = panel.rectTransform;
-            UIKit.Place(_panel, new Vector2(0.5f, 0.5f), new Vector2(0f, -150f), new Vector2(1040f, 560f));
+            UIKit.Place(_panel, new Vector2(0.5f, 0.5f), new Vector2(0f, -150f), new Vector2(1200f, 600f));
             _panelGroup = UIKit.Group(panel.gameObject);
             _panelGroup.alpha = 0f;
             _panelGroup.interactable = false;
@@ -128,19 +128,19 @@ namespace VerdantSiege.UI
             string right = Row("Heartroot", $"{_d.heart} / {_d.heartMax}") + "\n" +
                            Row("Vitality gathered", st.vitalityCollected.ToString()) + "\n" +
                            Row("Time", $"{m}:{sec:00}");
-            TextMeshProUGUI l = UIKit.Text("StatsL", _panel, left, 32f, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
-            UIKit.Place(l.rectTransform, new Vector2(0.5f, 1f), new Vector2(-250f, -36f), new Vector2(460f, 150f));
+            TextMeshProUGUI l = UIKit.Text("StatsL", _panel, left, MenuKit.TextBody, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
+            UIKit.Place(l.rectTransform, new Vector2(0.5f, 1f), new Vector2(-290f, -30f), new Vector2(540f, 170f));
             l.lineSpacing = 10f;
-            TextMeshProUGUI r = UIKit.Text("StatsR", _panel, right, 32f, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
-            UIKit.Place(r.rectTransform, new Vector2(0.5f, 1f), new Vector2(250f, -36f), new Vector2(460f, 150f));
+            TextMeshProUGUI r = UIKit.Text("StatsR", _panel, right, MenuKit.TextBody, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
+            UIKit.Place(r.rectTransform, new Vector2(0.5f, 1f), new Vector2(290f, -30f), new Vector2(540f, 170f));
             r.lineSpacing = 10f;
 
             // Rewards: Seeds (encounter + boss bonus) and Essence.
             Image seedChip = UIKit.Panel("Seeds", _panel, UIPalette.PanelLight, true, false);
-            UIKit.Place(seedChip.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-235f, -34f), new Vector2(440f, 122f));
+            UIKit.Place(seedChip.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-280f, -40f), new Vector2(520f, 130f));
             Image si = UIKit.Image("Icon", seedChip.transform, UIKit.Lib != null ? UIKit.Lib.iconSeed : null, UIPalette.Gold);
             UIKit.Place(si.rectTransform, new Vector2(0f, 0.5f), new Vector2(16f, 0f), new Vector2(76f, 76f));
-            _seedsText = UIKit.Text("Amount", seedChip.transform, "+0 Seeds", 44f, UIPalette.Gold, TextAlignmentOptions.MidlineRight, true);
+            _seedsText = UIKit.Text("Amount", seedChip.transform, "+0 Seeds", 50f, UIPalette.Gold, TextAlignmentOptions.MidlineRight, true);
             UIKit.Stretch(_seedsText.rectTransform);
             _seedsText.rectTransform.offsetMin = new Vector2(100f, 40f);
             _seedsText.rectTransform.offsetMax = new Vector2(-20f, 0f);
@@ -150,14 +150,14 @@ namespace VerdantSiege.UI
             seedSub.rectTransform.offsetMax = new Vector2(-20f, -6f);
 
             Image essChip = UIKit.Panel("Essence", _panel, new Color(0.24f, 0.14f, 0.32f, 0.97f), true, false);
-            UIKit.Place(essChip.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(235f, -34f), new Vector2(440f, 122f));
+            UIKit.Place(essChip.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(280f, -40f), new Vector2(520f, 130f));
             Image eb = UIKit.Image("Gem", essChip.transform, circle, EssenceColor);
             UIKit.Place(eb.rectTransform, new Vector2(0f, 0.5f), new Vector2(18f, 0f), new Vector2(70f, 70f));
             eb.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
             Image ei = UIKit.Image("Icon", eb.transform, UIKit.Lib != null ? UIKit.Lib.iconLeaf : null, Color.white);
             UIKit.Stretch(ei.rectTransform, 14f);
             ei.preserveAspect = true;
-            _essenceText = UIKit.Text("Amount", essChip.transform, "+0 Essence", 44f, EssenceColor, TextAlignmentOptions.MidlineRight, true);
+            _essenceText = UIKit.Text("Amount", essChip.transform, "+0 Essence", 50f, EssenceColor, TextAlignmentOptions.MidlineRight, true);
             UIKit.Stretch(_essenceText.rectTransform);
             _essenceText.rectTransform.offsetMin = new Vector2(100f, 40f);
             _essenceText.rectTransform.offsetMax = new Vector2(-20f, 0f);
@@ -172,8 +172,8 @@ namespace VerdantSiege.UI
                 _continue.interactable = false;
                 gameObject.SetActive(false);
                 onContinue?.Invoke();
-            }, UIKit.Lib != null ? UIKit.Lib.iconPlay : null, 42f);
-            UIKit.Place((RectTransform)_continue.transform, new Vector2(0.5f, 0f), new Vector2(0f, 34f), new Vector2(340f, 104f));
+            }, UIKit.Lib != null ? UIKit.Lib.iconPlay : null, 46f);
+            UIKit.Place((RectTransform)_continue.transform, new Vector2(0.5f, 0f), new Vector2(0f, 30f), new Vector2(380f, MenuKit.ButtonHeight));
 
             // Bright flash on arrival.
             _flash = UIKit.Image("Flash", root, null, new Color(1f, 0.95f, 0.85f, 0.85f));

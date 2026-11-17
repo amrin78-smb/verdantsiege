@@ -36,7 +36,7 @@ namespace VerdantSiege.UI
 
         public static ConservatoryScreen Open(MainMenuController hub, Transform canvas, Tab tab)
         {
-            GameObject go = MenuKit.Frame(canvas, "Conservatory", "Seed Conservatory", hub.ShowSanctuary, out RectTransform safe, out CurrencyBar cur);
+            GameObject go = MenuKit.Frame(canvas, "Conservatory", "Conservatory", hub.ShowSanctuary, out RectTransform safe, out CurrencyBar cur);
             var s = go.AddComponent<ConservatoryScreen>();
             s._hub = hub;
             s._app = AppRoot.Ensure();
@@ -53,10 +53,10 @@ namespace VerdantSiege.UI
 
         private void BuildTabs()
         {
-            _tabResearch = UIKit.Button("TabResearch", _safe, "Research", UIPalette.ButtonSecondary, () => Show(Tab.Research), UIKit.Lib != null ? UIKit.Lib.iconSprout : null, 36f);
-            UIKit.Place((RectTransform)_tabResearch.transform, new Vector2(1f, 1f), new Vector2(-898f, -14f), new Vector2(280f, MenuKit.TouchMin));
-            _tabDefenders = UIKit.Button("TabDefenders", _safe, "Defenders", UIPalette.ButtonSecondary, () => Show(Tab.Defenders), UIKit.Lib != null ? UIKit.Lib.iconLeaf : null, 36f);
-            UIKit.Place((RectTransform)_tabDefenders.transform, new Vector2(1f, 1f), new Vector2(-604f, -14f), new Vector2(280f, MenuKit.TouchMin));
+            _tabResearch = UIKit.Button("TabResearch", _safe, "Research", UIPalette.ButtonSecondary, () => Show(Tab.Research), null, 40f);
+            UIKit.Place((RectTransform)_tabResearch.transform, new Vector2(1f, 1f), new Vector2(-972f, -12f), new Vector2(260f, MenuKit.TouchMin));
+            _tabDefenders = UIKit.Button("TabDefenders", _safe, "Defenders", UIPalette.ButtonSecondary, () => Show(Tab.Defenders), null, 40f);
+            UIKit.Place((RectTransform)_tabDefenders.transform, new Vector2(1f, 1f), new Vector2(-700f, -12f), new Vector2(260f, MenuKit.TouchMin));
         }
 
         public void Show(Tab tab)
@@ -86,7 +86,7 @@ namespace VerdantSiege.UI
         // ================================================================ research
         // Readability pass (TD-36): three flexible-width columns in a vertical scroll; the detail panel on the right
         // always shows one discovery large (the next available one until the player taps another).
-        private const float NodeH = 250f, NodeGap = 36f, ColGap = 28f, BranchHead = 58f, DetailW = 540f;
+        private const float NodeH = 340f, NodeGap = 40f, ColGap = 28f, BranchHead = 68f, DetailW = 580f;
 
         private void BuildResearch()
         {
@@ -178,7 +178,7 @@ namespace VerdantSiege.UI
                 UIKit.Stretch(sel.rectTransform, -6f);
             }
             Image disc = UIKit.Image("Disc", rt, MenuKit.Circle, state == ResearchState.Locked ? MenuKit.LockedGrey : BranchColor(r.branch));
-            UIKit.Place(disc.rectTransform, new Vector2(0f, 1f), new Vector2(14f, -14f), new Vector2(68f, 68f));
+            UIKit.Place(disc.rectTransform, new Vector2(0f, 1f), new Vector2(14f, -16f), new Vector2(68f, 68f));
             if (state == ResearchState.Locked)
             {
                 Image lk = UIKit.Image("Lock", disc.transform, UIKit.Lib != null ? UIKit.Lib.iconLock : null, new Color(1f, 1f, 1f, 0.6f));
@@ -187,29 +187,30 @@ namespace VerdantSiege.UI
             }
             else
             {
-                TextMeshProUGUI g = UIKit.Text("Glyph", disc.transform, r.glyph, 30f, new Color(0.1f, 0.14f, 0.1f), TextAlignmentOptions.Center, true);
+                TextMeshProUGUI g = UIKit.Text("Glyph", disc.transform, r.glyph, 34f, new Color(0.1f, 0.14f, 0.1f), TextAlignmentOptions.Center, true);
                 UIKit.Stretch(g.rectTransform);
             }
-            TextMeshProUGUI n = UIKit.Text("Name", rt, r.displayName, 36f, state == ResearchState.Locked ? UIPalette.TextDim : UIPalette.Parchment, TextAlignmentOptions.MidlineLeft, true);
+            TextMeshProUGUI n = UIKit.Text("Name", rt, r.displayName, 42f, state == ResearchState.Locked ? UIPalette.TextDim : UIPalette.Parchment, TextAlignmentOptions.MidlineLeft, true);
             n.rectTransform.anchorMin = new Vector2(0f, 1f);
             n.rectTransform.anchorMax = new Vector2(1f, 1f);
             n.rectTransform.pivot = new Vector2(0.5f, 1f);
-            n.rectTransform.offsetMin = new Vector2(96f, -82f);
-            n.rectTransform.offsetMax = new Vector2(-14f, -14f);
-            n.textWrappingMode = TextWrappingModes.NoWrap;
-            MenuKit.Fit(n, 36f, 30f);
+            n.rectTransform.offsetMin = new Vector2(94f, -112f);
+            n.rectTransform.offsetMax = new Vector2(-14f, -10f);
+            n.lineSpacing = -18f; // long names wrap to two lines instead of shrinking
+            MenuKit.Fit(n, 42f);
             TextMeshProUGUI d = UIKit.Text("Desc", rt, r.description, MenuKit.TextSmall, state == ResearchState.Locked ? new Color(0.75f, 0.8f, 0.74f) : UIPalette.TextDim, TextAlignmentOptions.TopLeft);
             UIKit.Stretch(d.rectTransform);
-            d.rectTransform.offsetMin = new Vector2(18f, 54f);
-            d.rectTransform.offsetMax = new Vector2(-14f, -92f);
-            MenuKit.Fit(d, MenuKit.TextSmall);
+            d.rectTransform.offsetMin = new Vector2(18f, 62f);
+            d.rectTransform.offsetMax = new Vector2(-14f, -120f);
+            d.lineSpacing = -6f;
+            MenuKit.Fit(d, MenuKit.TextBody);
             string costText = state == ResearchState.Owned ? "RESEARCHED"
                 : r.essenceCost > 0 ? $"{r.essenceCost} Essence" : $"{r.seedCost} Seeds";
             bool essence = r.essenceCost > 0;
             bool afford = essence ? Save.essence >= r.essenceCost : Save.seeds >= r.seedCost;
             Color cc = state == ResearchState.Owned ? UIPalette.Leaf : !afford ? UIPalette.Danger : essence ? MenuKit.EssenceColor : UIPalette.Gold;
-            TextMeshProUGUI cost = UIKit.Text("Cost", rt, costText, MenuKit.TextSmall, cc, TextAlignmentOptions.BottomRight, true);
-            UIKit.Place(cost.rectTransform, new Vector2(1f, 0f), new Vector2(-16f, 10f), new Vector2(320f, 40f));
+            TextMeshProUGUI cost = UIKit.Text("Cost", rt, costText, MenuKit.TextNumber, cc, TextAlignmentOptions.BottomRight, true);
+            UIKit.Place(cost.rectTransform, new Vector2(1f, 0f), new Vector2(-16f, 8f), new Vector2(360f, 56f));
         }
 
         private void BuildResearchDetail()
@@ -243,8 +244,8 @@ namespace VerdantSiege.UI
             }
             string branch = Campaign.researchBranchNames != null && r.branch < Campaign.researchBranchNames.Length ? Campaign.researchBranchNames[r.branch] : "";
             Add("Branch", branch.ToUpperInvariant() + "  ·  TIER " + (r.tier + 1), MenuKit.TextSmall, UIPalette.TextDim, true, 4f);
-            Add("Name", r.displayName, 50f, BranchColor(r.branch), true, 14f);
-            Add("Desc", r.description, 36f, UIPalette.Parchment, false, 24f);
+            Add("Name", r.displayName, 58f, BranchColor(r.branch), true, 14f);
+            Add("Desc", r.description, 42f, UIPalette.Parchment, false, 24f);
             string status = state == ResearchState.Owned ? "<color=#7CD65A>Researched: active in every battle.</color>"
                 : state == ResearchState.Locked ? $"Needs <b>{r.prerequisite.displayName}</b> first."
                 : r.essenceCost > 0 ? $"Costs <color=#C78CFF><b>{r.essenceCost} Essence</b></color>\nYou have {Save.essence}."
@@ -256,9 +257,9 @@ namespace VerdantSiege.UI
             if (buyable)
             {
                 Button buy = UIKit.Button("Buy", rt, "Research", state == ResearchState.Available ? UIPalette.ButtonPrimary : MenuKit.LockedGrey, () => Buy(r),
-                    UIKit.Lib != null ? UIKit.Lib.iconSprout : null, 42f);
+                    UIKit.Lib != null ? UIKit.Lib.iconSprout : null, 46f);
                 buy.interactable = state == ResearchState.Available;
-                UIKit.Place((RectTransform)buy.transform, new Vector2(0.5f, 0f), new Vector2(0f, 24f), new Vector2(420f, MenuKit.ButtonHeight + 8f));
+                UIKit.Place((RectTransform)buy.transform, new Vector2(0.5f, 0f), new Vector2(0f, 24f), new Vector2(440f, MenuKit.ButtonHeight));
             }
         }
 
@@ -279,7 +280,7 @@ namespace VerdantSiege.UI
         }
 
         // ================================================================ defenders (mastery)
-        private const float MasteryDetailW = 1000f, TileW = 224f, TileH = 268f;
+        private const float MasteryDetailW = 960f, TileW = 252f, TileH = 318f;
 
         private void BuildDefenders()
         {
@@ -305,17 +306,17 @@ namespace VerdantSiege.UI
                 Button b = UIKit.Button("Defender_" + d.id, content, null, d == _selectedDefender ? Color.Lerp(d.accentColor, UIPalette.Panel, 0.55f) : owned ? UIPalette.PanelLight : new Color(0.1f, 0.11f, 0.1f, 0.95f),
                     () => { _selectedDefender = d; Show(Tab.Defenders); });
                 var rt = (RectTransform)b.transform;
-                RectTransform pt = MenuKit.Portrait(rt, d, 140f, !owned);
-                UIKit.Place(pt, new Vector2(0.5f, 1f), new Vector2(0f, -12f), new Vector2(140f, 140f));
+                RectTransform pt = MenuKit.Portrait(rt, d, 156f, !owned);
+                UIKit.Place(pt, new Vector2(0.5f, 1f), new Vector2(0f, -12f), new Vector2(156f, 156f));
                 TextMeshProUGUI n = UIKit.Text("Name", rt, d.displayName, MenuKit.TextLabel, owned ? UIPalette.Parchment : UIPalette.TextDim, TextAlignmentOptions.Center, true);
-                UIKit.Place(n.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -160f), new Vector2(TileW - 12f, 44f));
+                UIKit.Place(n.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -176f), new Vector2(TileW - 12f, 54f));
                 n.textWrappingMode = TextWrappingModes.NoWrap;
                 MenuKit.Fit(n, MenuKit.TextLabel);
-                if (owned) MenuKit.MasteryPips(rt, MasteryRules.LevelOf(Save, d.id), 30f, new Vector2(0.5f, 0f), new Vector2(0f, 16f));
+                if (owned) MenuKit.MasteryPips(rt, MasteryRules.LevelOf(Save, d.id), 36f, new Vector2(0.5f, 0f), new Vector2(0f, 18f));
                 else
                 {
                     TextMeshProUGUI l = UIKit.Text("Locked", rt, "LOCKED", MenuKit.TextMin, UIPalette.TextDim, TextAlignmentOptions.Center, true);
-                    UIKit.Place(l.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 14f), new Vector2(TileW - 12f, 36f));
+                    UIKit.Place(l.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 16f), new Vector2(TileW - 12f, 48f));
                 }
             }
             BuildDefenderDetail(_selectedDefender);
@@ -338,32 +339,32 @@ namespace VerdantSiege.UI
             float w = MasteryDetailW - 12f - 2f * pad - 12f;
             bool owned = Save.IsUnlocked(d.id);
             int xp = Save.MasteryXp(d.id), level = MasteryRules.LevelFor(xp);
-            RectTransform pt = MenuKit.Portrait(c, d, 140f, !owned);
-            UIKit.Place(pt, new Vector2(0f, 1f), new Vector2(pad, -18f), new Vector2(140f, 140f));
-            float tx = pad + 160f, tw = w - 160f;
-            TextMeshProUGUI n = UIKit.Text("Name", c, d.displayName, 52f, Color.Lerp(d.accentColor, Color.white, 0.4f), TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(n.rectTransform, new Vector2(0f, 1f), new Vector2(tx, -16f), new Vector2(tw, 62f));
-            TextMeshProUGUI role = UIKit.Text("Role", c, $"{d.role}  ·  {d.cost} Vitality  ·  {d.strengths}", MenuKit.TextSmall, UIPalette.TextDim, TextAlignmentOptions.TopLeft);
-            UIKit.Place(role.rectTransform, new Vector2(0f, 1f), new Vector2(tx, -80f), new Vector2(tw, 40f));
-            role.textWrappingMode = TextWrappingModes.NoWrap;
-            MenuKit.Fit(role, MenuKit.TextSmall);
-            float y;
+            RectTransform pt = MenuKit.Portrait(c, d, 150f, !owned);
+            UIKit.Place(pt, new Vector2(0f, 1f), new Vector2(pad, -18f), new Vector2(150f, 150f));
+            float tx = pad + 170f, tw = w - 170f;
+            TextMeshProUGUI n = UIKit.Text("Name", c, d.displayName, 60f, Color.Lerp(d.accentColor, Color.white, 0.4f), TextAlignmentOptions.TopLeft, true);
+            UIKit.Place(n.rectTransform, new Vector2(0f, 1f), new Vector2(tx, -12f), new Vector2(tw, 76f));
+            string roleText = $"{d.role}  ·  {d.cost} Vitality  ·  {d.strengths}";
+            TextMeshProUGUI role = UIKit.Text("Role", c, roleText, MenuKit.TextSmall, UIPalette.TextDim, TextAlignmentOptions.TopLeft);
+            float rh = MenuKit.TextHeight(role, roleText, tw);
+            UIKit.Place(role.rectTransform, new Vector2(0f, 1f), new Vector2(tx, -88f), new Vector2(tw, rh));
+            float y = -Mathf.Max(186f, 88f + rh + 10f);
             if (!owned)
             {
                 EncounterDefinition by = Campaign != null ? CampaignRules.UnlockedBy(Campaign, d) : null;
                 string txt = (by != null ? $"Joins your garden when you win <b>{by.displayName}</b>.\n\n" : "Not in your garden yet.\n\n") + d.description;
                 TextMeshProUGUI l = UIKit.Text("Locked", c, txt, MenuKit.TextBody, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
                 float lh = MenuKit.TextHeight(l, txt, w);
-                UIKit.Place(l.rectTransform, new Vector2(0f, 1f), new Vector2(pad, -180f), new Vector2(w, lh));
-                c.sizeDelta = new Vector2(0f, 180f + lh + 24f);
+                UIKit.Place(l.rectTransform, new Vector2(0f, 1f), new Vector2(pad, y), new Vector2(w, lh));
+                c.sizeDelta = new Vector2(0f, -y + lh + 24f);
                 return;
             }
-            TextMeshProUGUI lv = UIKit.Text("Level", c, level >= MasteryRules.MaxLevel ? "Mastery 4 · MAX" : $"Mastery {level}", MenuKit.TextNumber, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(lv.rectTransform, new Vector2(0f, 1f), new Vector2(tx, -122f), new Vector2(260f, 44f));
-            MenuKit.Bar(c, "XpBar", UIPalette.Gold, new Vector2(0f, 1f), new Vector2(tx + 270f, -134f), new Vector2(280f, 22f), MasteryRules.LevelProgress(xp));
-            TextMeshProUGUI next = UIKit.Text("Next", c, level >= MasteryRules.MaxLevel ? "" : $"{MasteryRules.XpToNext(xp)} to go", MenuKit.TextSmall, UIPalette.TextDim, TextAlignmentOptions.TopLeft);
-            UIKit.Place(next.rectTransform, new Vector2(0f, 1f), new Vector2(tx + 570f, -124f), new Vector2(tw - 570f, 40f));
-            y = -180f;
+            TextMeshProUGUI lv = UIKit.Text("Level", c, level >= MasteryRules.MaxLevel ? "Mastery 4 · MAX" : $"Mastery {level}", MenuKit.TextNumber, UIPalette.Gold, TextAlignmentOptions.MidlineLeft, true);
+            UIKit.Place(lv.rectTransform, new Vector2(0f, 1f), new Vector2(pad, y), new Vector2(340f, 56f));
+            MenuKit.Bar(c, "XpBar", UIPalette.Gold, new Vector2(0f, 1f), new Vector2(pad + 350f, y - 16f), new Vector2(260f, 24f), MasteryRules.LevelProgress(xp));
+            TextMeshProUGUI next = UIKit.Text("Next", c, level >= MasteryRules.MaxLevel ? "" : $"{MasteryRules.XpToNext(xp)} to go", MenuKit.TextSmall, UIPalette.TextDim, TextAlignmentOptions.MidlineLeft);
+            UIKit.Place(next.rectTransform, new Vector2(0f, 1f), new Vector2(pad + 630f, y), new Vector2(w - 630f, 56f));
+            y -= 70f;
             string howText = "Mastery grows when you plant and evolve this defender in battle (a loss still counts).";
             TextMeshProUGUI how = UIKit.Text("How", c, howText, MenuKit.TextSmall, UIPalette.TextDim, TextAlignmentOptions.TopLeft);
             float hh = MenuKit.TextHeight(how, howText, w);
@@ -371,7 +372,7 @@ namespace VerdantSiege.UI
             y -= hh + 16f;
 
             // Mastery path: what each level opens (rows grow with their text).
-            const float badgeW = 92f, lockW = 56f;
+            const float badgeW = 100f, lockW = 60f;
             for (int l = 1; l <= MasteryRules.MaxLevel; l++)
             {
                 bool reached = level >= l;
@@ -386,21 +387,21 @@ namespace VerdantSiege.UI
                 TextMeshProUGUI body = UIKit.Text("Body", row.transform, text, MenuKit.TextSmall, reached ? UIPalette.Parchment : UIPalette.TextDim, TextAlignmentOptions.MidlineLeft);
                 body.paragraphSpacing = 8f;
                 float bw = w - badgeW - lockW;
-                float rowH = Mathf.Max(84f, MenuKit.TextHeight(body, text, bw) + 28f);
+                float rowH = Mathf.Max(96f, MenuKit.TextHeight(body, text, bw) + 28f);
                 UIKit.Place(row.rectTransform, new Vector2(0f, 1f), new Vector2(pad, y), new Vector2(w, rowH));
                 body.rectTransform.anchorMin = Vector2.zero;
                 body.rectTransform.anchorMax = Vector2.one;
                 body.rectTransform.offsetMin = new Vector2(badgeW, 8f);
                 body.rectTransform.offsetMax = new Vector2(-lockW, -8f);
                 Image badge = UIKit.Image("Badge", row.transform, MenuKit.Circle, reached ? UIPalette.Gold : MenuKit.LockedGrey);
-                UIKit.Place(badge.rectTransform, new Vector2(0f, 0.5f), new Vector2(14f, 0f), new Vector2(64f, 64f));
-                TextMeshProUGUI bn = UIKit.Text("N", badge.transform, l.ToString(), 36f, new Color(0.1f, 0.12f, 0.1f), TextAlignmentOptions.Center, true);
+                UIKit.Place(badge.rectTransform, new Vector2(0f, 0.5f), new Vector2(14f, 0f), new Vector2(72f, 72f));
+                TextMeshProUGUI bn = UIKit.Text("N", badge.transform, l.ToString(), 42f, new Color(0.1f, 0.12f, 0.1f), TextAlignmentOptions.Center, true);
                 UIKit.Stretch(bn.rectTransform);
                 if (!reached)
                 {
                     Image lk = UIKit.Image("Lock", row.transform, UIKit.Lib != null ? UIKit.Lib.iconLock : null, new Color(1f, 1f, 1f, 0.4f));
                     lk.preserveAspect = true;
-                    UIKit.Place(lk.rectTransform, new Vector2(1f, 0.5f), new Vector2(-12f, 0f), new Vector2(38f, 38f));
+                    UIKit.Place(lk.rectTransform, new Vector2(1f, 0.5f), new Vector2(-12f, 0f), new Vector2(42f, 42f));
                 }
                 y -= rowH + 12f;
             }

@@ -16,7 +16,7 @@ namespace VerdantSiege.UI
     public sealed class EncounterAlertsHud : MonoBehaviour
     {
         /// <summary>Extra top space (reference pixels) the boss bar takes below the top bar; the camera fit excludes it.</summary>
-        public const float BarHeight = 74f;
+        public const float BarHeight = 90f;
 
         private BattleSimulation _sim;
         private BattleHud _hud;
@@ -79,12 +79,12 @@ namespace VerdantSiege.UI
             Image panel = UIKit.Panel("BossBar", root, new Color(0.12f, 0.06f, 0.1f, 0.92f), true, true);
             panel.raycastTarget = false;
             _bossBar = panel.rectTransform;
-            UIKit.Place(_bossBar, new Vector2(0.5f, 1f), new Vector2(BattleHud.RailWidth * 0.5f, -112f), new Vector2(820f, BarHeight));
-            _hud.SetFeedTop(-112f - BarHeight - 10f); // compact feed sits under the boss bar
-            _bossName = UIKit.Text("Name", panel.transform, boss.Definition.displayName, 32f, UIPalette.Parchment, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(_bossName.rectTransform, new Vector2(0f, 1f), new Vector2(22f, -4f), new Vector2(460f, 38f));
-            _bossState = UIKit.Text("State", panel.transform, "", 28f, UIPalette.Gold, TextAlignmentOptions.TopRight, true);
-            UIKit.Place(_bossState.rectTransform, new Vector2(1f, 1f), new Vector2(-22f, -7f), new Vector2(330f, 34f));
+            UIKit.Place(_bossBar, new Vector2(0.5f, 1f), new Vector2(BattleHud.RailWidth * 0.5f, -BattleHud.TopBarHeight), new Vector2(900f, BarHeight));
+            _hud.SetFeedTop(-BattleHud.TopBarHeight - BarHeight - 10f); // compact feed sits under the boss bar
+            _bossName = UIKit.Text("Name", panel.transform, boss.Definition.displayName, 40f, UIPalette.Parchment, TextAlignmentOptions.TopLeft, true);
+            UIKit.Place(_bossName.rectTransform, new Vector2(0f, 1f), new Vector2(22f, -2f), new Vector2(480f, 50f));
+            _bossState = UIKit.Text("State", panel.transform, "", 34f, UIPalette.Gold, TextAlignmentOptions.TopRight, true);
+            UIKit.Place(_bossState.rectTransform, new Vector2(1f, 1f), new Vector2(-22f, -6f), new Vector2(380f, 44f));
             Image track = UIKit.Image("Track", panel.transform, UIKit.Lib != null ? UIKit.Lib.uiRound : null, new Color(0f, 0f, 0f, 0.55f));
             RectTransform tr = track.rectTransform;
             tr.anchorMin = new Vector2(0f, 0f);
@@ -135,10 +135,10 @@ namespace VerdantSiege.UI
             pill.raycastTarget = false;
             _heraldPill = pill.rectTransform;
             // Persistent state pill lives in the top-right scenery corner, clear of the feed and the lanes.
-            UIKit.Place(_heraldPill, new Vector2(1f, 1f), new Vector2(-16f, -140f), new Vector2(560f, 58f));
+            UIKit.Place(_heraldPill, new Vector2(1f, 1f), new Vector2(-16f, -150f), new Vector2(680f, 70f));
             Image flag = UIKit.Image("Flag", pill.transform, UIKit.Lib != null ? UIKit.Lib.iconFlag : null, UIPalette.Danger);
             UIKit.Place(flag.rectTransform, new Vector2(0f, 0.5f), new Vector2(14f, 0f), new Vector2(44f, 44f));
-            _heraldText = UIKit.Text("Text", pill.transform, "", 28f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
+            _heraldText = UIKit.Text("Text", pill.transform, "", 34f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
             UIKit.Stretch(_heraldText.rectTransform, 6f);
             _heraldText.rectTransform.offsetMin = new Vector2(64f, 6f);
             _heraldGroup = UIKit.Group(pill.gameObject);
@@ -154,16 +154,16 @@ namespace VerdantSiege.UI
             p.raycastTarget = false;
             _intel = p.rectTransform;
             // Sits in the scenery band under the top bars (boss bar / herald slot) so it never covers a lane.
-            float intelY = (_sim.Boss != null ? -112f - BarHeight - 10f : -112f) - 72f;
-            UIKit.Place(_intel, new Vector2(0.5f, 1f), new Vector2(BattleHud.RailWidth * 0.5f, intelY), new Vector2(1100f, 124f));
-            _intelTitle = UIKit.Text("Title", p.transform, "", 34f, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(_intelTitle.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -8f), new Vector2(1010f, 42f));
-            _intelBody = UIKit.Text("Body", p.transform, "", 27f, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
-            UIKit.Place(_intelBody.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -50f), new Vector2(1050f, 70f));
+            float intelY = (_sim.Boss != null ? -BattleHud.TopBarHeight - BarHeight - 10f : -BattleHud.TopBarHeight) - 72f;
+            UIKit.Place(_intel, new Vector2(0.5f, 1f), new Vector2(BattleHud.RailWidth * 0.5f, intelY), new Vector2(1200f, 146f));
+            _intelTitle = UIKit.Text("Title", p.transform, "", 42f, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
+            UIKit.Place(_intelTitle.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -6f), new Vector2(1150f, 52f));
+            _intelBody = UIKit.Text("Body", p.transform, "", 36f, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
+            UIKit.Place(_intelBody.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -58f), new Vector2(1150f, 84f));
             _intelBody.textWrappingMode = TextWrappingModes.Normal;
             _intelBody.enableAutoSizing = true;
             _intelBody.fontSizeMin = MenuKit.TextMin;
-            _intelBody.fontSizeMax = 30f;
+            _intelBody.fontSizeMax = 36f;
             _intelGroup = UIKit.Group(p.gameObject);
             _intelGroup.alpha = 0f;
             _intelGroup.blocksRaycasts = false;

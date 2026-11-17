@@ -195,8 +195,8 @@ namespace VerdantSiege.UI
                 UIKit.Lib != null ? UIKit.Lib.iconSprout : null, 46f);
             UIKit.Place((RectTransform)cons.transform, new Vector2(0f, 0f), new Vector2(x, 190f), new Vector2(w, 112f));
             Image badge = UIKit.Image("Badge", cons.transform, MenuKit.Circle, UIPalette.Danger);
-            UIKit.Place(badge.rectTransform, new Vector2(1f, 1f), new Vector2(10f, 10f), new Vector2(40f, 40f));
-            TextMeshProUGUI bang = UIKit.Text("Bang", badge.transform, "!", 30f, Color.white, TextAlignmentOptions.Center, true);
+            UIKit.Place(badge.rectTransform, new Vector2(1f, 1f), new Vector2(12f, 12f), new Vector2(50f, 50f));
+            TextMeshProUGUI bang = UIKit.Text("Bang", badge.transform, "!", 38f, Color.white, TextAlignmentOptions.Center, true);
             UIKit.Stretch(bang.rectTransform);
             badge.gameObject.AddComponent<Pulse>().amount = 0.12f;
             _researchBadge = badge.gameObject;
@@ -207,22 +207,22 @@ namespace VerdantSiege.UI
 
             // Restoration card (bottom right).
             Image rest = UIKit.Panel("Restoration", _root, UIPalette.Panel, true, true);
-            UIKit.Place(rest.rectTransform, new Vector2(1f, 0f), new Vector2(-40f, 62f), new Vector2(560f, 168f));
-            TextMeshProUGUI rh = UIKit.Text("Head", rest.transform, "Sanctuary restored", 34f, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(rh.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -14f), new Vector2(340f, 44f));
+            UIKit.Place(rest.rectTransform, new Vector2(1f, 0f), new Vector2(-40f, 66f), new Vector2(660f, 196f));
+            TextMeshProUGUI rh = UIKit.Text("Head", rest.transform, "Sanctuary restored", 42f, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
+            UIKit.Place(rh.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -12f), new Vector2(420f, 54f));
             _restPips = new Image[CampaignRules.MaxSanctuaryTier];
             for (int i = 0; i < _restPips.Length; i++)
             {
                 _restPips[i] = UIKit.Image("Pip" + i, rest.transform, UIKit.Lib != null ? UIKit.Lib.iconLeaf : null, Color.white);
                 _restPips[i].preserveAspect = true;
-                UIKit.Place(_restPips[i].rectTransform, new Vector2(1f, 1f), new Vector2(-22f - (3 - i) * 46f, -14f), new Vector2(42f, 42f));
+                UIKit.Place(_restPips[i].rectTransform, new Vector2(1f, 1f), new Vector2(-20f - (3 - i) * 50f, -16f), new Vector2(46f, 46f));
             }
             _restText = UIKit.Text("Text", rest.transform, "", MenuKit.TextSmall, UIPalette.TextDim, TextAlignmentOptions.TopLeft);
-            UIKit.Place(_restText.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -62f), new Vector2(520f, 96f));
+            UIKit.Place(_restText.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -70f), new Vector2(612f, 110f));
             MenuKit.Fit(_restText, MenuKit.TextSmall);
 
             TextMeshProUGUI ver = UIKit.Text("Version", _root, _app.Config != null ? _app.Config.versionLabel : "", MenuKit.TextMin, new Color(1f, 1f, 1f, 0.5f), TextAlignmentOptions.BottomRight);
-            UIKit.Place(ver.rectTransform, new Vector2(1f, 0f), new Vector2(-40f, 14f), new Vector2(600f, 40f));
+            UIKit.Place(ver.rectTransform, new Vector2(1f, 0f), new Vector2(-40f, 12f), new Vector2(700f, 46f));
             RefreshHub();
         }
 
@@ -271,11 +271,11 @@ namespace VerdantSiege.UI
             float y = -140f;
             void SliderRow(string label, float value, System.Action<float> set)
             {
-                TextMeshProUGUI l = UIKit.Text(label, p, label, 36f, UIPalette.TextDim, TextAlignmentOptions.MidlineLeft);
-                UIKit.Place(l.rectTransform, new Vector2(0.5f, 1f), new Vector2(-230f, y), new Vector2(300f, 60f));
+                TextMeshProUGUI l = UIKit.Text(label, p, label, 40f, UIPalette.TextDim, TextAlignmentOptions.MidlineLeft);
+                UIKit.Place(l.rectTransform, new Vector2(0.5f, 1f), new Vector2(-230f, y), new Vector2(300f, 70f));
                 Slider sl = UIKit.Slider(label + "Slider", p, value, v => { set(v); _app.ApplySettings(); });
-                UIKit.Place((RectTransform)sl.transform, new Vector2(0.5f, 1f), new Vector2(150f, y), new Vector2(440f, 60f));
-                y -= 84f;
+                UIKit.Place((RectTransform)sl.transform, new Vector2(0.5f, 1f), new Vector2(150f, y), new Vector2(440f, 70f));
+                y -= 90f;
             }
             SliderRow("Music", s.musicVolume, v => s.musicVolume = v);
             SliderRow("Sound", s.sfxVolume, v => s.sfxVolume = v);
@@ -283,26 +283,26 @@ namespace VerdantSiege.UI
             void ToggleRow(string label, bool value, System.Action<bool> set)
             {
                 Toggle tg = UIKit.Toggle(label, p, label, value, v => set(v));
-                UIKit.Place((RectTransform)tg.transform, new Vector2(0.5f, 1f), new Vector2(0f, y), new Vector2(740f, 70f));
-                y -= 84f;
+                UIKit.Place((RectTransform)tg.transform, new Vector2(0.5f, 1f), new Vector2(0f, y), new Vector2(760f, 80f));
+                y -= 90f;
             }
             ToggleRow("Auto-collect Vitality", s.autoCollect, v => s.autoCollect = v);
             ToggleRow("Reduce flashes and shake", s.reducedFlashes, v => { s.reducedFlashes = v; s.reducedShake = v; });
             ToggleRow("Show damage numbers", s.showDamageNumbers, v => s.showDamageNumbers = v);
 
-            Button q = UIKit.Button("Quality", p, "", UIPalette.ButtonSecondary, CycleQuality, null, 36f);
-            UIKit.Place((RectTransform)q.transform, new Vector2(0.5f, 1f), new Vector2(0f, y), new Vector2(740f, 90f));
+            Button q = UIKit.Button("Quality", p, "", UIPalette.ButtonSecondary, CycleQuality, null, 40f);
+            UIKit.Place((RectTransform)q.transform, new Vector2(0.5f, 1f), new Vector2(0f, y), new Vector2(760f, 100f));
             _qualityText = q.GetComponentInChildren<TextMeshProUGUI>();
             if (_qualityText == null)
             {
-                _qualityText = UIKit.Text("Label", q.transform, "", 36f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
+                _qualityText = UIKit.Text("Label", q.transform, "", 40f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
                 UIKit.Stretch(_qualityText.rectTransform);
             }
             RefreshQuality();
-            Button reset = UIKit.Button("Reset", p, "Reset Progress", new Color(0.45f, 0.16f, 0.16f, 1f), () => _confirm.SetActive(true), null, 34f);
-            UIKit.Place((RectTransform)reset.transform, new Vector2(0.5f, 0f), new Vector2(-200f, 36f), new Vector2(340f, 96f));
-            Button done = UIKit.Button("Done", p, "Done", UIPalette.ButtonPrimary, () => ShowSettings(false), null, 40f);
-            UIKit.Place((RectTransform)done.transform, new Vector2(0.5f, 0f), new Vector2(200f, 36f), new Vector2(340f, 96f));
+            Button reset = UIKit.Button("Reset", p, "Reset Progress", new Color(0.45f, 0.16f, 0.16f, 1f), () => _confirm.SetActive(true), null, 38f);
+            UIKit.Place((RectTransform)reset.transform, new Vector2(0.5f, 0f), new Vector2(-200f, 30f), new Vector2(380f, MenuKit.TouchMin));
+            Button done = UIKit.Button("Done", p, "Done", UIPalette.ButtonPrimary, () => ShowSettings(false), null, MenuKit.TextButton);
+            UIKit.Place((RectTransform)done.transform, new Vector2(0.5f, 0f), new Vector2(200f, 30f), new Vector2(380f, MenuKit.TouchMin));
         }
 
         private void CycleQuality()
@@ -330,18 +330,18 @@ namespace VerdantSiege.UI
 
         private void BuildConfirm(Transform canvas)
         {
-            _confirm = Overlay(canvas, "Confirm", new Vector2(860f, 480f), "Start Over?", out RectTransform p);
-            TextMeshProUGUI msg = UIKit.Text("Msg", p, "All Seeds, Essence, research, mastery and mission progress will be erased. Settings are kept.", 34f, UIPalette.TextDim);
-            UIKit.Place(msg.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -130f), new Vector2(760f, 160f));
-            Button no = UIKit.Button("Cancel", p, "Keep Progress", UIPalette.ButtonPrimary, () => _confirm.SetActive(false), null, 34f);
-            UIKit.Place((RectTransform)no.transform, new Vector2(0.5f, 0f), new Vector2(-200f, 36f), new Vector2(360f, 96f));
+            _confirm = Overlay(canvas, "Confirm", new Vector2(900f, 500f), "Start Over?", out RectTransform p);
+            TextMeshProUGUI msg = UIKit.Text("Msg", p, "All Seeds, Essence, research, mastery and mission progress will be erased. Settings are kept.", 38f, UIPalette.TextDim);
+            UIKit.Place(msg.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -124f), new Vector2(820f, 170f));
+            Button no = UIKit.Button("Cancel", p, "Keep Progress", UIPalette.ButtonPrimary, () => _confirm.SetActive(false), null, 40f);
+            UIKit.Place((RectTransform)no.transform, new Vector2(0.5f, 0f), new Vector2(-210f, 30f), new Vector2(380f, MenuKit.TouchMin));
             Button yes = UIKit.Button("Erase", p, "Erase", new Color(0.55f, 0.16f, 0.16f, 1f), () =>
             {
                 _app.ResetProgress();
                 _confirm.SetActive(false);
                 AppRoot.LoadMainMenu();
-            }, null, 34f);
-            UIKit.Place((RectTransform)yes.transform, new Vector2(0.5f, 0f), new Vector2(200f, 36f), new Vector2(360f, 96f));
+            }, null, 40f);
+            UIKit.Place((RectTransform)yes.transform, new Vector2(0.5f, 0f), new Vector2(210f, 30f), new Vector2(380f, MenuKit.TouchMin));
         }
     }
 }

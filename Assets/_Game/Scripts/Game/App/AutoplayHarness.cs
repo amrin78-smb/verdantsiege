@@ -387,14 +387,9 @@ namespace VerdantSiege.App
             if (!_pausedTested && t > 20f)
             {
                 _pausedTested = true;
-                _battle.SetPaused(true);
-                Shot("pause_menu");
-                float before = sim.Stats.elapsed;
-                _battle.Invoke(nameof(BattleController.Deselect), 0f);
-                _battle.SetPaused(false);
-                if (Mathf.Abs(Time.timeScale - _battle.Speed) > 0.01f) Debug.LogError("[VS Autoplay] time scale not restored after pause");
-                if (sim.Stats.elapsed != before) Debug.LogError("[VS Autoplay] simulation advanced while paused");
+                StartCoroutine(PauseRoundTrip(sim));
             }
+            if (_pausing) return;
 
             _thinkTimer -= dt;
             if (_thinkTimer > 0f) return;
@@ -403,6 +398,24 @@ namespace VerdantSiege.App
             if (Evolve(sim)) return;
             CollectPickups(sim);
             Plant(sim);
+        }
+
+        private bool _pausing;
+
+        /// <summary>Pause, let the overlay render (unscaled), screenshot it, check the sim stood still, resume.</summary>
+        private IEnumerator PauseRoundTrip(BattleSimulation sim)
+        {
+            _pausing = true;
+            _battle.SetPaused(true);
+            float before = sim.Stats.elapsed;
+            yield return Wait(0.6f); // the overlay pops in
+            Shot("pause_menu");
+            yield return Settle();
+            if (sim.Stats.elapsed != before) Debug.LogError("[VS Autoplay] simulation advanced while paused");
+            _battle.Invoke(nameof(BattleController.Deselect), 0f);
+            _battle.SetPaused(false);
+            if (Mathf.Abs(Time.timeScale - _battle.Speed) > 0.01f) Debug.LogError("[VS Autoplay] time scale not restored after pause");
+            _pausing = false;
         }
 
         private DefenderRuntime _evolveTarget;

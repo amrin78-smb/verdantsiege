@@ -20,13 +20,17 @@ namespace VerdantSiege.UI
         /// <see cref="SingleColumnMax"/> cards, two columns of tall cards above that (TD-36). Set by <see cref="Build"/>
         /// before anything else reads it (camera fit, centred strips).</summary>
         public static float RailWidth { get; private set; } = SingleRailWidth;
-        public const float SingleRailWidth = 300f;
+        public const float SingleRailWidth = 330f;
         public const int SingleColumnMax = 5;
-        public const float TallCardWidth = 204f, RailColumnGap = 10f;
+        public const float TallCardWidth = 232f, RailColumnGap = 10f;
 
         /// <summary>The rail width a deck of <paramref name="cards"/> cards needs.</summary>
         public static float RailWidthFor(int cards) => cards > SingleColumnMax ? 16f + 2f * TallCardWidth + RailColumnGap + 12f : SingleRailWidth;
-        public const float TopBarHeight = 128f;
+        public const float TopBarHeight = 140f;
+        /// <summary>Pause / speed button size.</summary>
+        public const float TopButton = 120f;
+        /// <summary>Height of the Vitality badge at the top of the rail; cards start below it.</summary>
+        public const float VitalityHeight = 120f;
 
         // intents
         public event Action<int> CardClicked;
@@ -99,32 +103,32 @@ namespace VerdantSiege.UI
 
             Image badge = UIKit.Panel("Vitality", rail, UIPalette.Panel, true, true);
             _vitalityBadge = badge.rectTransform;
-            UIKit.Place(_vitalityBadge, new Vector2(0f, 1f), new Vector2(16f, -16f), new Vector2(RailWidth - 28f, 104f));
+            UIKit.Place(_vitalityBadge, new Vector2(0f, 1f), new Vector2(16f, -16f), new Vector2(RailWidth - 28f, VitalityHeight));
             Image vIcon = UIKit.Image("Icon", badge.transform, UIKit.Lib != null ? UIKit.Lib.iconVitality : null, Color.white);
-            UIKit.Place(vIcon.rectTransform, new Vector2(0f, 0.5f), new Vector2(8f, 0f), new Vector2(92f, 92f));
-            _vitalityText = UIKit.Text("Amount", badge.transform, "0", 64f, UIPalette.Vitality, TextAlignmentOptions.MidlineRight, true);
+            UIKit.Place(vIcon.rectTransform, new Vector2(0f, 0.5f), new Vector2(8f, 0f), new Vector2(94f, 94f));
+            _vitalityText = UIKit.Text("Amount", badge.transform, "0", 72f, UIPalette.Vitality, TextAlignmentOptions.MidlineRight, true);
             UIKit.Stretch(_vitalityText.rectTransform);
             _vitalityText.rectTransform.offsetMax = new Vector2(-22f, 0f);
-            _vitalityText.rectTransform.offsetMin = new Vector2(104f, 0f);
+            _vitalityText.rectTransform.offsetMin = new Vector2(106f, 0f);
             _vitalityText.enableAutoSizing = true;
-            _vitalityText.fontSizeMax = 64f;
-            _vitalityText.fontSizeMin = 36f;
+            _vitalityText.fontSizeMax = 72f;
+            _vitalityText.fontSizeMin = 44f;
             _vitalityText.textWrappingMode = TextWrappingModes.NoWrap;
 
             // Up to 5 cards: one column of wide cards. 6-8 (Seed Satchel): two columns of tall cards, so every card keeps
             // a big portrait, a >=28 name and a bold cost (TD-36) instead of shrinking to fit one column.
             int n = Mathf.Max(1, sim.Deck.Count);
             bool two = n > SingleColumnMax;
-            const float avail = 1080f - 136f - 16f;
+            const float top = 16f + VitalityHeight + 14f, avail = 1080f - top - 14f;
             float gap = two ? RailColumnGap : 14f;
             int rows = two ? (n + 1) / 2 : n;
             float cardW = two ? TallCardWidth : RailWidth - 28f;
-            float cardH = two ? Mathf.Min(232f, Mathf.Floor((avail - (rows - 1) * gap) / rows)) : (n <= 4 ? 172f : 160f);
+            float cardH = two ? Mathf.Min(240f, Mathf.Floor((avail - (rows - 1) * gap) / rows)) : (n <= 4 ? 176f : 160f);
             for (int i = 0; i < sim.Deck.Count; i++)
             {
                 DefenderCardView card = DefenderCardView.Create(rail, i, sim.Deck[i], new Vector2(cardW, cardH));
                 int col = two ? i % 2 : 0, row = two ? i / 2 : i;
-                UIKit.Place((RectTransform)card.transform, new Vector2(0f, 1f), new Vector2(16f + col * (cardW + gap), -136f - row * (cardH + gap)), new Vector2(cardW, cardH));
+                UIKit.Place((RectTransform)card.transform, new Vector2(0f, 1f), new Vector2(16f + col * (cardW + gap), -top - row * (cardH + gap)), new Vector2(cardW, cardH));
                 card.Clicked += s => CardClicked?.Invoke(s);
                 card.DragBegan += (s, p) => CardDragBegan?.Invoke(s, p);
                 card.Dragged += (s, p) => CardDragged?.Invoke(s, p);
@@ -139,26 +143,31 @@ namespace VerdantSiege.UI
             // Heartroot health pips.
             Image heartPanel = UIKit.Panel("Heartroot", Root, UIPalette.Panel, true, true);
             int max = sim.HeartrootMaxHealth;
-            float w = 96f + max * 46f;
-            UIKit.Place(heartPanel.rectTransform, new Vector2(0f, 1f), new Vector2(RailWidth + 8f, -16f), new Vector2(w, 88f));
+            float w = 106f + max * 52f;
+            UIKit.Place(heartPanel.rectTransform, new Vector2(0f, 1f), new Vector2(RailWidth + 8f, -16f), new Vector2(w, 104f));
             Image heartIcon = UIKit.Image("Icon", heartPanel.transform, UIKit.Lib != null ? UIKit.Lib.iconHeart : null, UIPalette.Danger);
-            UIKit.Place(heartIcon.rectTransform, new Vector2(0f, 0.5f), new Vector2(12f, 0f), new Vector2(64f, 64f));
+            UIKit.Place(heartIcon.rectTransform, new Vector2(0f, 0.5f), new Vector2(12f, 0f), new Vector2(76f, 76f));
             for (int i = 0; i < max; i++)
             {
                 Image pip = UIKit.Image("Pip" + i, heartPanel.transform, UIKit.Lib != null ? UIKit.Lib.iconLeaf : null, UIPalette.Leaf);
-                UIKit.Place(pip.rectTransform, new Vector2(0f, 0.5f), new Vector2(86f + i * 46f, 0f), new Vector2(40f, 40f));
+                UIKit.Place(pip.rectTransform, new Vector2(0f, 0.5f), new Vector2(96f + i * 52f, 0f), new Vector2(46f, 46f));
                 _heartPips.Add(pip);
             }
 
             // Wave progress.
             Image wavePanel = UIKit.Panel("Waves", Root, UIPalette.Panel, true, true);
-            // Left-anchored right after the Heartroot panel so the two never overlap (the wide rail on 4:3 tablets did).
-            UIKit.Place(wavePanel.rectTransform, new Vector2(0f, 1f), new Vector2(RailWidth + 8f + w + 16f, -14f), new Vector2(620f, 96f));
-            _waveText = UIKit.Text("Label", wavePanel.transform, "Prepare your garden", 34f, UIPalette.Parchment, TextAlignmentOptions.Top, true);
+            // Spans from the Heartroot panel to the speed/pause buttons, so neither overlaps at any aspect (4:3 included).
+            RectTransform wr = wavePanel.rectTransform;
+            wr.anchorMin = new Vector2(0f, 1f);
+            wr.anchorMax = new Vector2(1f, 1f);
+            wr.pivot = new Vector2(0.5f, 1f);
+            wr.offsetMin = new Vector2(RailWidth + 8f + w + 14f, -16f - 104f);
+            wr.offsetMax = new Vector2(-(16f + 2f * TopButton + 10f + 14f), -16f);
+            _waveText = UIKit.Text("Label", wavePanel.transform, "Prepare your garden", 40f, UIPalette.Parchment, TextAlignmentOptions.Top, true);
             UIKit.Stretch(_waveText.rectTransform, 4f);
-            _waveText.rectTransform.offsetMin = new Vector2(6f, 40f);
+            _waveText.rectTransform.offsetMin = new Vector2(6f, 42f);
             _waveText.textWrappingMode = TextWrappingModes.NoWrap;
-            MenuKit.Fit(_waveText, 34f, 30f);
+            MenuKit.Fit(_waveText, 40f);
             Image track = UIKit.Image("Track", wavePanel.transform, UIKit.Lib != null ? UIKit.Lib.uiRound : null, new Color(0f, 0f, 0f, 0.5f));
             _waveTrack = track.rectTransform;
             _waveTrack.anchorMin = new Vector2(0f, 0f);
@@ -181,16 +190,16 @@ namespace VerdantSiege.UI
                 float at = (i + 0.02f) / total;
                 flag.rectTransform.anchorMin = flag.rectTransform.anchorMax = new Vector2(at, 0.5f);
                 flag.rectTransform.pivot = new Vector2(0.5f, 0.5f);
-                flag.rectTransform.sizeDelta = new Vector2(34f, 34f);
+                flag.rectTransform.sizeDelta = new Vector2(38f, 38f);
                 flag.rectTransform.anchoredPosition = Vector2.zero;
             }
 
             // Pause and speed (top right).
             Button pause = UIKit.Button("Pause", Root, null, UIPalette.ButtonSecondary, () => PauseClicked?.Invoke(), UIKit.Lib != null ? UIKit.Lib.iconPause : null);
-            UIKit.Place((RectTransform)pause.transform, new Vector2(1f, 1f), new Vector2(-16f, -16f), new Vector2(110f, 110f));
+            UIKit.Place((RectTransform)pause.transform, new Vector2(1f, 1f), new Vector2(-16f, -16f), new Vector2(TopButton, TopButton));
             Button speed = UIKit.Button("Speed", Root, null, UIPalette.ButtonSecondary, () => SpeedClicked?.Invoke(), UIKit.Lib != null ? UIKit.Lib.iconSpeed : null);
-            UIKit.Place((RectTransform)speed.transform, new Vector2(1f, 1f), new Vector2(-140f, -16f), new Vector2(110f, 110f));
-            _speedText = UIKit.Text("Speed", speed.transform, "1x", 34f, UIPalette.Gold, TextAlignmentOptions.Bottom, true);
+            UIKit.Place((RectTransform)speed.transform, new Vector2(1f, 1f), new Vector2(-(16f + TopButton + 10f), -16f), new Vector2(TopButton, TopButton));
+            _speedText = UIKit.Text("Speed", speed.transform, "1x", 40f, UIPalette.Gold, TextAlignmentOptions.Bottom, true);
             UIKit.Stretch(_speedText.rectTransform, 4f);
         }
 
@@ -199,9 +208,9 @@ namespace VerdantSiege.UI
         {
             Image toast = UIKit.Panel("Toast", Root, new Color(0.08f, 0.12f, 0.1f, 0.92f), true, true);
             _toast = toast.rectTransform;
-            UIKit.Place(_toast, new Vector2(0.5f, 0f), new Vector2(RailWidth * 0.5f, 22f), new Vector2(760f, 70f));
+            UIKit.Place(_toast, new Vector2(0.5f, 0f), new Vector2(RailWidth * 0.5f, 22f), new Vector2(940f, 84f));
             toast.raycastTarget = false;
-            _toastText = UIKit.Text("Text", toast.transform, "", 32f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
+            _toastText = UIKit.Text("Text", toast.transform, "", 40f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
             UIKit.Stretch(_toastText.rectTransform, 10f);
             _toastGroup = UIKit.Group(toast.gameObject);
             _toastGroup.alpha = 0f;
@@ -239,34 +248,36 @@ namespace VerdantSiege.UI
         {
             Image p = UIKit.Panel("Inspect", Root, UIPalette.Panel, true, true);
             _inspect = p.rectTransform;
-            UIKit.Place(_inspect, new Vector2(1f, 0f), new Vector2(-16f, 16f), new Vector2(600f, 330f));
+            UIKit.Place(_inspect, new Vector2(1f, 0f), new Vector2(-16f, 16f), new Vector2(700f, 400f));
             _inspectPortrait = UIKit.Image("Portrait", p.transform, null, Color.white);
             _inspectPortrait.preserveAspect = true;
             UIKit.Place(_inspectPortrait.rectTransform, new Vector2(0f, 1f), new Vector2(10f, -10f), new Vector2(150f, 150f));
-            _inspectName = UIKit.Text("Name", p.transform, "", 46f, UIPalette.Parchment, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(_inspectName.rectTransform, new Vector2(0f, 1f), new Vector2(170f, -14f), new Vector2(320f, 56f));
-            _inspectRole = UIKit.Text("Role", p.transform, "", 28f, UIPalette.Gold, TextAlignmentOptions.TopLeft);
-            UIKit.Place(_inspectRole.rectTransform, new Vector2(0f, 1f), new Vector2(172f, -70f), new Vector2(330f, 36f));
+            _inspectName = UIKit.Text("Name", p.transform, "", 52f, UIPalette.Parchment, TextAlignmentOptions.TopLeft, true);
+            UIKit.Place(_inspectName.rectTransform, new Vector2(0f, 1f), new Vector2(170f, -12f), new Vector2(410f, 64f));
+            _inspectName.textWrappingMode = TextWrappingModes.NoWrap;
+            MenuKit.Fit(_inspectName, 52f, 40f);
+            _inspectRole = UIKit.Text("Role", p.transform, "", 36f, UIPalette.Gold, TextAlignmentOptions.TopLeft);
+            UIKit.Place(_inspectRole.rectTransform, new Vector2(0f, 1f), new Vector2(172f, -76f), new Vector2(510f, 46f));
             _inspectRole.textWrappingMode = TextWrappingModes.NoWrap;
-            MenuKit.Fit(_inspectRole, 28f);
+            MenuKit.Fit(_inspectRole, 36f);
             Image hpTrack = UIKit.Image("HpTrack", p.transform, UIKit.Lib != null ? UIKit.Lib.uiRound : null, new Color(0f, 0f, 0f, 0.5f));
-            UIKit.Place(hpTrack.rectTransform, new Vector2(0f, 1f), new Vector2(172f, -112f), new Vector2(360f, 36f));
+            UIKit.Place(hpTrack.rectTransform, new Vector2(0f, 1f), new Vector2(172f, -128f), new Vector2(280f, 42f));
             _inspectHpFill = UIKit.Image("Fill", hpTrack.transform, UIKit.Lib != null ? UIKit.Lib.uiRound : null, UIPalette.Leaf);
             _inspectHpFill.type = Image.Type.Filled;
             _inspectHpFill.fillMethod = Image.FillMethod.Horizontal;
             UIKit.Stretch(_inspectHpFill.rectTransform, 3f);
-            _inspectHp = UIKit.Text("Hp", hpTrack.transform, "", 28f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
+            _inspectHp = UIKit.Text("Hp", hpTrack.transform, "", 34f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
             UIKit.Stretch(_inspectHp.rectTransform);
-            _inspectDesc = UIKit.Text("Desc", p.transform, "", 30f, UIPalette.TextDim, TextAlignmentOptions.TopLeft);
-            MenuKit.Fit(_inspectDesc, 30f);
+            _inspectDesc = UIKit.Text("Desc", p.transform, "", 36f, UIPalette.TextDim, TextAlignmentOptions.TopLeft);
+            MenuKit.Fit(_inspectDesc, 36f);
             _inspectDesc.rectTransform.anchorMin = new Vector2(0f, 0f);
             _inspectDesc.rectTransform.anchorMax = new Vector2(1f, 1f);
             _inspectDesc.rectTransform.offsetMin = new Vector2(20f, 16f);
-            _inspectDesc.rectTransform.offsetMax = new Vector2(-20f, -166f);
+            _inspectDesc.rectTransform.offsetMax = new Vector2(-20f, -216f);
             Button close = UIKit.Button("Close", p.transform, null, UIPalette.ButtonSecondary, () => InspectClosed?.Invoke(), UIKit.Lib != null ? UIKit.Lib.iconClose : null);
-            UIKit.Place((RectTransform)close.transform, new Vector2(1f, 1f), new Vector2(-10f, -10f), new Vector2(76f, 76f));
-            _undoButton = UIKit.Button("Undo", p.transform, "Undo", UIPalette.ButtonPrimary, () => UndoClicked?.Invoke(), UIKit.Lib != null ? UIKit.Lib.iconUndo : null, 34f);
-            UIKit.Place((RectTransform)_undoButton.transform, new Vector2(1f, 1f), new Vector2(-10f, -96f), new Vector2(200f, 80f));
+            UIKit.Place((RectTransform)close.transform, new Vector2(1f, 1f), new Vector2(-10f, -10f), new Vector2(90f, 90f));
+            _undoButton = UIKit.Button("Undo", p.transform, "Undo", UIPalette.ButtonPrimary, () => UndoClicked?.Invoke(), UIKit.Lib != null ? UIKit.Lib.iconUndo : null, 40f);
+            UIKit.Place((RectTransform)_undoButton.transform, new Vector2(1f, 1f), new Vector2(-10f, -116f), new Vector2(220f, 90f));
             _undoLabel = _undoButton.GetComponentInChildren<TextMeshProUGUI>();
             _inspect.gameObject.SetActive(false);
         }
@@ -297,27 +308,27 @@ namespace VerdantSiege.UI
             dim.raycastTarget = true;
             UIKit.Stretch((RectTransform)_pauseOverlay.transform);
             Image panel = UIKit.Panel("Panel", _pauseOverlay.transform, UIPalette.Panel, true, true);
-            UIKit.Place(panel.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760f, 860f));
+            UIKit.Place(panel.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(800f, 900f));
             TextMeshProUGUI title = UIKit.Text("Title", panel.transform, "Paused", 84f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
             UIKit.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -28f), new Vector2(700f, 100f));
             float y = -150f;
-            Button resume = UIKit.Button("Resume", panel.transform, "Resume", UIPalette.ButtonPrimary, () => ResumeClicked?.Invoke(), UIKit.Lib != null ? UIKit.Lib.iconPlay : null, 46f);
-            UIKit.Place((RectTransform)resume.transform, new Vector2(0.5f, 1f), new Vector2(0f, y), new Vector2(560f, 110f)); y -= 130f;
-            Button restart = UIKit.Button("Restart", panel.transform, "Restart", UIPalette.ButtonSecondary, () => RestartClicked?.Invoke(), UIKit.Lib != null ? UIKit.Lib.iconRestart : null, 42f);
-            UIKit.Place((RectTransform)restart.transform, new Vector2(0.5f, 1f), new Vector2(0f, y), new Vector2(560f, 100f)); y -= 120f;
-            Button menu = UIKit.Button("Menu", panel.transform, "Main Menu", UIPalette.ButtonSecondary, () => MenuClicked?.Invoke(), UIKit.Lib != null ? UIKit.Lib.iconHome : null, 42f);
-            UIKit.Place((RectTransform)menu.transform, new Vector2(0.5f, 1f), new Vector2(0f, y), new Vector2(560f, 100f)); y -= 140f;
+            Button resume = UIKit.Button("Resume", panel.transform, "Resume", UIPalette.ButtonPrimary, () => ResumeClicked?.Invoke(), UIKit.Lib != null ? UIKit.Lib.iconPlay : null, 50f);
+            UIKit.Place((RectTransform)resume.transform, new Vector2(0.5f, 1f), new Vector2(0f, y), new Vector2(580f, 120f)); y -= 136f;
+            Button restart = UIKit.Button("Restart", panel.transform, "Restart", UIPalette.ButtonSecondary, () => RestartClicked?.Invoke(), UIKit.Lib != null ? UIKit.Lib.iconRestart : null, 46f);
+            UIKit.Place((RectTransform)restart.transform, new Vector2(0.5f, 1f), new Vector2(0f, y), new Vector2(580f, 112f)); y -= 128f;
+            Button menu = UIKit.Button("Menu", panel.transform, "Main Menu", UIPalette.ButtonSecondary, () => MenuClicked?.Invoke(), UIKit.Lib != null ? UIKit.Lib.iconHome : null, 46f);
+            UIKit.Place((RectTransform)menu.transform, new Vector2(0.5f, 1f), new Vector2(0f, y), new Vector2(580f, 112f)); y -= 140f;
 
             _autoToggle = UIKit.Toggle("AutoCollect", panel.transform, "Auto-collect Vitality", autoCollect, v => AutoCollectChanged?.Invoke(v));
-            UIKit.Place((RectTransform)_autoToggle.transform, new Vector2(0.5f, 1f), new Vector2(0f, y), new Vector2(560f, 70f)); y -= 100f;
-            TextMeshProUGUI ml = UIKit.Text("MusicLabel", panel.transform, "Music", 34f, UIPalette.TextDim, TextAlignmentOptions.MidlineLeft);
-            UIKit.Place(ml.rectTransform, new Vector2(0.5f, 1f), new Vector2(-180f, y), new Vector2(200f, 60f));
+            UIKit.Place((RectTransform)_autoToggle.transform, new Vector2(0.5f, 1f), new Vector2(0f, y), new Vector2(600f, 80f)); y -= 100f;
+            TextMeshProUGUI ml = UIKit.Text("MusicLabel", panel.transform, "Music", 40f, UIPalette.TextDim, TextAlignmentOptions.MidlineLeft);
+            UIKit.Place(ml.rectTransform, new Vector2(0.5f, 1f), new Vector2(-190f, y), new Vector2(200f, 70f));
             _musicSlider = UIKit.Slider("Music", panel.transform, music, v => VolumesChanged?.Invoke(_musicSlider.value, _sfxSlider.value));
-            UIKit.Place((RectTransform)_musicSlider.transform, new Vector2(0.5f, 1f), new Vector2(90f, y), new Vector2(360f, 60f)); y -= 80f;
-            TextMeshProUGUI sl = UIKit.Text("SfxLabel", panel.transform, "Sound", 34f, UIPalette.TextDim, TextAlignmentOptions.MidlineLeft);
-            UIKit.Place(sl.rectTransform, new Vector2(0.5f, 1f), new Vector2(-180f, y), new Vector2(200f, 60f));
+            UIKit.Place((RectTransform)_musicSlider.transform, new Vector2(0.5f, 1f), new Vector2(100f, y), new Vector2(380f, 70f)); y -= 88f;
+            TextMeshProUGUI sl = UIKit.Text("SfxLabel", panel.transform, "Sound", 40f, UIPalette.TextDim, TextAlignmentOptions.MidlineLeft);
+            UIKit.Place(sl.rectTransform, new Vector2(0.5f, 1f), new Vector2(-190f, y), new Vector2(200f, 70f));
             _sfxSlider = UIKit.Slider("Sfx", panel.transform, sfx, v => VolumesChanged?.Invoke(_musicSlider.value, _sfxSlider.value));
-            UIKit.Place((RectTransform)_sfxSlider.transform, new Vector2(0.5f, 1f), new Vector2(90f, y), new Vector2(360f, 60f));
+            UIKit.Place((RectTransform)_sfxSlider.transform, new Vector2(0.5f, 1f), new Vector2(100f, y), new Vector2(380f, 70f));
             _pauseOverlay.SetActive(false);
         }
 

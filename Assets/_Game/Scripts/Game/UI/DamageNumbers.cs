@@ -83,7 +83,7 @@ namespace VerdantSiege.UI
             if (label == null)
             {
                 if (_labels.Count >= 40) return; // budget
-                TextMeshProUGUI t = UIKit.Text("Dmg", _root, "", 34f, Color.white, TextAlignmentOptions.Center, true);
+                TextMeshProUGUI t = UIKit.Text("Dmg", _root, "", 40f, Color.white, TextAlignmentOptions.Center, true);
                 t.rectTransform.sizeDelta = new Vector2(160f, 50f);
                 t.outlineWidth = 0.22f;
                 t.outlineColor = new Color32(20, 30, 20, 220);

@@ -160,7 +160,7 @@ namespace VerdantSiege.UI
         }
 
         public static Button Button(string name, Transform parent, string label, Color color, Action onClick, Sprite icon = null,
-                                    float fontSize = 40f)
+                                    float fontSize = 44f)
         {
             Image bg = Panel(name, parent, color, true, true);
             var b = bg.gameObject.AddComponent<Button>();
@@ -209,7 +209,7 @@ namespace VerdantSiege.UI
             RectTransform handleArea = Rect("HandleArea", root);
             Stretch(handleArea);
             Image handle = Image("Handle", handleArea, Lib != null ? Lib.uiCircle : null, UIPalette.Parchment, true);
-            handle.rectTransform.sizeDelta = new Vector2(56f, 56f);
+            handle.rectTransform.sizeDelta = new Vector2(56f, 0f); // stretches to the slider height (was taller than the row)
             var s = root.gameObject.AddComponent<Slider>();
             s.fillRect = fill.rectTransform;
             s.handleRect = handle.rectTransform;
@@ -225,13 +225,13 @@ namespace VerdantSiege.UI
         {
             RectTransform root = Rect(name, parent);
             Image box = Image("Box", root, Lib != null ? Lib.uiRound : null, new Color(0f, 0f, 0f, 0.45f), true);
-            Place(box.rectTransform, new Vector2(0f, 0.5f), Vector2.zero, new Vector2(64f, 64f));
+            Place(box.rectTransform, new Vector2(0f, 0.5f), Vector2.zero, new Vector2(72f, 72f));
             Image check = Image("Check", box.transform, Lib != null ? Lib.iconLeaf : null, UIPalette.Leaf);
             Stretch(check.rectTransform, 8f);
-            TextMeshProUGUI t = Text("Label", root, label, 36f, UIPalette.Parchment, TextAlignmentOptions.MidlineLeft);
+            TextMeshProUGUI t = Text("Label", root, label, 40f, UIPalette.Parchment, TextAlignmentOptions.MidlineLeft);
             t.rectTransform.anchorMin = new Vector2(0f, 0f);
             t.rectTransform.anchorMax = new Vector2(1f, 1f);
-            t.rectTransform.offsetMin = new Vector2(84f, 0f);
+            t.rectTransform.offsetMin = new Vector2(92f, 0f);
             t.rectTransform.offsetMax = Vector2.zero;
             var tg = root.gameObject.AddComponent<Toggle>();
             tg.targetGraphic = box;

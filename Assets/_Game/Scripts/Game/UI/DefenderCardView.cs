@@ -21,7 +21,7 @@ namespace VerdantSiege.UI
         public event Action<int, Vector2> DragEnded;
 
         /// <summary>Card name and cost sizes (TD-36: battle text never below 28; costs read at a glance).</summary>
-        public const float NameSize = 32f, CostSize = 36f;
+        public const float NameSize = 38f, CostSize = 44f;
 
         private DeckSlot _slot;
         private Image _bg, _edge, _portrait, _cooldown, _costChip;
@@ -66,7 +66,7 @@ namespace VerdantSiege.UI
             // Two shapes (TD-36): a wide card (single-column rail: portrait left, name top-right, cost bottom-right) and a
             // tall card (two-column rail for 6-8 cards: portrait top-left, cost column top-right, name across the bottom).
             bool tall = size.x < size.y * 1.2f;
-            float pd = tall ? Mathf.Min(size.y - 96f, size.x - 84f) : size.y * 0.98f;
+            float pd = tall ? Mathf.Min(size.y - 92f, size.x - 96f) : size.y * 0.98f;
             _portrait = UIKit.Image("Portrait", _bg.transform, d.icon, Color.white);
             _portrait.preserveAspect = true;
             if (tall) UIKit.Place(_portrait.rectTransform, new Vector2(0f, 1f), new Vector2(4f, -4f), new Vector2(pd, pd));
@@ -89,11 +89,11 @@ namespace VerdantSiege.UI
                 _name.rectTransform.anchorMax = new Vector2(1f, 0f);
                 _name.rectTransform.pivot = new Vector2(0.5f, 0f);
                 _name.rectTransform.offsetMin = new Vector2(8f, 8f);
-                _name.rectTransform.offsetMax = new Vector2(-8f, 8f + Mathf.Min(78f, size.y - pd - 14f));
+                _name.rectTransform.offsetMax = new Vector2(-8f, 8f + Mathf.Min(84f, size.y - pd - 10f));
             }
             else
             {
-                _name.rectTransform.anchorMin = new Vector2(0.45f, 0.5f);
+                _name.rectTransform.anchorMin = new Vector2(0.42f, 0.42f);
                 _name.rectTransform.anchorMax = new Vector2(1f, 1f);
                 _name.rectTransform.offsetMin = new Vector2(0f, 0f);
                 _name.rectTransform.offsetMax = new Vector2(-12f, -8f);
@@ -109,19 +109,19 @@ namespace VerdantSiege.UI
             if (tall)
             {
                 // Cost column: Vitality icon over the number.
-                UIKit.Place(_costChip.rectTransform, new Vector2(1f, 1f), new Vector2(-6f, -8f), new Vector2(Mathf.Min(84f, size.x - pd - 14f), 100f));
-                UIKit.Place(vIcon.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -6f), new Vector2(40f, 40f));
+                UIKit.Place(_costChip.rectTransform, new Vector2(1f, 1f), new Vector2(-6f, -8f), new Vector2(Mathf.Min(96f, size.x - pd - 10f), 108f));
+                UIKit.Place(vIcon.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -6f), new Vector2(44f, 44f));
                 _cost.alignment = TextAlignmentOptions.Center;
-                _cost.rectTransform.offsetMax = new Vector2(0f, -44f);
+                _cost.rectTransform.offsetMax = new Vector2(0f, -48f);
                 _cost.textWrappingMode = TextWrappingModes.NoWrap;
-                MenuKit.Fit(_cost, CostSize, 30f);
+                MenuKit.Fit(_cost, CostSize, 36f);
             }
             else
             {
-                float chipH = Mathf.Clamp(size.y * 0.36f, 46f, 58f);
-                UIKit.Place(_costChip.rectTransform, new Vector2(1f, 0f), new Vector2(-10f, 8f), new Vector2(chipH * 2.4f, chipH));
+                float chipH = Mathf.Clamp(size.y * 0.36f, 52f, 62f);
+                UIKit.Place(_costChip.rectTransform, new Vector2(1f, 0f), new Vector2(-10f, 8f), new Vector2(chipH * 2.5f, chipH));
                 UIKit.Place(vIcon.rectTransform, new Vector2(0f, 0.5f), new Vector2(4f, 0f), new Vector2(chipH * 0.84f, chipH * 0.84f));
-                _cost.fontSize = Mathf.Max(CostSize, chipH * 0.7f);
+                _cost.fontSize = Mathf.Max(CostSize, chipH * 0.72f);
                 _cost.rectTransform.offsetMax = new Vector2(-10f, 0f);
             }
             _cooldown = UIKit.Image("Cooldown", _bg.transform, UIKit.Lib != null ? UIKit.Lib.uiRound : null, new Color(0.02f, 0.06f, 0.05f, 0.72f));
@@ -129,7 +129,7 @@ namespace VerdantSiege.UI
             _cooldown.type = Image.Type.Filled;
             _cooldown.fillMethod = Image.FillMethod.Vertical;
             _cooldown.fillOrigin = (int)Image.OriginVertical.Top;
-            _cdText = UIKit.Text("CooldownText", _bg.transform, "", 52f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
+            _cdText = UIKit.Text("CooldownText", _bg.transform, "", 62f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
             UIKit.Stretch(_cdText.rectTransform);
             _edge = UIKit.Image("Edge", _bg.transform, UIKit.Lib != null ? UIKit.Lib.uiRoundOutline : null, UIPalette.PanelEdge);
             UIKit.Stretch(_edge.rectTransform, -4f);

@@ -35,15 +35,15 @@ namespace VerdantSiege.UI
         private CanvasGroup _group;
         private Item _current;
         private float _timer = -1f;
-        private float _top = -112f;
+        private float _top = -BattleHud.TopBarHeight;
         private float _anim;
 
         public bool Busy => _timer > 0f;
         /// <summary>An intel card is fully shown (autoplay screenshot).</summary>
         public bool ShowingIntel => _timer > 0.5f && _anim >= 1f && _current.kind == NotifyKind.Intel;
 
-        /// <summary>TD-36: title ~38, body 30 (never below 28), up to two body lines; the strip grows only when needed.</summary>
-        public const float TitleSize = 38f, BodySize = 30f, Width = 1120f, TitleBand = 50f;
+        /// <summary>TD-36: title 44, body 36 (never below 34), up to two body lines; the strip grows only when needed.</summary>
+        public const float TitleSize = 44f, BodySize = 36f, Width = 1200f, TitleBand = 58f;
 
         public static NotificationFeed Create(RectTransform root)
         {
@@ -67,7 +67,7 @@ namespace VerdantSiege.UI
             _accent.rectTransform.offsetMax = new Vector2(18f, -12f);
             _title = UIKit.Text("Title", _bg.transform, "", TitleSize, UIPalette.Parchment, TextAlignmentOptions.MidlineLeft, true);
             _title.textWrappingMode = TextWrappingModes.NoWrap;
-            MenuKit.Fit(_title, TitleSize, 30f);
+            MenuKit.Fit(_title, TitleSize, 36f);
             _body = UIKit.Text("Body", _bg.transform, "", BodySize, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
             _body.lineSpacing = -6f;
             _group = UIKit.Group(_bg.gameObject);
@@ -106,7 +106,7 @@ namespace VerdantSiege.UI
             float w = it.kind == NotifyKind.Intel ? Width : Width - 160f;
             _body.fontSize = BodySize;
             float bodyH = twoLine ? Mathf.Min(MenuKit.TextHeight(_body, it.body, w - 52f), 2f * BodySize * 1.2f) : 0f;
-            float h = twoLine ? TitleBand + bodyH + 14f : 66f;
+            float h = twoLine ? TitleBand + bodyH + 14f : 74f;
             UIKit.Place(_strip, new Vector2(0.5f, 1f), new Vector2(BattleHud.RailWidth * 0.5f, _top), new Vector2(w, h));
             _accent.color = it.color;
             _title.text = it.title;

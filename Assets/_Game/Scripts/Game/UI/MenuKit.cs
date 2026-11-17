@@ -15,27 +15,27 @@ namespace VerdantSiege.UI
     /// </summary>
     public static class MenuKit
     {
-        public const float TopBarHeight = 124f;
+        public const float TopBarHeight = 136f;
 
         // ---- readability minimums (TD-36), in 1920x1080 reference units. On phones the canvas matches height, so
-        // 1080 units = the screen height: on a 6.5" 20:9 phone 28 units is about 1.9 mm of em height.
+        // 1080 units = the screen height: on a 6.5" 20:9 phone 34 units is about 2.3 mm of em height (TD-36, raised again for 0.5.2).
         /// <summary>Absolute floor for any menu text; TMP auto-size never goes below it.</summary>
-        public const float TextMin = 28f;
+        public const float TextMin = 34f;
         /// <summary>Hints, secondary lines, small captions.</summary>
-        public const float TextSmall = 30f;
+        public const float TextSmall = 36f;
         /// <summary>Descriptions, briefing, body copy.</summary>
-        public const float TextBody = 32f;
+        public const float TextBody = 38f;
         /// <summary>Card titles and names.</summary>
-        public const float TextLabel = 32f;
+        public const float TextLabel = 38f;
         /// <summary>Costs and counts that must read at a glance.</summary>
-        public const float TextNumber = 34f;
+        public const float TextNumber = 42f;
         /// <summary>Section headers.</summary>
-        public const float TextHeader = 44f;
+        public const float TextHeader = 52f;
         /// <summary>Button labels.</summary>
-        public const float TextButton = 38f;
+        public const float TextButton = 44f;
         /// <summary>Minimum touch target height (buttons, tabs).</summary>
-        public const float TouchMin = 96f;
-        public const float ButtonHeight = 104f;
+        public const float TouchMin = 110f;
+        public const float ButtonHeight = 116f;
         /// <summary>Outer margin and gap between screen columns.</summary>
         public const float Gutter = 28f;
         public static readonly Color EssenceColor = new Color(0.78f, 0.55f, 1f);
@@ -72,12 +72,12 @@ namespace VerdantSiege.UI
             safe.gameObject.AddComponent<WidthFit>();
 
             Button b = UIKit.Button("Back", safe, null, UIPalette.ButtonSecondary, back, S(l => l.iconHome));
-            UIKit.Place((RectTransform)b.transform, new Vector2(0f, 1f), new Vector2(28f, -14f), new Vector2(TouchMin + 8f, TouchMin));
-            TextMeshProUGUI t = UIKit.Text("Title", safe, title, 64f, UIPalette.Parchment, TextAlignmentOptions.MidlineLeft, true);
-            UIKit.Place(t.rectTransform, new Vector2(0f, 1f), new Vector2(156f, -18f), new Vector2(1000f, 88f));
+            UIKit.Place((RectTransform)b.transform, new Vector2(0f, 1f), new Vector2(28f, -12f), new Vector2(TouchMin + 8f, TouchMin));
+            TextMeshProUGUI t = UIKit.Text("Title", safe, title, 70f, UIPalette.Parchment, TextAlignmentOptions.MidlineLeft, true);
+            UIKit.Place(t.rectTransform, new Vector2(0f, 1f), new Vector2(166f, -16f), new Vector2(1000f, 104f));
             t.enableAutoSizing = true;
-            t.fontSizeMin = 40f;
-            t.fontSizeMax = 64f;
+            t.fontSizeMin = 48f;
+            t.fontSizeMax = 70f;
             Shadowed(t);
             currency = CurrencyBar.Create(safe);
             return go;
@@ -271,8 +271,8 @@ namespace VerdantSiege.UI
         {
             Image bg = UIKit.Panel("Toast", parent, new Color(0.08f, 0.14f, 0.1f, 0.96f), true, true);
             bg.raycastTarget = false;
-            UIKit.Place(bg.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 150f), new Vector2(1000f, 84f));
-            TextMeshProUGUI t = UIKit.Text("Text", bg.transform, text, 34f, color, TextAlignmentOptions.Center, true);
+            UIKit.Place(bg.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 150f), new Vector2(1240f, 100f));
+            TextMeshProUGUI t = UIKit.Text("Text", bg.transform, text, 40f, color, TextAlignmentOptions.Center, true);
             UIKit.Stretch(t.rectTransform, 10f);
             bg.gameObject.AddComponent<FadeAway>().life = 2.6f;
             PopIn.Play(bg.gameObject);
@@ -287,10 +287,10 @@ namespace VerdantSiege.UI
         public static CurrencyBar Create(Transform safe)
         {
             RectTransform root = UIKit.Rect("Currency", safe);
-            UIKit.Place(root, new Vector2(1f, 1f), new Vector2(-24f, -20f), new Vector2(560f, 84f));
+            UIKit.Place(root, new Vector2(1f, 1f), new Vector2(-24f, -16f), new Vector2(660f, 100f));
             var bar = root.gameObject.AddComponent<CurrencyBar>();
-            bar._seeds = MenuKit.Chip(root, "Seeds", false, "0", new Vector2(0f, 0.5f), Vector2.zero, new Vector2(290f, 84f));
-            bar._essence = MenuKit.Chip(root, "Essence", true, "0", new Vector2(1f, 0.5f), Vector2.zero, new Vector2(250f, 84f));
+            bar._seeds = MenuKit.Chip(root, "Seeds", false, "0", new Vector2(0f, 0.5f), Vector2.zero, new Vector2(350f, 100f));
+            bar._essence = MenuKit.Chip(root, "Essence", true, "0", new Vector2(1f, 0.5f), Vector2.zero, new Vector2(290f, 100f));
             bar.Refresh();
             return bar;
         }

@@ -17,10 +17,10 @@ namespace VerdantSiege.UI
     public sealed class LoadoutScreen : MonoBehaviour
     {
         // Readability pass (TD-36): big cards; the deck row scrolls sideways, the collection and the intel scroll down.
-        private const float RightWidth = 700f;
-        private const float SlotW = 212f, SlotH = 258f;
-        private const float TileW = 228f, TileH = 280f;
-        private const float DeckHead = 60f, DeckRowH = SlotH + 30f;
+        private const float RightWidth = 780f;
+        private const float SlotW = 236f, SlotH = 290f;
+        private const float TileW = 264f, TileH = 330f;
+        private const float DeckHead = 68f, DeckRowH = SlotH + 26f;
 
         private MainMenuController _hub;
         private AppRoot _app;
@@ -60,9 +60,9 @@ namespace VerdantSiege.UI
             left.offsetMin = new Vector2(g, g);
             left.offsetMax = new Vector2(-(RightWidth + 2f * g), -top);
             TextMeshProUGUI dh = UIKit.Text("DeckHead", left, "Your deck", MenuKit.TextHeader, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(dh.rectTransform, new Vector2(0f, 1f), new Vector2(4f, 0f), new Vector2(300f, 54f));
+            UIKit.Place(dh.rectTransform, new Vector2(0f, 1f), new Vector2(4f, 0f), new Vector2(330f, 64f));
             _deckCount = UIKit.Text("DeckCount", left, "", MenuKit.TextLabel, UIPalette.TextDim, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(_deckCount.rectTransform, new Vector2(0f, 1f), new Vector2(270f, -8f), new Vector2(760f, 44f));
+            UIKit.Place(_deckCount.rectTransform, new Vector2(0f, 1f), new Vector2(320f, -8f), new Vector2(900f, 52f));
             Image deckBg = UIKit.Panel("DeckRow", left, new Color(0f, 0f, 0f, 0.25f), true, false);
             RectTransform deckPanel = deckBg.rectTransform;
             deckPanel.anchorMin = new Vector2(0f, 1f);
@@ -80,22 +80,22 @@ namespace VerdantSiege.UI
             row.childForceExpandWidth = row.childForceExpandHeight = false;
             _deckRow.gameObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            float collTop = DeckHead + DeckRowH + 22f;
+            float collTop = DeckHead + DeckRowH + 16f;
             TextMeshProUGUI ch = UIKit.Text("CollectionHead", left, "Collection", MenuKit.TextHeader, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(ch.rectTransform, new Vector2(0f, 1f), new Vector2(4f, -collTop), new Vector2(300f, 54f));
+            UIKit.Place(ch.rectTransform, new Vector2(0f, 1f), new Vector2(4f, -collTop), new Vector2(330f, 64f));
             TextMeshProUGUI chHint = UIKit.Text("CollectionHint", left, "Tap to add  ·  tap a deck card to remove", MenuKit.TextSmall, UIPalette.TextDim, TextAlignmentOptions.TopLeft);
             chHint.rectTransform.anchorMin = new Vector2(0f, 1f);
             chHint.rectTransform.anchorMax = new Vector2(1f, 1f);
             chHint.rectTransform.pivot = new Vector2(0f, 1f);
-            chHint.rectTransform.offsetMin = new Vector2(280f, -(collTop + 50f));
-            chHint.rectTransform.offsetMax = new Vector2(0f, -(collTop + 10f));
+            chHint.rectTransform.offsetMin = new Vector2(330f, -(collTop + 58f));
+            chHint.rectTransform.offsetMax = new Vector2(0f, -(collTop + 8f));
             MenuKit.Fit(chHint, MenuKit.TextSmall);
             ScrollRect gridScroll = MenuKit.Scroll(left, "CollectionScroll", false, out _grid);
             RectTransform gs = (RectTransform)gridScroll.transform;
             gs.anchorMin = Vector2.zero;
             gs.anchorMax = Vector2.one;
             gs.offsetMin = Vector2.zero;
-            gs.offsetMax = new Vector2(0f, -(collTop + 62f));
+            gs.offsetMax = new Vector2(0f, -(collTop + 70f));
             var grid = _grid.gameObject.AddComponent<GridLayoutGroup>();
             grid.cellSize = new Vector2(TileW, TileH);
             grid.spacing = new Vector2(16f, 16f);
@@ -118,7 +118,7 @@ namespace VerdantSiege.UI
             RectTransform isr = (RectTransform)intel.transform;
             isr.anchorMin = Vector2.zero;
             isr.anchorMax = Vector2.one;
-            isr.offsetMin = new Vector2(6f, MenuKit.ButtonHeight + 44f);
+            isr.offsetMin = new Vector2(6f, MenuKit.ButtonHeight + 40f);
             isr.offsetMax = new Vector2(-6f, -8f);
             _brief = UIKit.Text("Briefing", _intelContent, e_Briefing(), MenuKit.TextBody, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
             Image adv = UIKit.Panel("Advice", _intelContent, new Color(0.35f, 0.25f, 0.05f, 0.55f), true, false);
@@ -126,10 +126,10 @@ namespace VerdantSiege.UI
             _advice = UIKit.Text("Text", _adviceBox, "", MenuKit.TextBody, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
             UIKit.Stretch(_advice.rectTransform, 18f);
 
-            Button rec = UIKit.Button("Recommended", r, "Recommended", UIPalette.ButtonSecondary, UseRecommended, null, MenuKit.TextSmall + 2f);
-            UIKit.Place((RectTransform)rec.transform, new Vector2(0f, 0f), new Vector2(18f, 22f), new Vector2(280f, MenuKit.ButtonHeight + 8f));
-            Button begin = UIKit.Button("Begin", r, "Begin Battle", UIPalette.ButtonPrimary, Begin, UIKit.Lib != null ? UIKit.Lib.iconPlay : null, 40f);
-            UIKit.Place((RectTransform)begin.transform, new Vector2(1f, 0f), new Vector2(-18f, 22f), new Vector2(360f, MenuKit.ButtonHeight + 8f));
+            Button rec = UIKit.Button("Recommended", r, "Recommended", UIPalette.ButtonSecondary, UseRecommended, null, 38f);
+            UIKit.Place((RectTransform)rec.transform, new Vector2(0f, 0f), new Vector2(18f, 20f), new Vector2(320f, MenuKit.ButtonHeight));
+            Button begin = UIKit.Button("Begin", r, "Begin Battle", UIPalette.ButtonPrimary, Begin, UIKit.Lib != null ? UIKit.Lib.iconPlay : null, MenuKit.TextButton);
+            UIKit.Place((RectTransform)begin.transform, new Vector2(1f, 0f), new Vector2(-18f, 20f), new Vector2(400f, MenuKit.ButtonHeight));
             begin.gameObject.AddComponent<Pulse>().amount = 0.03f;
 
             Refresh();
@@ -213,18 +213,18 @@ namespace VerdantSiege.UI
             Button b = UIKit.Button(name, parent, null, bgColor, onTap);
             var rt = (RectTransform)b.transform;
             rt.sizeDelta = new Vector2(w, h);
-            float pd = Mathf.Min(w * 0.66f, h - 140f);
+            float pd = Mathf.Min(w * 0.62f, h - 160f);
             RectTransform portrait = MenuKit.Portrait(rt, d, pd, locked);
             UIKit.Place(portrait, new Vector2(0.5f, 1f), new Vector2(0f, -10f), new Vector2(pd, pd));
             TextMeshProUGUI n = UIKit.Text("Name", rt, d.displayName, MenuKit.TextLabel, locked ? UIPalette.TextDim : UIPalette.Parchment, TextAlignmentOptions.Center, true);
-            UIKit.Place(n.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -pd - 16f), new Vector2(w - 12f, 42f));
+            UIKit.Place(n.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -pd - 14f), new Vector2(w - 12f, 52f));
             n.textWrappingMode = TextWrappingModes.NoWrap;
             MenuKit.Fit(n, MenuKit.TextLabel);
             if (locked)
             {
                 EncounterDefinition by = _app.Progression.Campaign != null ? CampaignRules.UnlockedBy(_app.Progression.Campaign, d) : null;
                 TextMeshProUGUI l = UIKit.Text("Unlock", rt, by != null ? "Win " + by.displayName : "Locked", MenuKit.TextMin, UIPalette.TextDim, TextAlignmentOptions.Center);
-                UIKit.Place(l.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 8f), new Vector2(w - 12f, h - pd - 70f));
+                UIKit.Place(l.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 8f), new Vector2(w - 12f, h - pd - 80f));
                 l.lineSpacing = -12f;
                 return rt;
             }
@@ -232,15 +232,15 @@ namespace VerdantSiege.UI
             float ic = MenuKit.TextNumber + 4f;
             Image vi = UIKit.Image("Vit", rt, UIKit.Lib != null ? UIKit.Lib.iconVitality : null, Color.white);
             vi.preserveAspect = true;
-            UIKit.Place(vi.rectTransform, new Vector2(0.5f, 0f), new Vector2(-36f, 34f), new Vector2(ic, ic));
+            UIKit.Place(vi.rectTransform, new Vector2(0.5f, 0f), new Vector2(-44f, 36f), new Vector2(ic, ic));
             TextMeshProUGUI cost = UIKit.Text("Cost", rt, d.cost.ToString(), MenuKit.TextNumber, UIPalette.Vitality, TextAlignmentOptions.MidlineLeft, true);
-            UIKit.Place(cost.rectTransform, new Vector2(0.5f, 0f), new Vector2(34f, 30f), new Vector2(90f, ic + 8f));
+            UIKit.Place(cost.rectTransform, new Vector2(0.5f, 0f), new Vector2(38f, 32f), new Vector2(110f, ic + 8f));
             cost.overflowMode = TextOverflowModes.Overflow; // a short number: never truncate it to nothing
-            MenuKit.MasteryPips(rt, MasteryRules.LevelOf(Save, d.id), 24f, new Vector2(0.5f, 0f), new Vector2(0f, 5f));
+            MenuKit.MasteryPips(rt, MasteryRules.LevelOf(Save, d.id), 28f, new Vector2(0.5f, 0f), new Vector2(0f, 4f));
             if (state == CardState.Chosen)
             {
                 Image check = UIKit.Image("InDeck", rt, MenuKit.Circle, UIPalette.Leaf);
-                UIKit.Place(check.rectTransform, new Vector2(1f, 1f), new Vector2(-6f, -6f), new Vector2(48f, 48f));
+                UIKit.Place(check.rectTransform, new Vector2(1f, 1f), new Vector2(-6f, -6f), new Vector2(56f, 56f));
                 Image leaf = UIKit.Image("Leaf", check.transform, UIKit.Lib != null ? UIKit.Lib.iconLeaf : null, Color.white);
                 UIKit.Stretch(leaf.rectTransform, 7f);
                 UIKit.Group(rt.gameObject).alpha = 0.6f;

@@ -19,10 +19,10 @@ namespace VerdantSiege.UI
     /// </summary>
     public sealed class EvolutionChooser : MonoBehaviour
     {
-        // TD-36: descriptions 30 (min 28) across the full row width (cost pill beside the name), bold 40 costs.
-        private const float CardWidth = 680f;
-        private const float RowHeight = 126f;
-        private const float HeaderHeight = 96f;
+        // TD-36: descriptions 36 (min 34) across the full row width (cost pill beside the name), bold 48 costs.
+        private const float CardWidth = 780f;
+        private const float RowHeight = 150f;
+        private const float HeaderHeight = 112f;
 
         private BattleController _ctrl;
         private BattleSimulation _sim;
@@ -121,14 +121,14 @@ namespace VerdantSiege.UI
         {
             Image panel = UIKit.Panel("EvolutionChooser", _hud.Root, UIPalette.Panel, true, true);
             _card = panel.rectTransform;
-            _title = UIKit.Text("Title", _card, "", 40f, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(_title.rectTransform, new Vector2(0f, 1f), new Vector2(22f, -12f), new Vector2(CardWidth - 120f, 48f));
+            _title = UIKit.Text("Title", _card, "", 48f, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
+            UIKit.Place(_title.rectTransform, new Vector2(0f, 1f), new Vector2(22f, -10f), new Vector2(CardWidth - 130f, 58f));
             _title.textWrappingMode = TextWrappingModes.NoWrap;
-            MenuKit.Fit(_title, 40f, 32f);
+            MenuKit.Fit(_title, 48f, 38f);
             _subtitle = UIKit.Text("Subtitle", _card, "Choose one. The battle keeps going.", MenuKit.TextMin, UIPalette.TextDim, TextAlignmentOptions.TopLeft);
-            UIKit.Place(_subtitle.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -56f), new Vector2(CardWidth - 120f, 34f));
+            UIKit.Place(_subtitle.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -64f), new Vector2(CardWidth - 130f, 44f));
             Button close = UIKit.Button("Close", _card, null, UIPalette.ButtonSecondary, () => State.Close(), UIKit.Lib != null ? UIKit.Lib.iconClose : null);
-            UIKit.Place((RectTransform)close.transform, new Vector2(1f, 1f), new Vector2(-10f, -10f), new Vector2(80f, 80f));
+            UIKit.Place((RectTransform)close.transform, new Vector2(1f, 1f), new Vector2(-10f, -10f), new Vector2(96f, 96f));
             for (int i = 0; i < 3; i++) _rows.Add(BuildRow(i));
             _card.gameObject.SetActive(false);
         }
@@ -142,24 +142,24 @@ namespace VerdantSiege.UI
             r.group = UIKit.Group(r.root.gameObject);
             Sprite circle = UIKit.Lib != null ? UIKit.Lib.uiCircle : null;
             r.disc = UIKit.Image("Disc", r.root, circle, Color.white);
-            UIKit.Place(r.disc.rectTransform, new Vector2(0f, 1f), new Vector2(12f, -12f), new Vector2(76f, 76f));
-            r.glyph = UIKit.Text("Glyph", r.disc.transform, "", 34f, new Color(0.1f, 0.14f, 0.1f), TextAlignmentOptions.Center, true);
+            UIKit.Place(r.disc.rectTransform, new Vector2(0f, 1f), new Vector2(12f, -12f), new Vector2(84f, 84f));
+            r.glyph = UIKit.Text("Glyph", r.disc.transform, "", 38f, new Color(0.1f, 0.14f, 0.1f), TextAlignmentOptions.Center, true);
             UIKit.Stretch(r.glyph.rectTransform);
-            r.name = UIKit.Text("Name", r.root, "", 34f, UIPalette.Parchment, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(r.name.rectTransform, new Vector2(0f, 1f), new Vector2(102f, -10f), new Vector2(CardWidth - 28f - 102f - 160f, 46f));
+            r.name = UIKit.Text("Name", r.root, "", 42f, UIPalette.Parchment, TextAlignmentOptions.TopLeft, true);
+            UIKit.Place(r.name.rectTransform, new Vector2(0f, 1f), new Vector2(110f, -8f), new Vector2(CardWidth - 28f - 110f - 190f, 56f));
             r.name.textWrappingMode = TextWrappingModes.NoWrap;
-            MenuKit.Fit(r.name, 34f, 30f);
-            r.desc = UIKit.Text("Desc", r.root, "", 30f, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
-            UIKit.Place(r.desc.rectTransform, new Vector2(0f, 1f), new Vector2(102f, -56f), new Vector2(CardWidth - 28f - 102f - 14f, 66f));
-            r.desc.lineSpacing = -8f;
-            MenuKit.Fit(r.desc, 30f);
+            MenuKit.Fit(r.name, 42f, 34f);
+            r.desc = UIKit.Text("Desc", r.root, "", 36f, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
+            UIKit.Place(r.desc.rectTransform, new Vector2(0f, 1f), new Vector2(110f, -66f), new Vector2(CardWidth - 28f - 110f - 14f, 80f));
+            r.desc.lineSpacing = -10f;
+            MenuKit.Fit(r.desc, 36f);
             Image pill = UIKit.Image("Cost", r.root, UIKit.Lib != null ? UIKit.Lib.uiRound : null, new Color(0f, 0f, 0f, 0.35f));
-            UIKit.Place(pill.rectTransform, new Vector2(1f, 1f), new Vector2(-10f, -8f), new Vector2(146f, 54f));
+            UIKit.Place(pill.rectTransform, new Vector2(1f, 1f), new Vector2(-10f, -8f), new Vector2(176f, 62f));
             r.costIcon = UIKit.Image("Icon", pill.transform, UIKit.Lib != null ? UIKit.Lib.iconVitality : null, Color.white);
             r.costIcon.preserveAspect = true;
-            UIKit.Place(r.costIcon.rectTransform, new Vector2(0f, 0.5f), new Vector2(8f, 0f), new Vector2(46f, 46f));
-            r.cost = UIKit.Text("Value", pill.transform, "", 40f, UIPalette.Vitality, TextAlignmentOptions.MidlineRight, true);
-            UIKit.Place(r.cost.rectTransform, new Vector2(1f, 0.5f), new Vector2(-12f, 0f), new Vector2(86f, 52f));
+            UIKit.Place(r.costIcon.rectTransform, new Vector2(0f, 0.5f), new Vector2(8f, 0f), new Vector2(52f, 52f));
+            r.cost = UIKit.Text("Value", pill.transform, "", 48f, UIPalette.Vitality, TextAlignmentOptions.MidlineRight, true);
+            UIKit.Place(r.cost.rectTransform, new Vector2(1f, 0.5f), new Vector2(-12f, 0f), new Vector2(104f, 60f));
             return r;
         }
 
@@ -220,27 +220,27 @@ namespace VerdantSiege.UI
             _strip.anchorMax = new Vector2(1f, 1f);
             _strip.pivot = new Vector2(0.5f, 0f);
             _strip.offsetMin = new Vector2(0f, 8f);
-            _strip.offsetMax = new Vector2(0f, 8f + 72f);
+            _strip.offsetMax = new Vector2(0f, 8f + 84f);
             Sprite circle = UIKit.Lib != null ? UIKit.Lib.uiCircle : null;
             _stripDisc = UIKit.Image("Disc", _strip, circle, UIPalette.Gold);
-            UIKit.Place(_stripDisc.rectTransform, new Vector2(0f, 0.5f), new Vector2(12f, 0f), new Vector2(40f, 40f));
-            _stripLabel = UIKit.Text("Label", _strip, "Growth", 30f, UIPalette.Parchment, TextAlignmentOptions.MidlineLeft, true);
-            UIKit.Place(_stripLabel.rectTransform, new Vector2(0f, 0.5f), new Vector2(62f, 0f), new Vector2(330f, 50f));
+            UIKit.Place(_stripDisc.rectTransform, new Vector2(0f, 0.5f), new Vector2(12f, 0f), new Vector2(48f, 48f));
+            _stripLabel = UIKit.Text("Label", _strip, "Growth", 36f, UIPalette.Parchment, TextAlignmentOptions.MidlineLeft, true);
+            UIKit.Place(_stripLabel.rectTransform, new Vector2(0f, 0.5f), new Vector2(70f, 0f), new Vector2(360f, 60f));
             Image track = UIKit.Image("Track", _strip, UIKit.Lib != null ? UIKit.Lib.uiRound : null, new Color(0f, 0f, 0f, 0.5f));
             _stripTrack = track.rectTransform;
-            UIKit.Place(_stripTrack, new Vector2(0f, 0.5f), new Vector2(170f, 0f), new Vector2(250f, 22f));
+            UIKit.Place(_stripTrack, new Vector2(0f, 0.5f), new Vector2(210f, 0f), new Vector2(260f, 24f));
             _stripFill = UIKit.Image("Fill", _stripTrack, UIKit.Lib != null ? UIKit.Lib.uiRound : null, UIPalette.Gold);
             _stripFill.type = Image.Type.Filled;
             _stripFill.fillMethod = Image.FillMethod.Horizontal;
             UIKit.Stretch(_stripFill.rectTransform, 2f);
-            _stripValue = UIKit.Text("Value", _strip, "", 28f, UIPalette.TextDim, TextAlignmentOptions.MidlineRight, true);
-            UIKit.Place(_stripValue.rectTransform, new Vector2(1f, 0.5f), new Vector2(-14f, 0f), new Vector2(110f, 50f));
+            _stripValue = UIKit.Text("Value", _strip, "", 34f, UIPalette.TextDim, TextAlignmentOptions.MidlineRight, true);
+            UIKit.Place(_stripValue.rectTransform, new Vector2(1f, 0.5f), new Vector2(-14f, 0f), new Vector2(130f, 60f));
             _stripEvolve = UIKit.Button("Evolve", _strip, "Evolve!", UIPalette.ButtonPrimary, () =>
             {
                 DefenderRuntime d = _hud.Inspected;
                 if (d != null && State.Open(d)) _hud.ShowInspect(null);
-            }, null, 32f);
-            UIKit.Place((RectTransform)_stripEvolve.transform, new Vector2(1f, 0.5f), new Vector2(-6f, 0f), new Vector2(190f, 60f));
+            }, null, 38f);
+            UIKit.Place((RectTransform)_stripEvolve.transform, new Vector2(1f, 0.5f), new Vector2(-6f, 0f), new Vector2(220f, 72f));
             _strip.gameObject.SetActive(false);
         }
 
@@ -262,25 +262,25 @@ namespace VerdantSiege.UI
                 {
                     _stripLabel.text = $"{evo.displayName}: {d.storedPulses}/{evo.capacitorPulses}";
                     _stripValue.text = d.storedPulses > 0 ? "Tap to release" : "";
-                    _stripValue.rectTransform.sizeDelta = new Vector2(190f, 50f);
+                    _stripValue.rectTransform.sizeDelta = new Vector2(240f, 60f);
                 }
                 else
                 {
                     _stripLabel.text = "Evolved: " + evo.displayName;
                     _stripValue.text = "";
                 }
-                _stripLabel.rectTransform.sizeDelta = new Vector2(480f, 50f);
+                _stripLabel.rectTransform.sizeDelta = new Vector2(560f, 60f);
                 _stripLabel.color = Color.Lerp(UIPalette.Parchment, evo.accentColor, 0.5f);
                 return;
             }
             _stripDisc.color = ready ? UIPalette.Gold : new Color(0.6f, 0.55f, 0.35f);
             _stripLabel.text = ready ? "Ready to evolve" : "Growth";
             _stripLabel.color = ready ? UIPalette.Gold : UIPalette.Parchment;
-            _stripLabel.rectTransform.sizeDelta = new Vector2(ready ? 330f : 110f, 50f);
+            _stripLabel.rectTransform.sizeDelta = new Vector2(ready ? 380f : 140f, 60f);
             _stripTrack.gameObject.SetActive(!ready);
             _stripFill.fillAmount = d.XpFraction;
             _stripValue.text = ready ? "" : Mathf.FloorToInt(d.XpFraction * 100f) + "%";
-            _stripValue.rectTransform.sizeDelta = new Vector2(110f, 50f);
+            _stripValue.rectTransform.sizeDelta = new Vector2(130f, 60f);
         }
 
         // ================================================================ frame
