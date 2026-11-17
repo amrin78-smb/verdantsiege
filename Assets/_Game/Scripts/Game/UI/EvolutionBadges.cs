@@ -79,8 +79,8 @@ namespace VerdantSiege.UI
                 b.count = UIKit.Text("Count", b.disc.transform, "", 40f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
                 UIKit.Stretch(b.count.rectTransform);
                 b.labelBg = UIKit.Image("LabelBg", b.root, UIKit.Lib != null ? UIKit.Lib.uiRound : null, new Color(0.08f, 0.16f, 0.12f, 0.92f));
-                UIKit.Place(b.labelBg.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, -34f), new Vector2(124f, 38f));
-                b.label = UIKit.Text("Label", b.labelBg.transform, "Evolve", 26f, UIPalette.Gold, TextAlignmentOptions.Center, true);
+                UIKit.Place(b.labelBg.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, -38f), new Vector2(134f, 42f));
+                b.label = UIKit.Text("Label", b.labelBg.transform, "Evolve", 30f, UIPalette.Gold, TextAlignmentOptions.Center, true);
                 UIKit.Stretch(b.label.rectTransform);
                 _pool.Add(b);
             }

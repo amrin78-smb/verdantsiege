@@ -15,7 +15,29 @@ namespace VerdantSiege.UI
     /// </summary>
     public static class MenuKit
     {
-        public const float TopBarHeight = 118f;
+        public const float TopBarHeight = 124f;
+
+        // ---- readability minimums (TD-36), in 1920x1080 reference units. On phones the canvas matches height, so
+        // 1080 units = the screen height: on a 6.5" 20:9 phone 28 units is about 1.9 mm of em height.
+        /// <summary>Absolute floor for any menu text; TMP auto-size never goes below it.</summary>
+        public const float TextMin = 28f;
+        /// <summary>Hints, secondary lines, small captions.</summary>
+        public const float TextSmall = 30f;
+        /// <summary>Descriptions, briefing, body copy.</summary>
+        public const float TextBody = 32f;
+        /// <summary>Card titles and names.</summary>
+        public const float TextLabel = 32f;
+        /// <summary>Costs and counts that must read at a glance.</summary>
+        public const float TextNumber = 34f;
+        /// <summary>Section headers.</summary>
+        public const float TextHeader = 44f;
+        /// <summary>Button labels.</summary>
+        public const float TextButton = 38f;
+        /// <summary>Minimum touch target height (buttons, tabs).</summary>
+        public const float TouchMin = 96f;
+        public const float ButtonHeight = 104f;
+        /// <summary>Outer margin and gap between screen columns.</summary>
+        public const float Gutter = 28f;
         public static readonly Color EssenceColor = new Color(0.78f, 0.55f, 1f);
         public static readonly Color StarOff = new Color(1f, 1f, 1f, 0.16f);
         public static readonly Color LockedGrey = new Color(0.32f, 0.35f, 0.33f, 1f);
@@ -50,15 +72,75 @@ namespace VerdantSiege.UI
             safe.gameObject.AddComponent<WidthFit>();
 
             Button b = UIKit.Button("Back", safe, null, UIPalette.ButtonSecondary, back, S(l => l.iconHome));
-            UIKit.Place((RectTransform)b.transform, new Vector2(0f, 1f), new Vector2(28f, -18f), new Vector2(96f, 88f));
+            UIKit.Place((RectTransform)b.transform, new Vector2(0f, 1f), new Vector2(28f, -14f), new Vector2(TouchMin + 8f, TouchMin));
             TextMeshProUGUI t = UIKit.Text("Title", safe, title, 64f, UIPalette.Parchment, TextAlignmentOptions.MidlineLeft, true);
-            UIKit.Place(t.rectTransform, new Vector2(0f, 1f), new Vector2(146f, -18f), new Vector2(1100f, 88f));
+            UIKit.Place(t.rectTransform, new Vector2(0f, 1f), new Vector2(156f, -18f), new Vector2(1000f, 88f));
             t.enableAutoSizing = true;
             t.fontSizeMin = 40f;
             t.fontSizeMax = 64f;
             Shadowed(t);
             currency = CurrencyBar.Create(safe);
             return go;
+        }
+
+        /// <summary>Auto-size between <paramref name="min"/> (never below <see cref="TextMin"/>) and <paramref name="max"/>.</summary>
+        public static TextMeshProUGUI Fit(TextMeshProUGUI t, float max, float min = TextMin)
+        {
+            t.enableAutoSizing = true;
+            t.fontSizeMin = Mathf.Max(TextMin, min);
+            t.fontSizeMax = Mathf.Max(max, t.fontSizeMin);
+            t.fontSize = t.fontSizeMax;
+            return t;
+        }
+
+        /// <summary>Height the text needs at its current font size when wrapped to <paramref name="width"/>.</summary>
+        public static float TextHeight(TextMeshProUGUI t, string text, float width) =>
+            Mathf.Ceil(t.GetPreferredValues(string.IsNullOrEmpty(text) ? " " : text, width, 0f).y);
+
+        /// <summary>
+        /// A touch scroll area: the returned ScrollRect sits on <paramref name="name"/> (stretch it as needed) with a
+        /// clipping viewport (RectMask2D), inertia and elastic edges, plus a <see cref="ScrollHint"/> (edge fades and a
+        /// thin position bar that only show when there is more to see). Vertical content is top-anchored and stretches
+        /// the viewport width; horizontal content is left-anchored and stretches its height. Size the content (or give it
+        /// a ContentSizeFitter). Taps on buttons inside still click; a drag past the EventSystem threshold scrolls and
+        /// cancels the press (see <see cref="UIKit.ConfigureEventSystem"/>).
+        /// </summary>
+        public static ScrollRect Scroll(Transform parent, string name, bool horizontal, out RectTransform content)
+        {
+            RectTransform root = UIKit.Rect(name, parent);
+            RectTransform viewport = UIKit.Rect("Viewport", root);
+            UIKit.Stretch(viewport);
+            Image catcher = viewport.gameObject.AddComponent<Image>(); // drags on gaps between items scroll too
+            catcher.color = new Color(0f, 0f, 0f, 0f);
+            catcher.raycastTarget = true;
+            viewport.gameObject.AddComponent<RectMask2D>();
+            content = UIKit.Rect("Content", viewport);
+            if (horizontal)
+            {
+                content.anchorMin = new Vector2(0f, 0f);
+                content.anchorMax = new Vector2(0f, 1f);
+                content.pivot = new Vector2(0f, 0.5f);
+            }
+            else
+            {
+                content.anchorMin = new Vector2(0f, 1f);
+                content.anchorMax = new Vector2(1f, 1f);
+                content.pivot = new Vector2(0.5f, 1f);
+            }
+            content.anchoredPosition = Vector2.zero;
+            content.sizeDelta = Vector2.zero;
+            var sr = root.gameObject.AddComponent<ScrollRect>();
+            sr.content = content;
+            sr.viewport = viewport;
+            sr.horizontal = horizontal;
+            sr.vertical = !horizontal;
+            sr.movementType = ScrollRect.MovementType.Elastic;
+            sr.elasticity = 0.08f;
+            sr.inertia = true;
+            sr.decelerationRate = 0.12f;
+            sr.scrollSensitivity = 40f;
+            root.gameObject.AddComponent<ScrollHint>().Init(sr);
+            return sr;
         }
 
         public static void Shadowed(Graphic g)
@@ -247,6 +329,127 @@ namespace VerdantSiege.UI
             rt.anchoredPosition = Vector2.zero;
             rt.sizeDelta = size / s;
             rt.localScale = new Vector3(s, s, 1f);
+        }
+    }
+
+    /// <summary>
+    /// Scroll affordance for <see cref="MenuKit.Scroll"/>: soft dark fades on the edges that have more content beyond
+    /// them, and a thin position bar along the far edge. Hidden when everything fits. Purely visual (no raycasts).
+    /// </summary>
+    public sealed class ScrollHint : MonoBehaviour
+    {
+        private const float FadeSize = 64f;
+        private static Sprite _rampV, _rampH;
+        private ScrollRect _sr;
+        private Image _fadeA, _fadeB, _track, _thumb;
+        private bool _h;
+
+        /// <summary>Colour of the edge fades (match a dark panel behind the list).</summary>
+        public static readonly Color FadeColor = new Color(0.03f, 0.07f, 0.05f, 0.9f);
+
+        private static Sprite Ramp(bool horizontal)
+        {
+            if (horizontal ? _rampH != null : _rampV != null) return horizontal ? _rampH : _rampV;
+            const int n = 32;
+            var tex = new Texture2D(horizontal ? n : 1, horizontal ? 1 : n, TextureFormat.RGBA32, false)
+                { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear, name = "ScrollFade" };
+            for (int i = 0; i < n; i++)
+            {
+                float a = Mathf.SmoothStep(0f, 1f, i / (n - 1f)); // transparent at 0, opaque at the far end
+                tex.SetPixel(horizontal ? i : 0, horizontal ? 0 : i, new Color(1f, 1f, 1f, a));
+            }
+            tex.Apply(false, true);
+            Sprite s = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
+            if (horizontal) _rampH = s; else _rampV = s;
+            return s;
+        }
+
+        public void Init(ScrollRect sr)
+        {
+            _sr = sr;
+            _h = sr.horizontal;
+            var root = (RectTransform)transform;
+            // A: start edge (top / left), B: end edge (bottom / right). Ramps are opaque at the high-coordinate end,
+            // so the start fade is flipped with a negative scale.
+            _fadeA = Fade(root, "FadeStart", true);
+            _fadeB = Fade(root, "FadeEnd", false);
+            _track = UIKit.Image("ScrollTrack", root, MenuKit.Round, new Color(1f, 1f, 1f, 0.1f));
+            _thumb = UIKit.Image("ScrollThumb", _track.transform, MenuKit.Round, new Color(UIPalette.Parchment.r, UIPalette.Parchment.g, UIPalette.Parchment.b, 0.6f));
+            RectTransform tr = _track.rectTransform;
+            if (_h)
+            {
+                tr.anchorMin = new Vector2(0f, 0f); tr.anchorMax = new Vector2(1f, 0f); tr.pivot = new Vector2(0.5f, 0f);
+                tr.offsetMin = new Vector2(12f, 2f); tr.offsetMax = new Vector2(-12f, 10f);
+            }
+            else
+            {
+                tr.anchorMin = new Vector2(1f, 0f); tr.anchorMax = new Vector2(1f, 1f); tr.pivot = new Vector2(1f, 0.5f);
+                tr.offsetMin = new Vector2(-10f, 12f); tr.offsetMax = new Vector2(-2f, -12f);
+            }
+            Refresh();
+        }
+
+        private Image Fade(RectTransform root, string name, bool start)
+        {
+            Image f = UIKit.Image(name, root, Ramp(_h), FadeColor);
+            RectTransform r = f.rectTransform;
+            // Centre pivot so a mirrored (negative-scale) fade stays inside its edge band.
+            r.pivot = new Vector2(0.5f, 0.5f);
+            if (_h)
+            {
+                float x = start ? 0f : 1f;
+                r.anchorMin = new Vector2(x, 0f); r.anchorMax = new Vector2(x, 1f);
+                r.sizeDelta = new Vector2(FadeSize, 0f);
+                r.anchoredPosition = new Vector2(start ? FadeSize * 0.5f : -FadeSize * 0.5f, 0f);
+                if (start) r.localScale = new Vector3(-1f, 1f, 1f);
+            }
+            else
+            {
+                float y = start ? 1f : 0f;
+                r.anchorMin = new Vector2(0f, y); r.anchorMax = new Vector2(1f, y);
+                r.sizeDelta = new Vector2(0f, FadeSize);
+                r.anchoredPosition = new Vector2(0f, start ? -FadeSize * 0.5f : FadeSize * 0.5f);
+                if (!start) r.localScale = new Vector3(1f, -1f, 1f);
+            }
+            return f;
+        }
+
+        private void LateUpdate() => Refresh();
+
+        private void Refresh()
+        {
+            if (_sr == null || _sr.content == null || _sr.viewport == null) return;
+            Rect vp = _sr.viewport.rect, ct = _sr.content.rect;
+            float view = _h ? vp.width : vp.height, total = _h ? ct.width : ct.height;
+            float overflow = total - view;
+            bool scrolls = overflow > 2f;
+            if (_track.gameObject.activeSelf != scrolls) _track.gameObject.SetActive(scrolls);
+            if (!scrolls)
+            {
+                _fadeA.enabled = _fadeB.enabled = false;
+                return;
+            }
+            // 0 = at the start (top / left), 1 = at the end.
+            float p = _h ? _sr.horizontalNormalizedPosition : 1f - _sr.verticalNormalizedPosition;
+            p = Mathf.Clamp01(p);
+            float aStart = Mathf.Clamp01(p * overflow / 48f), aEnd = Mathf.Clamp01((1f - p) * overflow / 48f);
+            _fadeA.enabled = aStart > 0.01f;
+            _fadeB.enabled = aEnd > 0.01f;
+            _fadeA.color = new Color(FadeColor.r, FadeColor.g, FadeColor.b, FadeColor.a * aStart);
+            _fadeB.color = new Color(FadeColor.r, FadeColor.g, FadeColor.b, FadeColor.a * aEnd);
+            float frac = Mathf.Clamp(view / total, 0.12f, 1f);
+            RectTransform th = _thumb.rectTransform;
+            if (_h)
+            {
+                th.anchorMin = new Vector2(p * (1f - frac), 0f);
+                th.anchorMax = new Vector2(p * (1f - frac) + frac, 1f);
+            }
+            else
+            {
+                th.anchorMin = new Vector2(0f, 1f - (p * (1f - frac) + frac));
+                th.anchorMax = new Vector2(1f, 1f - p * (1f - frac));
+            }
+            th.offsetMin = th.offsetMax = Vector2.zero;
         }
     }
 

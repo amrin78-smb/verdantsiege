@@ -16,14 +16,16 @@ namespace VerdantSiege.UI
     /// </summary>
     public sealed class LoadoutScreen : MonoBehaviour
     {
-        private const float LeftWidth = 1160f;
-        private const float SlotW = 136f, SlotH = 184f;
-        private const float TileW = 182f, TileH = 196f;
+        // Readability pass (TD-36): big cards; the deck row scrolls sideways, the collection and the intel scroll down.
+        private const float RightWidth = 700f;
+        private const float SlotW = 212f, SlotH = 258f;
+        private const float TileW = 228f, TileH = 280f;
+        private const float DeckHead = 60f, DeckRowH = SlotH + 30f;
 
         private MainMenuController _hub;
         private AppRoot _app;
-        private RectTransform _safe, _deckRow, _grid, _adviceBox;
-        private TextMeshProUGUI _deckCount, _advice;
+        private RectTransform _safe, _deckRow, _grid, _adviceBox, _intelContent;
+        private TextMeshProUGUI _deckCount, _advice, _brief;
         private EncounterDefinition _e;
         private int _slots;
         private readonly List<DefenderDefinition> _deck = new List<DefenderDefinition>();
@@ -50,92 +52,128 @@ namespace VerdantSiege.UI
 
         private void Build()
         {
-            // ---- left: deck and collection
+            float g = MenuKit.Gutter, top = MenuKit.TopBarHeight;
+            // ---- left: deck (horizontal scroll) and collection (vertical scroll grid); takes all the width the intel leaves
             RectTransform left = UIKit.Rect("Left", _safe);
-            left.anchorMin = new Vector2(0f, 0f);
-            left.anchorMax = new Vector2(0f, 1f);
-            left.pivot = new Vector2(0f, 1f);
-            left.offsetMin = new Vector2(28f, 28f);
-            left.offsetMax = new Vector2(28f + LeftWidth, -(MenuKit.TopBarHeight + 8f));
-            TextMeshProUGUI dh = UIKit.Text("DeckHead", left, "Your deck", 40f, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(dh.rectTransform, new Vector2(0f, 1f), new Vector2(4f, 0f), new Vector2(400f, 50f));
-            _deckCount = UIKit.Text("DeckCount", left, "", 30f, UIPalette.TextDim, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(_deckCount.rectTransform, new Vector2(0f, 1f), new Vector2(236f, -8f), new Vector2(600f, 40f));
+            left.anchorMin = Vector2.zero;
+            left.anchorMax = Vector2.one;
+            left.offsetMin = new Vector2(g, g);
+            left.offsetMax = new Vector2(-(RightWidth + 2f * g), -top);
+            TextMeshProUGUI dh = UIKit.Text("DeckHead", left, "Your deck", MenuKit.TextHeader, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
+            UIKit.Place(dh.rectTransform, new Vector2(0f, 1f), new Vector2(4f, 0f), new Vector2(300f, 54f));
+            _deckCount = UIKit.Text("DeckCount", left, "", MenuKit.TextLabel, UIPalette.TextDim, TextAlignmentOptions.TopLeft, true);
+            UIKit.Place(_deckCount.rectTransform, new Vector2(0f, 1f), new Vector2(270f, -8f), new Vector2(760f, 44f));
             Image deckBg = UIKit.Panel("DeckRow", left, new Color(0f, 0f, 0f, 0.25f), true, false);
-            _deckRow = deckBg.rectTransform;
-            UIKit.Place(_deckRow, new Vector2(0f, 1f), new Vector2(0f, -56f), new Vector2(LeftWidth, SlotH + 28f));
+            RectTransform deckPanel = deckBg.rectTransform;
+            deckPanel.anchorMin = new Vector2(0f, 1f);
+            deckPanel.anchorMax = new Vector2(1f, 1f);
+            deckPanel.pivot = new Vector2(0.5f, 1f);
+            deckPanel.offsetMin = new Vector2(0f, -(DeckHead + DeckRowH));
+            deckPanel.offsetMax = new Vector2(0f, -DeckHead);
+            ScrollRect deckScroll = MenuKit.Scroll(deckPanel, "DeckScroll", true, out _deckRow);
+            UIKit.Stretch((RectTransform)deckScroll.transform, 4f);
+            var row = _deckRow.gameObject.AddComponent<HorizontalLayoutGroup>();
+            row.padding = new RectOffset(10, 10, 0, 0);
+            row.spacing = 12f;
+            row.childAlignment = TextAnchor.MiddleLeft;
+            row.childControlWidth = row.childControlHeight = false;
+            row.childForceExpandWidth = row.childForceExpandHeight = false;
+            _deckRow.gameObject.AddComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            TextMeshProUGUI ch = UIKit.Text("CollectionHead", left, "Collection", 40f, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(ch.rectTransform, new Vector2(0f, 1f), new Vector2(4f, -(56f + SlotH + 48f)), new Vector2(600f, 50f));
-            TextMeshProUGUI chHint = UIKit.Text("CollectionHint", left, "Tap to add  ·  tap a deck card to remove", 24f, UIPalette.TextDim, TextAlignmentOptions.TopLeft);
-            UIKit.Place(chHint.rectTransform, new Vector2(0f, 1f), new Vector2(240f, -(56f + SlotH + 58f)), new Vector2(800f, 34f));
-            _grid = UIKit.Rect("Grid", left);
-            UIKit.Place(_grid, new Vector2(0f, 1f), new Vector2(0f, -(56f + SlotH + 108f)), new Vector2(LeftWidth, 2 * TileH + 18f));
+            float collTop = DeckHead + DeckRowH + 22f;
+            TextMeshProUGUI ch = UIKit.Text("CollectionHead", left, "Collection", MenuKit.TextHeader, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
+            UIKit.Place(ch.rectTransform, new Vector2(0f, 1f), new Vector2(4f, -collTop), new Vector2(300f, 54f));
+            TextMeshProUGUI chHint = UIKit.Text("CollectionHint", left, "Tap to add  ·  tap a deck card to remove", MenuKit.TextSmall, UIPalette.TextDim, TextAlignmentOptions.TopLeft);
+            chHint.rectTransform.anchorMin = new Vector2(0f, 1f);
+            chHint.rectTransform.anchorMax = new Vector2(1f, 1f);
+            chHint.rectTransform.pivot = new Vector2(0f, 1f);
+            chHint.rectTransform.offsetMin = new Vector2(280f, -(collTop + 50f));
+            chHint.rectTransform.offsetMax = new Vector2(0f, -(collTop + 10f));
+            MenuKit.Fit(chHint, MenuKit.TextSmall);
+            ScrollRect gridScroll = MenuKit.Scroll(left, "CollectionScroll", false, out _grid);
+            RectTransform gs = (RectTransform)gridScroll.transform;
+            gs.anchorMin = Vector2.zero;
+            gs.anchorMax = Vector2.one;
+            gs.offsetMin = Vector2.zero;
+            gs.offsetMax = new Vector2(0f, -(collTop + 62f));
+            var grid = _grid.gameObject.AddComponent<GridLayoutGroup>();
+            grid.cellSize = new Vector2(TileW, TileH);
+            grid.spacing = new Vector2(16f, 16f);
+            grid.padding = new RectOffset(6, 18, 8, 12);
+            grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
+            grid.startAxis = GridLayoutGroup.Axis.Horizontal;
+            grid.childAlignment = TextAnchor.UpperLeft;
+            grid.constraint = GridLayoutGroup.Constraint.Flexible;
+            _grid.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            // ---- right: intel, advice, begin
+            // ---- right: intel (scrolls) above the two actions
             Image right = UIKit.Panel("Intel", _safe, new Color(0f, 0f, 0f, 0.25f), true, false);
             RectTransform r = right.rectTransform;
-            r.anchorMin = new Vector2(0f, 0f);
+            r.anchorMin = new Vector2(1f, 0f);
             r.anchorMax = new Vector2(1f, 1f);
-            r.offsetMin = new Vector2(28f + LeftWidth + 28f, 28f);
-            r.offsetMax = new Vector2(-28f, -(MenuKit.TopBarHeight + 8f));
-            TextMeshProUGUI brief = UIKit.Text("Briefing", r, e_Briefing(), 27f, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
-            brief.rectTransform.anchorMin = new Vector2(0f, 1f);
-            brief.rectTransform.anchorMax = new Vector2(1f, 1f);
-            brief.rectTransform.pivot = new Vector2(0.5f, 1f);
-            brief.rectTransform.offsetMin = new Vector2(26f, -380f);
-            brief.rectTransform.offsetMax = new Vector2(-26f, -20f);
-            brief.enableAutoSizing = true; brief.fontSizeMin = 18f; brief.fontSizeMax = 27f;
-
-            Image adv = UIKit.Panel("Advice", r, new Color(0.35f, 0.25f, 0.05f, 0.55f), true, false);
+            r.pivot = new Vector2(1f, 0.5f);
+            r.offsetMin = new Vector2(-(RightWidth + g), g);
+            r.offsetMax = new Vector2(-g, -top);
+            ScrollRect intel = MenuKit.Scroll(r, "IntelScroll", false, out _intelContent);
+            RectTransform isr = (RectTransform)intel.transform;
+            isr.anchorMin = Vector2.zero;
+            isr.anchorMax = Vector2.one;
+            isr.offsetMin = new Vector2(6f, MenuKit.ButtonHeight + 44f);
+            isr.offsetMax = new Vector2(-6f, -8f);
+            _brief = UIKit.Text("Briefing", _intelContent, e_Briefing(), MenuKit.TextBody, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
+            Image adv = UIKit.Panel("Advice", _intelContent, new Color(0.35f, 0.25f, 0.05f, 0.55f), true, false);
             _adviceBox = adv.rectTransform;
-            _adviceBox.anchorMin = new Vector2(0f, 0f);
-            _adviceBox.anchorMax = new Vector2(1f, 0f);
-            _adviceBox.pivot = new Vector2(0.5f, 0f);
-            _adviceBox.offsetMin = new Vector2(20f, 160f);
-            _adviceBox.offsetMax = new Vector2(-20f, 160f + 300f);
-            _advice = UIKit.Text("Text", _adviceBox, "", 25f, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
+            _advice = UIKit.Text("Text", _adviceBox, "", MenuKit.TextBody, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
             UIKit.Stretch(_advice.rectTransform, 18f);
-            _advice.enableAutoSizing = true; _advice.fontSizeMin = 17f; _advice.fontSizeMax = 25f;
 
-            Button rec = UIKit.Button("Recommended", r, "Recommended", UIPalette.ButtonSecondary, UseRecommended, null, 30f);
-            UIKit.Place((RectTransform)rec.transform, new Vector2(0f, 0f), new Vector2(18f, 24f), new Vector2(244f, 112f));
-            Button begin = UIKit.Button("Begin", r, "Begin Battle", UIPalette.ButtonPrimary, Begin, UIKit.Lib != null ? UIKit.Lib.iconPlay : null, 38f);
-            UIKit.Place((RectTransform)begin.transform, new Vector2(1f, 0f), new Vector2(-18f, 24f), new Vector2(330f, 112f));
+            Button rec = UIKit.Button("Recommended", r, "Recommended", UIPalette.ButtonSecondary, UseRecommended, null, MenuKit.TextSmall + 2f);
+            UIKit.Place((RectTransform)rec.transform, new Vector2(0f, 0f), new Vector2(18f, 22f), new Vector2(280f, MenuKit.ButtonHeight + 8f));
+            Button begin = UIKit.Button("Begin", r, "Begin Battle", UIPalette.ButtonPrimary, Begin, UIKit.Lib != null ? UIKit.Lib.iconPlay : null, 40f);
+            UIKit.Place((RectTransform)begin.transform, new Vector2(1f, 0f), new Vector2(-18f, 22f), new Vector2(360f, MenuKit.ButtonHeight + 8f));
             begin.gameObject.AddComponent<Pulse>().amount = 0.03f;
 
             Refresh();
+        }
+
+        /// <summary>Stacks the briefing and the advice box in the intel scroll (heights from the wrapped text).</summary>
+        private void LayoutIntel()
+        {
+            const float pad = 22f;
+            float w = RightWidth - 12f - 2f * pad - 14f; // scroll viewport minus padding and the scroll bar
+            float bh = MenuKit.TextHeight(_brief, _brief.text, w);
+            UIKit.Place(_brief.rectTransform, new Vector2(0f, 1f), new Vector2(pad, -16f), new Vector2(w, bh));
+            float ah = MenuKit.TextHeight(_advice, _advice.text, w - 36f) + 36f;
+            UIKit.Place(_adviceBox, new Vector2(0f, 1f), new Vector2(pad - 4f, -16f - bh - 18f), new Vector2(w + 8f, ah));
+            _intelContent.sizeDelta = new Vector2(0f, 16f + bh + 18f + ah + 20f);
         }
 
         private string e_Briefing()
         {
             var sb = new System.Text.StringBuilder();
             sb.Append($"<b><size=120%><color=#FFD35C>{_e.displayName}</color></size></b>\n{_e.briefing}\n\n<color=#FFD35C><b>Threats</b></color>\n");
-            int n = 0;
-            foreach (EnemyDefinition en in LoadoutRules.Threats(_e))
+            foreach (EnemyDefinition en in LoadoutRules.Threats(_e)) // the intel scrolls: list every threat
             {
-                if (n++ >= 7) { sb.Append("…\n"); break; }
                 sb.Append($"• <b>{en.displayName}</b>");
-                if (!string.IsNullOrEmpty(en.counterHint)) sb.Append($" <color=#C9D8C4><size=85%>{en.counterHint}</size></color>");
+                if (!string.IsNullOrEmpty(en.counterHint)) sb.Append($"\n   <color=#C9D8C4><size=90%>{en.counterHint}</size></color>");
                 sb.Append('\n');
             }
-            if (_e.boss != null) sb.Append($"• <b><color=#FF8FA0>{_e.boss.displayName}</color></b> <size=85%><color=#C9D8C4>(boss)</color></size>\n");
+            if (_e.boss != null) sb.Append($"• <b><color=#FF8FA0>{_e.boss.displayName}</color></b> <size=90%><color=#C9D8C4>(boss)</color></size>\n");
             return sb.ToString();
         }
 
         private void Refresh()
         {
-            foreach (Transform c in _deckRow) if (c.name.StartsWith("Slot")) Destroy(c.gameObject);
-            foreach (Transform c in _grid) Destroy(c.gameObject);
+            // Deactivate before destroying so the layout groups ignore the old cards this frame.
+            foreach (Transform c in _deckRow) { c.gameObject.SetActive(false); Destroy(c.gameObject); }
+            foreach (Transform c in _grid) { c.gameObject.SetActive(false); Destroy(c.gameObject); }
             _deckCount.text = $"{_deck.Count} / {_slots} cards" + (_slots > _e.roster.Count ? "  <color=#7CD65A>(+Seed Satchel)</color>" : "");
 
-            float x0 = 14f;
             for (int i = 0; i < _slots; i++)
             {
                 DefenderDefinition d = i < _deck.Count ? _deck[i] : null;
                 RectTransform slot = d != null ? Card(_deckRow, "Slot" + i, d, SlotW, SlotH, CardState.InDeck, () => Remove(d))
                                                : EmptySlot(_deckRow, "Slot" + i);
-                UIKit.Place(slot, new Vector2(0f, 0.5f), new Vector2(x0 + i * (SlotW + 6f), 0f), new Vector2(SlotW, SlotH));
+                slot.sizeDelta = new Vector2(SlotW, SlotH);
             }
 
             List<DefenderDefinition> all = _app.Config.content.defenders;
@@ -145,9 +183,7 @@ namespace VerdantSiege.UI
                 bool owned = Save.IsUnlocked(d.id);
                 bool inDeck = _deck.Contains(d);
                 CardState state = !owned ? CardState.Locked : inDeck ? CardState.Chosen : CardState.Available;
-                RectTransform tile = Card(_grid, "Tile_" + d.id, d, TileW, TileH, state, () => Toggle(d));
-                int col = i % 6, row = i / 6;
-                UIKit.Place(tile, new Vector2(0f, 1f), new Vector2(col * (TileW + 10f), -row * (TileH + 14f)), new Vector2(TileW, TileH));
+                Card(_grid, "Tile_" + d.id, d, TileW, TileH, state, () => Toggle(d));
             }
 
             List<string> tips = LoadoutRules.Advice(_e, _deck, _app.Progression.Collection());
@@ -163,6 +199,7 @@ namespace VerdantSiege.UI
                 _advice.text = "<color=#FFD35C><b>Advice</b></color>\n• " + string.Join("\n• ", tips);
                 ((Image)_adviceBox.GetComponent<Image>()).color = new Color(0.38f, 0.26f, 0.05f, 0.6f);
             }
+            LayoutIntel();
         }
 
         private enum CardState { InDeck, Chosen, Available, Locked }
@@ -176,31 +213,34 @@ namespace VerdantSiege.UI
             Button b = UIKit.Button(name, parent, null, bgColor, onTap);
             var rt = (RectTransform)b.transform;
             rt.sizeDelta = new Vector2(w, h);
-            float pd = Mathf.Min(w * 0.62f, h - 104f);
+            float pd = Mathf.Min(w * 0.66f, h - 140f);
             RectTransform portrait = MenuKit.Portrait(rt, d, pd, locked);
             UIKit.Place(portrait, new Vector2(0.5f, 1f), new Vector2(0f, -10f), new Vector2(pd, pd));
-            TextMeshProUGUI n = UIKit.Text("Name", rt, d.displayName, 23f, locked ? UIPalette.TextDim : UIPalette.Parchment, TextAlignmentOptions.Center, true);
-            UIKit.Place(n.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -pd - 14f), new Vector2(w - 10f, 30f));
-            n.enableAutoSizing = true; n.fontSizeMin = 15f; n.fontSizeMax = 23f;
+            TextMeshProUGUI n = UIKit.Text("Name", rt, d.displayName, MenuKit.TextLabel, locked ? UIPalette.TextDim : UIPalette.Parchment, TextAlignmentOptions.Center, true);
+            UIKit.Place(n.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -pd - 16f), new Vector2(w - 12f, 42f));
+            n.textWrappingMode = TextWrappingModes.NoWrap;
+            MenuKit.Fit(n, MenuKit.TextLabel);
             if (locked)
             {
                 EncounterDefinition by = _app.Progression.Campaign != null ? CampaignRules.UnlockedBy(_app.Progression.Campaign, d) : null;
-                TextMeshProUGUI l = UIKit.Text("Unlock", rt, by != null ? "Win " + by.displayName : "Locked", 18f, UIPalette.TextDim, TextAlignmentOptions.Center);
-                UIKit.Place(l.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 8f), new Vector2(w - 12f, 40f));
-                l.enableAutoSizing = true; l.fontSizeMin = 13f; l.fontSizeMax = 18f;
+                TextMeshProUGUI l = UIKit.Text("Unlock", rt, by != null ? "Win " + by.displayName : "Locked", MenuKit.TextMin, UIPalette.TextDim, TextAlignmentOptions.Center);
+                UIKit.Place(l.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 8f), new Vector2(w - 12f, h - pd - 70f));
+                l.lineSpacing = -12f;
                 return rt;
             }
             // Cost + mastery.
+            float ic = MenuKit.TextNumber + 4f;
             Image vi = UIKit.Image("Vit", rt, UIKit.Lib != null ? UIKit.Lib.iconVitality : null, Color.white);
             vi.preserveAspect = true;
-            UIKit.Place(vi.rectTransform, new Vector2(0f, 0f), new Vector2(10f, 30f), new Vector2(28f, 28f));
-            TextMeshProUGUI cost = UIKit.Text("Cost", rt, d.cost.ToString(), 22f, UIPalette.Vitality, TextAlignmentOptions.MidlineLeft, true);
-            UIKit.Place(cost.rectTransform, new Vector2(0f, 0f), new Vector2(40f, 30f), new Vector2(60f, 28f));
-            MenuKit.MasteryPips(rt, MasteryRules.LevelOf(Save, d.id), 18f, new Vector2(0.5f, 0f), new Vector2(0f, 6f));
+            UIKit.Place(vi.rectTransform, new Vector2(0.5f, 0f), new Vector2(-36f, 34f), new Vector2(ic, ic));
+            TextMeshProUGUI cost = UIKit.Text("Cost", rt, d.cost.ToString(), MenuKit.TextNumber, UIPalette.Vitality, TextAlignmentOptions.MidlineLeft, true);
+            UIKit.Place(cost.rectTransform, new Vector2(0.5f, 0f), new Vector2(34f, 30f), new Vector2(90f, ic + 8f));
+            cost.overflowMode = TextOverflowModes.Overflow; // a short number: never truncate it to nothing
+            MenuKit.MasteryPips(rt, MasteryRules.LevelOf(Save, d.id), 24f, new Vector2(0.5f, 0f), new Vector2(0f, 5f));
             if (state == CardState.Chosen)
             {
                 Image check = UIKit.Image("InDeck", rt, MenuKit.Circle, UIPalette.Leaf);
-                UIKit.Place(check.rectTransform, new Vector2(1f, 1f), new Vector2(-6f, -6f), new Vector2(40f, 40f));
+                UIKit.Place(check.rectTransform, new Vector2(1f, 1f), new Vector2(-6f, -6f), new Vector2(48f, 48f));
                 Image leaf = UIKit.Image("Leaf", check.transform, UIKit.Lib != null ? UIKit.Lib.iconLeaf : null, Color.white);
                 UIKit.Stretch(leaf.rectTransform, 7f);
                 UIKit.Group(rt.gameObject).alpha = 0.6f;

@@ -16,7 +16,7 @@ namespace VerdantSiege.UI
     /// </summary>
     public sealed class WorldMapScreen : MonoBehaviour
     {
-        public const float RegionColumnWidth = 430f;
+        public const float RegionColumnWidth = 460f;
 
         private MainMenuController _hub;
         private AppRoot _app;
@@ -59,16 +59,17 @@ namespace VerdantSiege.UI
             RectTransform m = map.rectTransform;
             m.anchorMin = Vector2.zero;
             m.anchorMax = Vector2.one;
-            m.offsetMin = new Vector2(28f, 28f);
-            m.offsetMax = new Vector2(-(RegionColumnWidth + 48f), -(MenuKit.TopBarHeight + 12f));
+            m.offsetMin = new Vector2(MenuKit.Gutter, MenuKit.Gutter);
+            m.offsetMax = new Vector2(-(RegionColumnWidth + 48f), -(MenuKit.TopBarHeight + 6f));
             Decorate(m, region);
 
             // Region title + progress.
             TextMeshProUGUI name = UIKit.Text("RegionName", m, region.displayName, 52f, UIPalette.Parchment, TextAlignmentOptions.TopLeft, true);
             UIKit.Place(name.rectTransform, new Vector2(0f, 1f), new Vector2(30f, -20f), new Vector2(900f, 64f));
             MenuKit.Shadowed(name);
-            TextMeshProUGUI tag = UIKit.Text("Tagline", m, region.tagline, 26f, new Color(0.95f, 0.95f, 0.85f, 0.85f), TextAlignmentOptions.TopLeft);
-            UIKit.Place(tag.rectTransform, new Vector2(0f, 1f), new Vector2(32f, -84f), new Vector2(900f, 36f));
+            TextMeshProUGUI tag = UIKit.Text("Tagline", m, region.tagline, MenuKit.TextSmall, new Color(0.95f, 0.95f, 0.85f, 0.85f), TextAlignmentOptions.TopLeft);
+            UIKit.Place(tag.rectTransform, new Vector2(0f, 1f), new Vector2(32f, -84f), new Vector2(1000f, 42f));
+            MenuKit.Fit(tag, MenuKit.TextSmall);
             int stars = CampaignRules.StarsIn(Save, region), max = region.missions.Count * 3;
             Image starIcon = UIKit.Image("StarIcon", m, UIKit.Lib != null ? UIKit.Lib.iconStar : null, UIPalette.Gold);
             starIcon.preserveAspect = true;
@@ -173,41 +174,42 @@ namespace VerdantSiege.UI
             // Name pill + stars below.
             Image pill = UIKit.Panel("NamePill", node, new Color(0.06f, 0.12f, 0.08f, 0.85f), false, false);
             pill.raycastTarget = false;
-            UIKit.Place(pill.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, -54f), new Vector2(290f, 48f));
-            TextMeshProUGUI label = UIKit.Text("Name", pill.transform, e.displayName, 28f, open ? UIPalette.Parchment : UIPalette.TextDim, TextAlignmentOptions.Center, true);
+            UIKit.Place(pill.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, -60f), new Vector2(320f, 54f));
+            TextMeshProUGUI label = UIKit.Text("Name", pill.transform, e.displayName, MenuKit.TextLabel, open ? UIPalette.Parchment : UIPalette.TextDim, TextAlignmentOptions.Center, true);
             UIKit.Stretch(label.rectTransform, 4f);
-            label.enableAutoSizing = true; label.fontSizeMin = 20f; label.fontSizeMax = 28f;
+            label.textWrappingMode = TextWrappingModes.NoWrap;
+            MenuKit.Fit(label, MenuKit.TextLabel);
             if (open)
             {
                 EncounterRecord rec = Save.Find(e.id);
-                MenuKit.Stars(node, rec != null ? rec.stars : 0, 34f, 4f, new Vector2(0.5f, 0f), new Vector2(0f, -96f));
+                MenuKit.Stars(node, rec != null ? rec.stars : 0, 38f, 4f, new Vector2(0.5f, 0f), new Vector2(0f, -106f));
             }
         }
 
         // ================================================================ regions column
         private void BuildRegions(CampaignDefinition c, RegionDefinition current)
         {
-            RectTransform col = UIKit.Rect("Regions", _safe);
-            col.anchorMin = new Vector2(1f, 0f);
-            col.anchorMax = new Vector2(1f, 1f);
-            col.pivot = new Vector2(1f, 1f);
-            col.offsetMin = new Vector2(-(RegionColumnWidth + 24f), 28f);
-            col.offsetMax = new Vector2(-24f, -(MenuKit.TopBarHeight + 12f));
-            TextMeshProUGUI head = UIKit.Text("Head", col, "Regions", 40f, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(head.rectTransform, new Vector2(0f, 1f), new Vector2(6f, 0f), new Vector2(RegionColumnWidth, 50f));
-            float y = -60f;
+            RectTransform colRoot = UIKit.Rect("Regions", _safe);
+            colRoot.anchorMin = new Vector2(1f, 0f);
+            colRoot.anchorMax = new Vector2(1f, 1f);
+            colRoot.pivot = new Vector2(1f, 1f);
+            colRoot.offsetMin = new Vector2(-(RegionColumnWidth + 24f), MenuKit.Gutter);
+            colRoot.offsetMax = new Vector2(-24f, -(MenuKit.TopBarHeight + 6f));
+            TextMeshProUGUI head = UIKit.Text("Head", colRoot, "Regions", MenuKit.TextHeader, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
+            UIKit.Place(head.rectTransform, new Vector2(0f, 1f), new Vector2(6f, 0f), new Vector2(RegionColumnWidth, 54f));
+            ScrollRect sr = MenuKit.Scroll(colRoot, "RegionScroll", false, out RectTransform col);
+            RectTransform srt = (RectTransform)sr.transform;
+            srt.anchorMin = Vector2.zero;
+            srt.anchorMax = Vector2.one;
+            srt.offsetMin = Vector2.zero;
+            srt.offsetMax = new Vector2(0f, -62f);
+            float cw = RegionColumnWidth - 16f; // leave the scroll bar its lane
+            float y = -4f;
             foreach (RegionDefinition r in c.regions)
             {
                 if (r == null) continue;
                 bool open = CampaignRules.RegionUnlocked(Save, c, r);
                 bool isCurrent = r == current;
-                Image card = UIKit.Panel("Region_" + r.id, col, open ? Color.Lerp(r.groundColor, UIPalette.Panel, 0.45f) : new Color(0.12f, 0.12f, 0.13f, 0.95f), isCurrent, true);
-                UIKit.Place(card.rectTransform, new Vector2(0f, 1f), new Vector2(0f, y), new Vector2(RegionColumnWidth, open ? 200f : 190f));
-                Image swatch = UIKit.Image("Swatch", card.transform, MenuKit.Round, open ? r.accentColor : new Color(r.accentColor.r * 0.45f, r.accentColor.g * 0.45f, r.accentColor.b * 0.45f));
-                UIKit.Place(swatch.rectTransform, new Vector2(0f, 0.5f), new Vector2(14f, 0f), new Vector2(14f, (open ? 200f : 190f) - 36f));
-                TextMeshProUGUI n = UIKit.Text("Name", card.transform, r.displayName, 36f, open ? UIPalette.Parchment : new Color(1f, 1f, 1f, 0.6f), TextAlignmentOptions.TopLeft, true);
-                UIKit.Place(n.rectTransform, new Vector2(0f, 1f), new Vector2(44f, -14f), new Vector2(RegionColumnWidth - (open ? 60f : 110f), 46f));
-                n.enableAutoSizing = true; n.fontSizeMin = 26f; n.fontSizeMax = 36f;
                 string body;
                 if (open)
                 {
@@ -217,21 +219,34 @@ namespace VerdantSiege.UI
                            (CampaignRules.RegionComplete(Save, r) ? "  <color=#7CD65A>Restored</color>" : "");
                 }
                 else body = r.lockedHint;
-                TextMeshProUGUI b = UIKit.Text("Body", card.transform, body, 25f, open ? UIPalette.TextDim : new Color(1f, 1f, 1f, 0.5f), TextAlignmentOptions.TopLeft);
-                UIKit.Place(b.rectTransform, new Vector2(0f, 1f), new Vector2(46f, -64f), new Vector2(RegionColumnWidth - 66f, 120f));
+                Image card = UIKit.Panel("Region_" + r.id, col, open ? Color.Lerp(r.groundColor, UIPalette.Panel, 0.45f) : new Color(0.12f, 0.12f, 0.13f, 0.95f), isCurrent, true);
+                TextMeshProUGUI b = UIKit.Text("Body", card.transform, body, MenuKit.TextSmall, open ? UIPalette.TextDim : new Color(1f, 1f, 1f, 0.62f), TextAlignmentOptions.TopLeft);
+                float bh = MenuKit.TextHeight(b, body, cw - 66f);
+                float ch = 70f + bh + (open ? 18f : 52f);
+                UIKit.Place(card.rectTransform, new Vector2(0f, 1f), new Vector2(0f, y), new Vector2(cw, ch));
+                UIKit.Place(b.rectTransform, new Vector2(0f, 1f), new Vector2(46f, -64f), new Vector2(cw - 66f, bh));
+                Image swatch = UIKit.Image("Swatch", card.transform, MenuKit.Round, open ? r.accentColor : new Color(r.accentColor.r * 0.45f, r.accentColor.g * 0.45f, r.accentColor.b * 0.45f));
+                UIKit.Place(swatch.rectTransform, new Vector2(0f, 0.5f), new Vector2(14f, 0f), new Vector2(14f, ch - 36f));
+                TextMeshProUGUI n = UIKit.Text("Name", card.transform, r.displayName, 38f, open ? UIPalette.Parchment : new Color(1f, 1f, 1f, 0.7f), TextAlignmentOptions.TopLeft, true);
+                UIKit.Place(n.rectTransform, new Vector2(0f, 1f), new Vector2(44f, -12f), new Vector2(cw - (open ? 60f : 110f), 48f));
+                n.textWrappingMode = TextWrappingModes.NoWrap;
+                MenuKit.Fit(n, 38f, 30f);
                 if (!open)
                 {
                     Image lk = UIKit.Image("Lock", card.transform, UIKit.Lib != null ? UIKit.Lib.iconLock : null, new Color(1f, 1f, 1f, 0.45f));
                     lk.preserveAspect = true;
                     UIKit.Place(lk.rectTransform, new Vector2(1f, 1f), new Vector2(-16f, -16f), new Vector2(44f, 44f));
-                    TextMeshProUGUI soon = UIKit.Text("Soon", card.transform, r.comingSoon ? "COMING SOON" : "LOCKED", 22f, r.accentColor, TextAlignmentOptions.BottomRight, true);
-                    UIKit.Place(soon.rectTransform, new Vector2(1f, 0f), new Vector2(-18f, 12f), new Vector2(240f, 30f));
+                    TextMeshProUGUI soon = UIKit.Text("Soon", card.transform, r.comingSoon ? "COMING SOON" : "LOCKED", MenuKit.TextMin, r.accentColor, TextAlignmentOptions.BottomRight, true);
+                    UIKit.Place(soon.rectTransform, new Vector2(1f, 0f), new Vector2(-18f, 10f), new Vector2(280f, 36f));
                 }
-                y -= (open ? 200f : 190f) + 16f;
+                y -= ch + 16f;
             }
+            col.sizeDelta = new Vector2(0f, -y + 8f);
         }
 
         // ================================================================ briefing
+        private const float BriefW = 1780f, BriefH = 980f;
+
         public void ShowBrief(EncounterDefinition e)
         {
             if (_brief != null) Destroy(_brief);
@@ -249,46 +264,57 @@ namespace VerdantSiege.UI
             dim.raycastTarget = true;
             Image panel = UIKit.Panel("Panel", _brief.transform, new Color(0.09f, 0.165f, 0.133f, 0.985f), true, true);
             RectTransform p = panel.rectTransform;
-            UIKit.Place(p, new Vector2(0.5f, 0.5f), new Vector2(0f, -30f), new Vector2(1360f, 860f));
+            UIKit.Place(p, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(BriefW, BriefH));
             EncounterRecord rec = Save.Find(e.id);
             bool done = rec != null && rec.completed;
 
             TextMeshProUGUI title = UIKit.Text("Title", p, e.displayName, 64f, e.boss != null ? new Color(1f, 0.6f, 0.65f) : UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(title.rectTransform, new Vector2(0f, 1f), new Vector2(40f, -26f), new Vector2(900f, 76f));
-            MenuKit.Stars(p, rec != null ? rec.stars : 0, 52f, 6f, new Vector2(1f, 1f), new Vector2(-40f, -34f));
-            TextMeshProUGUI brief = UIKit.Text("Briefing", p, e.briefing, 30f, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
-            UIKit.Place(brief.rectTransform, new Vector2(0f, 1f), new Vector2(42f, -108f), new Vector2(1270f, 96f));
+            UIKit.Place(title.rectTransform, new Vector2(0f, 1f), new Vector2(40f, -24f), new Vector2(BriefW - 320f, 76f));
+            MenuKit.Stars(p, rec != null ? rec.stars : 0, 56f, 6f, new Vector2(1f, 1f), new Vector2(-40f, -32f));
+            TextMeshProUGUI brief = UIKit.Text("Briefing", p, e.briefing, MenuKit.TextBody, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
+            float briefH = Mathf.Min(MenuKit.TextHeight(brief, e.briefing, BriefW - 84f), 124f);
+            UIKit.Place(brief.rectTransform, new Vector2(0f, 1f), new Vector2(42f, -104f), new Vector2(BriefW - 84f, briefH));
+            MenuKit.Fit(brief, MenuKit.TextBody);
+            float colTop = -104f - briefH - 22f;
+            const float bottom = MenuKit.ButtonHeight + 44f; // space kept for the two buttons
 
-            // Threat intel (left).
-            TextMeshProUGUI th = UIKit.Text("ThreatsHead", p, "Threats", 36f, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(th.rectTransform, new Vector2(0f, 1f), new Vector2(42f, -214f), new Vector2(600f, 46f));
-            List<EnemyDefinition> threats = LoadoutRules.Threats(e);
-            float y = -266f;
-            int shown = 0;
-            foreach (EnemyDefinition en in threats)
+            // Threat intel (left, scrolls when the list is long).
+            const float leftX = 40f, leftW = 840f;
+            TextMeshProUGUI th = UIKit.Text("ThreatsHead", p, "Threats", MenuKit.TextHeader, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
+            UIKit.Place(th.rectTransform, new Vector2(0f, 1f), new Vector2(leftX + 2f, colTop), new Vector2(600f, 54f));
+            ScrollRect sr = MenuKit.Scroll(p, "ThreatScroll", false, out RectTransform list);
+            RectTransform srt = (RectTransform)sr.transform;
+            srt.anchorMin = new Vector2(0f, 0f);
+            srt.anchorMax = new Vector2(0f, 1f);
+            srt.pivot = new Vector2(0f, 1f);
+            srt.offsetMin = new Vector2(leftX, bottom);
+            srt.offsetMax = new Vector2(leftX + leftW, colTop - 60f);
+            float y = -4f, tw = leftW - 60f;
+            foreach (EnemyDefinition en in LoadoutRules.Threats(e))
             {
-                if (shown++ >= 7) break;
-                Image dot = UIKit.Image("Dot", p, MenuKit.Circle, en.accentColor);
-                UIKit.Place(dot.rectTransform, new Vector2(0f, 1f), new Vector2(46f, y - 8f), new Vector2(22f, 22f));
-                string hint = string.IsNullOrEmpty(en.counterHint) ? "" : $"  <color=#C9D8C4><size=80%>{en.counterHint}</size></color>";
-                TextMeshProUGUI t = UIKit.Text("Threat", p, $"<b>{en.displayName}</b>" + (en.elite ? " <color=#FF5E6C>ELITE</color>" : "") + hint, 26f,
-                    UIPalette.Parchment, TextAlignmentOptions.TopLeft);
-                UIKit.Place(t.rectTransform, new Vector2(0f, 1f), new Vector2(80f, y), new Vector2(620f, 60f));
-                t.enableAutoSizing = true; t.fontSizeMin = 18f; t.fontSizeMax = 26f;
-                y -= 62f;
+                Image dot = UIKit.Image("Dot", list, MenuKit.Circle, en.accentColor);
+                UIKit.Place(dot.rectTransform, new Vector2(0f, 1f), new Vector2(6f, y - 8f), new Vector2(24f, 24f));
+                string hint = string.IsNullOrEmpty(en.counterHint) ? "" : $"\n<color=#C9D8C4><size=90%>{en.counterHint}</size></color>";
+                string txt = $"<b>{en.displayName}</b>" + (en.elite ? " <color=#FF5E6C>ELITE</color>" : "") + hint;
+                TextMeshProUGUI t = UIKit.Text("Threat", list, txt, MenuKit.TextBody, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
+                float h = MenuKit.TextHeight(t, txt, tw);
+                UIKit.Place(t.rectTransform, new Vector2(0f, 1f), new Vector2(44f, y), new Vector2(tw, h));
+                y -= h + 14f;
             }
             if (e.boss != null)
             {
-                TextMeshProUGUI bt = UIKit.Text("Boss", p, $"<color=#FF8FA0><b>Boss: {e.boss.displayName}</b></color>  <size=80%>Break its pods to stagger it; strike the Core when it opens.</size>",
-                    26f, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
-                UIKit.Place(bt.rectTransform, new Vector2(0f, 1f), new Vector2(46f, y), new Vector2(660f, 60f));
-                bt.enableAutoSizing = true; bt.fontSizeMin = 18f; bt.fontSizeMax = 26f;
+                string txt = $"<color=#FF8FA0><b>Boss: {e.boss.displayName}</b></color>\n<size=90%>Break its pods to stagger it; strike the Core when it opens.</size>";
+                TextMeshProUGUI bt = UIKit.Text("Boss", list, txt, MenuKit.TextBody, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
+                float h = MenuKit.TextHeight(bt, txt, tw + 38f);
+                UIKit.Place(bt.rectTransform, new Vector2(0f, 1f), new Vector2(6f, y), new Vector2(tw + 38f, h));
+                y -= h + 14f;
             }
+            list.sizeDelta = new Vector2(0f, -y);
 
             // Objectives and rewards (right).
-            float rx = 740f;
-            TextMeshProUGUI oh = UIKit.Text("ObjHead", p, "Objectives", 36f, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
-            UIKit.Place(oh.rectTransform, new Vector2(0f, 1f), new Vector2(rx, -214f), new Vector2(560f, 46f));
+            const float rx = 920f, rw = BriefW - rx - 40f;
+            TextMeshProUGUI oh = UIKit.Text("ObjHead", p, "Objectives", MenuKit.TextHeader, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
+            UIKit.Place(oh.rectTransform, new Vector2(0f, 1f), new Vector2(rx, colTop), new Vector2(rw, 54f));
             float replay = Campaign != null ? Campaign.replaySeedFraction : 0.35f;
             string[] names = { "Win the battle", "Keep the Heartroot unhurt", e.challenge.IsSet ? e.challenge.text : "-" };
             string[] rewards =
@@ -298,43 +324,48 @@ namespace VerdantSiege.UI
                 $"{e.challengeSeeds} Seeds + {e.challengeEssence} Essence",
             };
             int[] mask = { EncounterRecord.StarWin, EncounterRecord.StarFlawless, EncounterRecord.StarChallenge };
+            float oy = colTop - 64f;
             for (int i = 0; i < 3; i++)
             {
                 bool got = rec != null && rec.HasStar(mask[i]);
                 Image s = UIKit.Image("ObjStar" + i, p, UIKit.Lib != null ? UIKit.Lib.iconStar : null, got ? UIPalette.Gold : MenuKit.StarOff);
                 s.preserveAspect = true;
-                UIKit.Place(s.rectTransform, new Vector2(0f, 1f), new Vector2(rx, -268f - i * 86f), new Vector2(54f, 54f));
-                TextMeshProUGUI t = UIKit.Text("Obj" + i, p, names[i], 28f, UIPalette.Parchment, TextAlignmentOptions.TopLeft, true);
-                UIKit.Place(t.rectTransform, new Vector2(0f, 1f), new Vector2(rx + 70f, -266f - i * 86f), new Vector2(520f, 36f));
-                TextMeshProUGUI rw = UIKit.Text("Reward" + i, p, got && i > 0 ? "Earned" : rewards[i], 23f, got ? UIPalette.Leaf : UIPalette.TextDim, TextAlignmentOptions.TopLeft);
-                UIKit.Place(rw.rectTransform, new Vector2(0f, 1f), new Vector2(rx + 72f, -302f - i * 86f), new Vector2(520f, 30f));
+                UIKit.Place(s.rectTransform, new Vector2(0f, 1f), new Vector2(rx, oy - 4f), new Vector2(58f, 58f));
+                TextMeshProUGUI t = UIKit.Text("Obj" + i, p, names[i], MenuKit.TextLabel, UIPalette.Parchment, TextAlignmentOptions.TopLeft, true);
+                UIKit.Place(t.rectTransform, new Vector2(0f, 1f), new Vector2(rx + 74f, oy), new Vector2(rw - 74f, 42f));
+                t.textWrappingMode = TextWrappingModes.NoWrap;
+                MenuKit.Fit(t, MenuKit.TextLabel);
+                TextMeshProUGUI rwT = UIKit.Text("Reward" + i, p, got && i > 0 ? "Earned" : rewards[i], MenuKit.TextSmall, got ? UIPalette.Leaf : UIPalette.TextDim, TextAlignmentOptions.TopLeft);
+                UIKit.Place(rwT.rectTransform, new Vector2(0f, 1f), new Vector2(rx + 76f, oy - 42f), new Vector2(rw - 76f, 38f));
+                oy -= 92f;
             }
-            float uy = -540f;
+            float uy = oy - 4f;
             if (e.boss != null && (rec == null || rec.bossDefeats == 0))
             {
-                TextMeshProUGUI ess = UIKit.Text("BossReward", p, $"First defeat: +{e.boss.bonusSeeds} Seeds, +{e.boss.essenceFirstDefeat} Essence", 25f, MenuKit.EssenceColor, TextAlignmentOptions.TopLeft, true);
-                UIKit.Place(ess.rectTransform, new Vector2(0f, 1f), new Vector2(rx, uy), new Vector2(580f, 34f));
-                uy -= 44f;
+                TextMeshProUGUI ess = UIKit.Text("BossReward", p, $"First defeat: +{e.boss.bonusSeeds} Seeds, +{e.boss.essenceFirstDefeat} Essence", MenuKit.TextSmall, MenuKit.EssenceColor, TextAlignmentOptions.TopLeft, true);
+                UIKit.Place(ess.rectTransform, new Vector2(0f, 1f), new Vector2(rx, uy), new Vector2(rw, 40f));
+                MenuKit.Fit(ess, MenuKit.TextSmall);
+                uy -= 50f;
             }
             if (!done && e.unlocksDefenders.Count > 0)
             {
-                TextMeshProUGUI ut = UIKit.Text("UnlockHead", p, "First win adds to your garden:", 26f, UIPalette.TextDim, TextAlignmentOptions.TopLeft);
-                UIKit.Place(ut.rectTransform, new Vector2(0f, 1f), new Vector2(rx, uy), new Vector2(580f, 34f));
+                TextMeshProUGUI ut = UIKit.Text("UnlockHead", p, "First win adds to your garden:", MenuKit.TextSmall, UIPalette.TextDim, TextAlignmentOptions.TopLeft);
+                UIKit.Place(ut.rectTransform, new Vector2(0f, 1f), new Vector2(rx, uy), new Vector2(rw, 40f));
                 float x = rx;
                 foreach (DefenderDefinition d in e.unlocksDefenders)
                 {
-                    RectTransform pt = MenuKit.Portrait(p, d, 70f, false);
-                    UIKit.Place(pt, new Vector2(0f, 1f), new Vector2(x, uy - 44f), new Vector2(70f, 70f));
-                    TextMeshProUGUI dn = UIKit.Text("Name", pt, d.displayName, 20f, UIPalette.Parchment, TextAlignmentOptions.Top, true);
-                    UIKit.Place(dn.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, -30f), new Vector2(170f, 28f));
-                    x += 180f;
+                    RectTransform pt = MenuKit.Portrait(p, d, 76f, false);
+                    UIKit.Place(pt, new Vector2(0f, 1f), new Vector2(x, uy - 46f), new Vector2(76f, 76f));
+                    TextMeshProUGUI dn = UIKit.Text("Name", pt, d.displayName, MenuKit.TextMin, UIPalette.Parchment, TextAlignmentOptions.MidlineLeft, true);
+                    UIKit.Place(dn.rectTransform, new Vector2(0f, 0.5f), new Vector2(86f, 0f), new Vector2(240f, 40f));
+                    x += 340f;
                 }
             }
 
-            Button close = UIKit.Button("Close", p, "Back", UIPalette.ButtonSecondary, CloseBrief, UIKit.Lib != null ? UIKit.Lib.iconClose : null, 38f);
-            UIKit.Place((RectTransform)close.transform, new Vector2(0.5f, 0f), new Vector2(-220f, 30f), new Vector2(300f, 100f));
+            Button close = UIKit.Button("Close", p, "Back", UIPalette.ButtonSecondary, CloseBrief, UIKit.Lib != null ? UIKit.Lib.iconClose : null, 40f);
+            UIKit.Place((RectTransform)close.transform, new Vector2(0.5f, 0f), new Vector2(-220f, 26f), new Vector2(300f, MenuKit.ButtonHeight + 4f));
             Button go = UIKit.Button("Prepare", p, "Prepare", UIPalette.ButtonPrimary, () => _hub.ShowLoadout(e), UIKit.Lib != null ? UIKit.Lib.iconPlay : null, 44f);
-            UIKit.Place((RectTransform)go.transform, new Vector2(0.5f, 0f), new Vector2(160f, 30f), new Vector2(380f, 100f));
+            UIKit.Place((RectTransform)go.transform, new Vector2(0.5f, 0f), new Vector2(160f, 26f), new Vector2(380f, MenuKit.ButtonHeight + 4f));
             PopIn.Play(_brief);
         }
 

@@ -51,27 +51,27 @@ namespace VerdantSiege.UI
 
             Image p = UIKit.Panel("TutorialPanel", hud.Root, new Color(0.1f, 0.2f, 0.15f, 0.95f), true, true);
             _panel = p.rectTransform;
-            UIKit.Place(_panel, new Vector2(0.5f, 0f), new Vector2(BattleHud.RailWidth * 0.5f, 16f), new Vector2(780f, 92f));
+            UIKit.Place(_panel, new Vector2(0.5f, 0f), new Vector2(BattleHud.RailWidth * 0.5f, 16f), new Vector2(940f, 112f));
             p.raycastTarget = false;
             Image sprout = UIKit.Image("Icon", p.transform, UIKit.Lib != null ? UIKit.Lib.iconLeaf : null, UIPalette.Leaf);
             UIKit.Place(sprout.rectTransform, new Vector2(0f, 0.5f), new Vector2(16f, 0f), new Vector2(52f, 52f));
-            _text = UIKit.Text("Text", p.transform, "", 30f, UIPalette.Parchment, TextAlignmentOptions.MidlineLeft, true);
+            _text = UIKit.Text("Text", p.transform, "", 32f, UIPalette.Parchment, TextAlignmentOptions.MidlineLeft, true);
             UIKit.Stretch(_text.rectTransform);
             _text.enableAutoSizing = true;
-            _text.fontSizeMin = 22f;
-            _text.fontSizeMax = 30f;
+            _text.fontSizeMin = MenuKit.TextMin;
+            _text.fontSizeMax = 32f;
             _text.rectTransform.offsetMin = new Vector2(80f, 6f);
-            _text.rectTransform.offsetMax = new Vector2(-226f, -6f);
+            _text.rectTransform.offsetMax = new Vector2(-250f, -6f);
             _stepLabel = UIKit.Text("Step", p.transform, "", 24f, UIPalette.TextDim, TextAlignmentOptions.TopRight);
-            UIKit.Place(_stepLabel.rectTransform, new Vector2(1f, 1f), new Vector2(-96f, -6f), new Vector2(120f, 26f));
-            _stepLabel.fontSize = 20f;
-            Button skip = UIKit.Button("Skip", p.transform, "Skip", UIPalette.ButtonSecondary, Finish, null, 26f);
-            UIKit.Place((RectTransform)skip.transform, new Vector2(1f, 0f), new Vector2(-84f, 10f), new Vector2(120f, 52f));
+            UIKit.Place(_stepLabel.rectTransform, new Vector2(1f, 1f), new Vector2(-100f, -6f), new Vector2(140f, 34f));
+            _stepLabel.fontSize = MenuKit.TextMin;
+            Button skip = UIKit.Button("Skip", p.transform, "Skip", UIPalette.ButtonSecondary, Finish, null, 30f);
+            UIKit.Place((RectTransform)skip.transform, new Vector2(1f, 0f), new Vector2(-92f, 8f), new Vector2(140f, 60f));
             Button min = UIKit.Button("Minimise", p.transform, "-", UIPalette.ButtonSecondary, () => SetMinimised(true), null, 34f);
-            UIKit.Place((RectTransform)min.transform, new Vector2(1f, 0.5f), new Vector2(-12f, 0f), new Vector2(62f, 62f));
+            UIKit.Place((RectTransform)min.transform, new Vector2(1f, 0.5f), new Vector2(-10f, 0f), new Vector2(74f, 74f));
             // Collapsed chip: tap to bring the tip back. The pointer keeps guiding while minimised.
-            _chip = UIKit.Button("TipChip", hud.Root, "Tip", new Color(0.1f, 0.2f, 0.15f, 0.95f), () => SetMinimised(false), UIKit.Lib != null ? UIKit.Lib.iconLeaf : null, 28f);
-            UIKit.Place((RectTransform)_chip.transform, new Vector2(0.5f, 0f), new Vector2(BattleHud.RailWidth * 0.5f, 16f), new Vector2(170f, 60f));
+            _chip = UIKit.Button("TipChip", hud.Root, "Tip", new Color(0.1f, 0.2f, 0.15f, 0.95f), () => SetMinimised(false), UIKit.Lib != null ? UIKit.Lib.iconLeaf : null, 32f);
+            UIKit.Place((RectTransform)_chip.transform, new Vector2(0.5f, 0f), new Vector2(BattleHud.RailWidth * 0.5f, 16f), new Vector2(200f, 72f));
             _chip.gameObject.SetActive(false);
 
             Image arrow = UIKit.Image("Pointer", hud.Root, UIKit.Lib != null ? UIKit.Lib.iconPlay : null, UIPalette.Gold);

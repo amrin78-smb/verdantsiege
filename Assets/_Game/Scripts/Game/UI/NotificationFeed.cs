@@ -39,6 +39,11 @@ namespace VerdantSiege.UI
         private float _anim;
 
         public bool Busy => _timer > 0f;
+        /// <summary>An intel card is fully shown (autoplay screenshot).</summary>
+        public bool ShowingIntel => _timer > 0.5f && _anim >= 1f && _current.kind == NotifyKind.Intel;
+
+        /// <summary>TD-36: title ~38, body 30 (never below 28), up to two body lines; the strip grows only when needed.</summary>
+        public const float TitleSize = 38f, BodySize = 30f, Width = 1120f, TitleBand = 50f;
 
         public static NotificationFeed Create(RectTransform root)
         {
@@ -60,15 +65,11 @@ namespace VerdantSiege.UI
             _accent.rectTransform.pivot = new Vector2(0f, 0.5f);
             _accent.rectTransform.offsetMin = new Vector2(10f, 12f);
             _accent.rectTransform.offsetMax = new Vector2(18f, -12f);
-            _title = UIKit.Text("Title", _bg.transform, "", 36f, UIPalette.Parchment, TextAlignmentOptions.MidlineLeft, true);
+            _title = UIKit.Text("Title", _bg.transform, "", TitleSize, UIPalette.Parchment, TextAlignmentOptions.MidlineLeft, true);
             _title.textWrappingMode = TextWrappingModes.NoWrap;
-            _title.enableAutoSizing = true;
-            _title.fontSizeMin = 24f;
-            _title.fontSizeMax = 36f;
-            _body = UIKit.Text("Body", _bg.transform, "", 25f, UIPalette.TextDim, TextAlignmentOptions.TopLeft);
-            _body.enableAutoSizing = true;
-            _body.fontSizeMin = 19f;
-            _body.fontSizeMax = 25f;
+            MenuKit.Fit(_title, TitleSize, 30f);
+            _body = UIKit.Text("Body", _bg.transform, "", BodySize, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
+            _body.lineSpacing = -6f;
             _group = UIKit.Group(_bg.gameObject);
             _group.alpha = 0f;
             _group.blocksRaycasts = false;
@@ -102,8 +103,11 @@ namespace VerdantSiege.UI
             _timer = it.seconds;
             _anim = 0f;
             bool twoLine = !string.IsNullOrEmpty(it.body);
-            float h = twoLine ? (it.kind == NotifyKind.Intel ? 96f : 84f) : 60f;
-            UIKit.Place(_strip, new Vector2(0.5f, 1f), new Vector2(BattleHud.RailWidth * 0.5f, _top), new Vector2(it.kind == NotifyKind.Intel ? 980f : 820f, h));
+            float w = it.kind == NotifyKind.Intel ? Width : Width - 160f;
+            _body.fontSize = BodySize;
+            float bodyH = twoLine ? Mathf.Min(MenuKit.TextHeight(_body, it.body, w - 52f), 2f * BodySize * 1.2f) : 0f;
+            float h = twoLine ? TitleBand + bodyH + 14f : 66f;
+            UIKit.Place(_strip, new Vector2(0.5f, 1f), new Vector2(BattleHud.RailWidth * 0.5f, _top), new Vector2(w, h));
             _accent.color = it.color;
             _title.text = it.title;
             _title.color = it.kind == NotifyKind.Intel ? UIPalette.Gold : it.color;
@@ -111,14 +115,14 @@ namespace VerdantSiege.UI
             _title.rectTransform.anchorMin = new Vector2(0f, twoLine ? 1f : 0f);
             _title.rectTransform.anchorMax = new Vector2(1f, 1f);
             _title.rectTransform.pivot = new Vector2(0.5f, 1f);
-            _title.rectTransform.offsetMin = new Vector2(32f, twoLine ? -44f : 4f);
+            _title.rectTransform.offsetMin = new Vector2(32f, twoLine ? -TitleBand : 4f);
             _title.rectTransform.offsetMax = new Vector2(-20f, -4f);
             _body.gameObject.SetActive(twoLine);
             _body.text = it.body;
             _body.rectTransform.anchorMin = Vector2.zero;
             _body.rectTransform.anchorMax = Vector2.one;
             _body.rectTransform.offsetMin = new Vector2(32f, 6f);
-            _body.rectTransform.offsetMax = new Vector2(-20f, -44f);
+            _body.rectTransform.offsetMax = new Vector2(-20f, -TitleBand + 2f);
         }
 
         private void Update()

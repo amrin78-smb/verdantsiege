@@ -183,7 +183,7 @@ namespace VerdantSiege.UI
             Button cont = UIKit.Button("Continue", _root, "Continue", UIPalette.ButtonPrimary, Continue, UIKit.Lib != null ? UIKit.Lib.iconPlay : null, 60f);
             UIKit.Place((RectTransform)cont.transform, new Vector2(0f, 0f), new Vector2(x, 446f), new Vector2(w, 150f));
             ((RectTransform)cont.transform.Find("Label")).offsetMin = new Vector2(96f, 46f);
-            _continueSub = UIKit.Text("Next", cont.transform, "", 28f, UIPalette.Parchment, TextAlignmentOptions.Bottom);
+            _continueSub = UIKit.Text("Next", cont.transform, "", MenuKit.TextSmall, UIPalette.Parchment, TextAlignmentOptions.Bottom);
             UIKit.Stretch(_continueSub.rectTransform);
             _continueSub.rectTransform.offsetMin = new Vector2(96f, 14f);
             _continueSub.rectTransform.offsetMax = new Vector2(-12f, 0f);
@@ -217,11 +217,12 @@ namespace VerdantSiege.UI
                 _restPips[i].preserveAspect = true;
                 UIKit.Place(_restPips[i].rectTransform, new Vector2(1f, 1f), new Vector2(-22f - (3 - i) * 46f, -14f), new Vector2(42f, 42f));
             }
-            _restText = UIKit.Text("Text", rest.transform, "", 25f, UIPalette.TextDim, TextAlignmentOptions.TopLeft);
-            UIKit.Place(_restText.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -66f), new Vector2(520f, 90f));
+            _restText = UIKit.Text("Text", rest.transform, "", MenuKit.TextSmall, UIPalette.TextDim, TextAlignmentOptions.TopLeft);
+            UIKit.Place(_restText.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -62f), new Vector2(520f, 96f));
+            MenuKit.Fit(_restText, MenuKit.TextSmall);
 
-            TextMeshProUGUI ver = UIKit.Text("Version", _root, _app.Config != null ? _app.Config.versionLabel : "", 22f, new Color(1f, 1f, 1f, 0.5f), TextAlignmentOptions.BottomRight);
-            UIKit.Place(ver.rectTransform, new Vector2(1f, 0f), new Vector2(-40f, 18f), new Vector2(600f, 34f));
+            TextMeshProUGUI ver = UIKit.Text("Version", _root, _app.Config != null ? _app.Config.versionLabel : "", MenuKit.TextMin, new Color(1f, 1f, 1f, 0.5f), TextAlignmentOptions.BottomRight);
+            UIKit.Place(ver.rectTransform, new Vector2(1f, 0f), new Vector2(-40f, 14f), new Vector2(600f, 40f));
             RefreshHub();
         }
 

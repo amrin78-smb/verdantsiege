@@ -48,6 +48,7 @@ namespace VerdantSiege.App
         private string _flow = "direct";
         private bool _expectProgress;
         private int _grantSeeds, _grantEssence;
+        private bool _unlockAll;
         private bool _battleFinished;
         private BattleSimulation _lastSim;
         private readonly StringBuilder _flowLog = new StringBuilder();
@@ -80,6 +81,7 @@ namespace VerdantSiege.App
                 }
             }
             _expectProgress = Array.IndexOf(a, "-vs-expect-progress") >= 0;
+            _unlockAll = Array.IndexOf(a, "-vs-unlock-all") >= 0;
             Directory.CreateDirectory(_shots);
             Application.logMessageReceived += OnLog;
             Debug.Log($"[VS Autoplay] tag={_tag} flow={_flow} encounter={_encounter} strategy={_strategy} speed={_speed} {Screen.width}x{Screen.height}");
@@ -140,6 +142,18 @@ namespace VerdantSiege.App
                 save.essence += _grantEssence;
                 Log($"test grant: +{_grantSeeds} Seeds +{_grantEssence} Essence");
             }
+            if (_unlockAll)
+            {
+                // Screenshot aid only (logged): a full collection with varied mastery so the readability pass can
+                // judge populated grids and the scrolled states.
+                int k = 0;
+                foreach (DefenderDefinition d in app.Config.content.defenders)
+                {
+                    save.Unlock(d.id);
+                    save.AddMasteryXp(d.id, (k++ % 4) * 60);
+                }
+                Log($"test unlock: all {app.Config.content.defenders.Count} defenders, varied mastery");
+            }
             MainMenuController hub = MainMenuController.Instance;
             hub.ShowSanctuary();
             yield return Wait(2.5f); // restoration celebration (if any) plays
@@ -163,10 +177,12 @@ namespace VerdantSiege.App
                 yield return Wait(1.2f);
                 Shot("research_bought");
                 yield return Settle(); // capture before the next UI change
+                yield return ScrollToEnd(cons.gameObject, "research_scrolled");
                 cons.Show(ConservatoryScreen.Tab.Defenders);
                 yield return Wait(1f);
                 Shot("mastery");
                 yield return Settle(); // capture before the next UI change
+                yield return ScrollToEnd(cons.gameObject, "mastery_scrolled");
             }
             else Debug.LogError("[VS Autoplay] Conservatory did not open");
             Click("Back");
@@ -185,6 +201,7 @@ namespace VerdantSiege.App
             yield return Wait(1f);
             Shot("mission_brief");
             yield return Settle(); // capture before the next UI change
+            yield return ScrollToEnd(map.gameObject, "mission_brief_scrolled");
             Click("Prepare");
             yield return Wait(1.2f);
             var loadout = hub.CurrentScreen as LoadoutScreen;
@@ -194,6 +211,7 @@ namespace VerdantSiege.App
             Log($"loadout {next.id}: slots={app.Progression.DeckSlots(next)} deck=[{string.Join(",", deck)}]");
             Shot("loadout");
             yield return Settle(); // capture before the next UI change
+            yield return ScrollToEnd(loadout.gameObject, "loadout_scrolled");
             Click("Begin");
 
             // Battle (played by Update), then the rewards.
@@ -211,6 +229,7 @@ namespace VerdantSiege.App
             yield return Wait(0.6f);
             Shot("result_rewards");
             yield return Settle(); // capture before the next UI change
+            if (res != null) yield return ScrollToEnd(res.gameObject, "result_rewards_scrolled");
             if (res != null) Log("rewards: " + res.Summary);
             Log("save after battle: " + SaveSummary(app.Save.Data));
             Click("WorldMap");
@@ -223,6 +242,33 @@ namespace VerdantSiege.App
             Shot("sanctuary_after");
             yield return Settle(); // capture before the next UI change
             Finish(_lastSim);
+        }
+
+        /// <summary>
+        /// Readability pass: scrolls every scroll list under <paramref name="root"/> to its far end (as a drag would) and
+        /// takes a screenshot when at least one of them actually scrolls; then scrolls them back.
+        /// </summary>
+        private IEnumerator ScrollToEnd(GameObject root, string shot)
+        {
+            if (root == null) yield break;
+            ScrollRect[] lists = root.GetComponentsInChildren<ScrollRect>();
+            var moved = new List<string>();
+            foreach (ScrollRect sr in lists)
+            {
+                Rect vp = sr.viewport.rect, ct = sr.content.rect;
+                bool scrolls = sr.horizontal ? ct.width > vp.width + 2f : ct.height > vp.height + 2f;
+                if (!scrolls) continue;
+                if (sr.horizontal) sr.horizontalNormalizedPosition = 1f; else sr.verticalNormalizedPosition = 0f;
+                moved.Add(sr.name);
+            }
+            Log($"{shot}: {lists.Length} scroll lists, scrolled [{string.Join(",", moved)}]");
+            if (moved.Count == 0) yield break;
+            yield return Wait(0.4f);
+            Shot(shot);
+            yield return Settle();
+            foreach (ScrollRect sr in lists)
+                if (sr != null) { if (sr.horizontal) sr.horizontalNormalizedPosition = 0f; else sr.verticalNormalizedPosition = 1f; }
+            yield return null;
         }
 
         private void OnLog(string msg, string stack, LogType type)
@@ -301,6 +347,7 @@ namespace VerdantSiege.App
                 if (e.IsFlying && e.x < sim.Columns - 2f) Shot("glider");
             }
             if (sim.Clouds.Count > 0) Shot("spore_cloud");
+            if (_battle.Hud != null && _battle.Hud.FeedShowingIntel) Shot("feed_intel");
             // Living Evolution moments.
             foreach (DefenderRuntime d in sim.Defenders)
                 if (d.EvolutionReady && _battle.Evolution != null && !_shotsTaken.Contains("evolve_ready_badge"))

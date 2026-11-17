@@ -47,7 +47,20 @@ namespace VerdantSiege.UI
             scaler.matchWidthOrHeight = aspect >= 1.7f ? 1f : 0.35f; // phones scale with height, 4:3 tablets mostly width
             go.AddComponent<GraphicRaycaster>();
             EnsureEventSystem();
+            ConfigureEventSystem();
             return canvas;
+        }
+
+        /// <summary>
+        /// Drag threshold scaled to the screen density (~1.8 mm): on a 500 dpi phone the 10 px default turns a
+        /// slightly wobbly tap into a drag, which cancels button clicks inside scroll lists.
+        /// </summary>
+        public static void ConfigureEventSystem()
+        {
+            EventSystem es = EventSystem.current;
+            if (es == null) return;
+            float dpi = Screen.dpi > 0f ? Screen.dpi : 96f;
+            es.pixelDragThreshold = Mathf.Clamp(Mathf.RoundToInt(dpi * 0.07f), 10, 48);
         }
 
         public static void EnsureEventSystem()

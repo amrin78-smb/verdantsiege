@@ -20,6 +20,9 @@ namespace VerdantSiege.UI
         public event Action<int, Vector2> Dragged;
         public event Action<int, Vector2> DragEnded;
 
+        /// <summary>Card name and cost sizes (TD-36: battle text never below 28; costs read at a glance).</summary>
+        public const float NameSize = 32f, CostSize = 36f;
+
         private DeckSlot _slot;
         private Image _bg, _edge, _portrait, _cooldown, _costChip;
         private TextMeshProUGUI _cost, _name, _cdText;
@@ -60,43 +63,73 @@ namespace VerdantSiege.UI
             Image wash = UIKit.Image("Wash", _bg.transform, UIKit.Lib != null ? UIKit.Lib.uiGradient : null,
                 new Color(d.accentColor.r, d.accentColor.g, d.accentColor.b, 0.55f));
             UIKit.Stretch(wash.rectTransform, 4f);
+            // Two shapes (TD-36): a wide card (single-column rail: portrait left, name top-right, cost bottom-right) and a
+            // tall card (two-column rail for 6-8 cards: portrait top-left, cost column top-right, name across the bottom).
+            bool tall = size.x < size.y * 1.2f;
+            float pd = tall ? Mathf.Min(size.y - 96f, size.x - 84f) : size.y * 0.98f;
             _portrait = UIKit.Image("Portrait", _bg.transform, d.icon, Color.white);
             _portrait.preserveAspect = true;
-            UIKit.Place(_portrait.rectTransform, new Vector2(0f, 0.5f), new Vector2(2f, 6f), new Vector2(size.y * 0.98f, size.y * 0.98f));
+            if (tall) UIKit.Place(_portrait.rectTransform, new Vector2(0f, 1f), new Vector2(4f, -4f), new Vector2(pd, pd));
+            else UIKit.Place(_portrait.rectTransform, new Vector2(0f, 0.5f), new Vector2(2f, 6f), new Vector2(pd, pd));
             if (d.icon == null)
             {
                 // No card art yet: an accent disc with the defender's initials stands in (portrait image kept for tinting).
                 _portrait.sprite = UIKit.Lib != null ? UIKit.Lib.uiCircle : null;
-                _portrait.rectTransform.sizeDelta = new Vector2(size.y * 0.7f, size.y * 0.7f);
-                _portrait.rectTransform.anchoredPosition = new Vector2(12f, 0f);
-                TextMeshProUGUI mono = UIKit.Text("Monogram", _portrait.transform, Monogram(d.displayName), size.y * 0.3f,
+                _portrait.rectTransform.sizeDelta = new Vector2(pd * 0.72f, pd * 0.72f);
+                _portrait.rectTransform.anchoredPosition = tall ? new Vector2(14f, -14f) : new Vector2(12f, 0f);
+                TextMeshProUGUI mono = UIKit.Text("Monogram", _portrait.transform, Monogram(d.displayName), pd * 0.3f,
                     new Color(0.1f, 0.12f, 0.1f, 0.9f), TextAlignmentOptions.Center, true);
                 UIKit.Stretch(mono.rectTransform);
                 _monogramTint = new Color(d.accentColor.r, d.accentColor.g, d.accentColor.b, 1f);
             }
-            _name = UIKit.Text("Name", _bg.transform, d.displayName, 26f, UIPalette.Parchment, TextAlignmentOptions.TopRight, true);
-            _name.rectTransform.anchorMin = new Vector2(0.38f, 0.5f);
-            _name.rectTransform.anchorMax = new Vector2(1f, 1f);
-            _name.rectTransform.offsetMin = new Vector2(0f, 0f);
-            _name.rectTransform.offsetMax = new Vector2(-12f, -10f);
+            _name = UIKit.Text("Name", _bg.transform, d.displayName, NameSize, UIPalette.Parchment, tall ? TextAlignmentOptions.Bottom : TextAlignmentOptions.TopRight, true);
+            if (tall)
+            {
+                _name.rectTransform.anchorMin = new Vector2(0f, 0f);
+                _name.rectTransform.anchorMax = new Vector2(1f, 0f);
+                _name.rectTransform.pivot = new Vector2(0.5f, 0f);
+                _name.rectTransform.offsetMin = new Vector2(8f, 8f);
+                _name.rectTransform.offsetMax = new Vector2(-8f, 8f + Mathf.Min(78f, size.y - pd - 14f));
+            }
+            else
+            {
+                _name.rectTransform.anchorMin = new Vector2(0.45f, 0.5f);
+                _name.rectTransform.anchorMax = new Vector2(1f, 1f);
+                _name.rectTransform.offsetMin = new Vector2(0f, 0f);
+                _name.rectTransform.offsetMax = new Vector2(-12f, -8f);
+            }
             _name.textWrappingMode = TextWrappingModes.Normal;
-            _name.enableAutoSizing = true;
-            _name.fontSizeMin = 16f;
-            _name.fontSizeMax = Mathf.Min(26f, size.y * 0.2f);
+            _name.lineSpacing = -14f;
+            MenuKit.Fit(_name, NameSize, MenuKit.TextMin);
             _costChip = UIKit.Image("CostChip", _bg.transform, UIKit.Lib != null ? UIKit.Lib.uiRound : null, new Color(0f, 0f, 0f, 0.5f));
-            float chipH = Mathf.Min(50f, size.y * 0.36f);
-            UIKit.Place(_costChip.rectTransform, new Vector2(1f, 0f), new Vector2(-10f, 8f), new Vector2(chipH * 2.36f, chipH));
             Image vIcon = UIKit.Image("VitalityIcon", _costChip.transform, UIKit.Lib != null ? UIKit.Lib.iconVitality : null, Color.white);
-            UIKit.Place(vIcon.rectTransform, new Vector2(0f, 0.5f), new Vector2(4f, 0f), new Vector2(chipH * 0.84f, chipH * 0.84f));
-            _cost = UIKit.Text("Cost", _costChip.transform, d.cost.ToString(), chipH * 0.68f, UIPalette.Vitality, TextAlignmentOptions.MidlineRight, true);
+            vIcon.preserveAspect = true;
+            _cost = UIKit.Text("Cost", _costChip.transform, d.cost.ToString(), CostSize, UIPalette.Vitality, TextAlignmentOptions.MidlineRight, true);
             UIKit.Stretch(_cost.rectTransform);
-            _cost.rectTransform.offsetMax = new Vector2(-10f, 0f);
+            if (tall)
+            {
+                // Cost column: Vitality icon over the number.
+                UIKit.Place(_costChip.rectTransform, new Vector2(1f, 1f), new Vector2(-6f, -8f), new Vector2(Mathf.Min(84f, size.x - pd - 14f), 100f));
+                UIKit.Place(vIcon.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -6f), new Vector2(40f, 40f));
+                _cost.alignment = TextAlignmentOptions.Center;
+                _cost.rectTransform.offsetMax = new Vector2(0f, -44f);
+                _cost.textWrappingMode = TextWrappingModes.NoWrap;
+                MenuKit.Fit(_cost, CostSize, 30f);
+            }
+            else
+            {
+                float chipH = Mathf.Clamp(size.y * 0.36f, 46f, 58f);
+                UIKit.Place(_costChip.rectTransform, new Vector2(1f, 0f), new Vector2(-10f, 8f), new Vector2(chipH * 2.4f, chipH));
+                UIKit.Place(vIcon.rectTransform, new Vector2(0f, 0.5f), new Vector2(4f, 0f), new Vector2(chipH * 0.84f, chipH * 0.84f));
+                _cost.fontSize = Mathf.Max(CostSize, chipH * 0.7f);
+                _cost.rectTransform.offsetMax = new Vector2(-10f, 0f);
+            }
             _cooldown = UIKit.Image("Cooldown", _bg.transform, UIKit.Lib != null ? UIKit.Lib.uiRound : null, new Color(0.02f, 0.06f, 0.05f, 0.72f));
             UIKit.Stretch(_cooldown.rectTransform);
             _cooldown.type = Image.Type.Filled;
             _cooldown.fillMethod = Image.FillMethod.Vertical;
             _cooldown.fillOrigin = (int)Image.OriginVertical.Top;
-            _cdText = UIKit.Text("CooldownText", _bg.transform, "", 40f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
+            _cdText = UIKit.Text("CooldownText", _bg.transform, "", 52f, UIPalette.Parchment, TextAlignmentOptions.Center, true);
             UIKit.Stretch(_cdText.rectTransform);
             _edge = UIKit.Image("Edge", _bg.transform, UIKit.Lib != null ? UIKit.Lib.uiRoundOutline : null, UIPalette.PanelEdge);
             UIKit.Stretch(_edge.rectTransform, -4f);

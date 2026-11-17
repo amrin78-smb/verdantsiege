@@ -137,20 +137,20 @@ namespace VerdantSiege.UI
 
             // Rewards: Seeds (encounter + boss bonus) and Essence.
             Image seedChip = UIKit.Panel("Seeds", _panel, UIPalette.PanelLight, true, false);
-            UIKit.Place(seedChip.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-235f, -30f), new Vector2(440f, 110f));
+            UIKit.Place(seedChip.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-235f, -34f), new Vector2(440f, 122f));
             Image si = UIKit.Image("Icon", seedChip.transform, UIKit.Lib != null ? UIKit.Lib.iconSeed : null, UIPalette.Gold);
             UIKit.Place(si.rectTransform, new Vector2(0f, 0.5f), new Vector2(16f, 0f), new Vector2(76f, 76f));
             _seedsText = UIKit.Text("Amount", seedChip.transform, "+0 Seeds", 44f, UIPalette.Gold, TextAlignmentOptions.MidlineRight, true);
             UIKit.Stretch(_seedsText.rectTransform);
-            _seedsText.rectTransform.offsetMin = new Vector2(100f, 30f);
+            _seedsText.rectTransform.offsetMin = new Vector2(100f, 40f);
             _seedsText.rectTransform.offsetMax = new Vector2(-20f, 0f);
-            TextMeshProUGUI seedSub = UIKit.Text("Bonus", seedChip.transform, $"incl. +{_d.bonusSeeds} boss bonus", 22f, UIPalette.TextDim, TextAlignmentOptions.BottomRight);
+            TextMeshProUGUI seedSub = UIKit.Text("Bonus", seedChip.transform, $"incl. +{_d.bonusSeeds} boss bonus", MenuKit.TextMin, UIPalette.TextDim, TextAlignmentOptions.BottomRight);
             UIKit.Stretch(seedSub.rectTransform);
             seedSub.rectTransform.offsetMin = new Vector2(100f, 8f);
             seedSub.rectTransform.offsetMax = new Vector2(-20f, -6f);
 
             Image essChip = UIKit.Panel("Essence", _panel, new Color(0.24f, 0.14f, 0.32f, 0.97f), true, false);
-            UIKit.Place(essChip.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(235f, -30f), new Vector2(440f, 110f));
+            UIKit.Place(essChip.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(235f, -34f), new Vector2(440f, 122f));
             Image eb = UIKit.Image("Gem", essChip.transform, circle, EssenceColor);
             UIKit.Place(eb.rectTransform, new Vector2(0f, 0.5f), new Vector2(18f, 0f), new Vector2(70f, 70f));
             eb.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
@@ -159,10 +159,10 @@ namespace VerdantSiege.UI
             ei.preserveAspect = true;
             _essenceText = UIKit.Text("Amount", essChip.transform, "+0 Essence", 44f, EssenceColor, TextAlignmentOptions.MidlineRight, true);
             UIKit.Stretch(_essenceText.rectTransform);
-            _essenceText.rectTransform.offsetMin = new Vector2(100f, 30f);
+            _essenceText.rectTransform.offsetMin = new Vector2(100f, 40f);
             _essenceText.rectTransform.offsetMax = new Vector2(-20f, 0f);
             TextMeshProUGUI essSub = UIKit.Text("Total", essChip.transform, (_d.firstDefeat ? "First defeat!  " : "") + $"Total {_d.totalEssence}",
-                22f, _d.firstDefeat ? UIPalette.Gold : UIPalette.TextDim, TextAlignmentOptions.BottomRight);
+                MenuKit.TextMin, _d.firstDefeat ? UIPalette.Gold : UIPalette.TextDim, TextAlignmentOptions.BottomRight);
             UIKit.Stretch(essSub.rectTransform);
             essSub.rectTransform.offsetMin = new Vector2(100f, 8f);
             essSub.rectTransform.offsetMax = new Vector2(-20f, -6f);

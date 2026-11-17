@@ -81,9 +81,9 @@ namespace VerdantSiege.UI
             _bossBar = panel.rectTransform;
             UIKit.Place(_bossBar, new Vector2(0.5f, 1f), new Vector2(BattleHud.RailWidth * 0.5f, -112f), new Vector2(820f, BarHeight));
             _hud.SetFeedTop(-112f - BarHeight - 10f); // compact feed sits under the boss bar
-            _bossName = UIKit.Text("Name", panel.transform, boss.Definition.displayName, 30f, UIPalette.Parchment, TextAlignmentOptions.TopLeft, true);
+            _bossName = UIKit.Text("Name", panel.transform, boss.Definition.displayName, 32f, UIPalette.Parchment, TextAlignmentOptions.TopLeft, true);
             UIKit.Place(_bossName.rectTransform, new Vector2(0f, 1f), new Vector2(22f, -4f), new Vector2(460f, 38f));
-            _bossState = UIKit.Text("State", panel.transform, "", 24f, UIPalette.Gold, TextAlignmentOptions.TopRight, true);
+            _bossState = UIKit.Text("State", panel.transform, "", 28f, UIPalette.Gold, TextAlignmentOptions.TopRight, true);
             UIKit.Place(_bossState.rectTransform, new Vector2(1f, 1f), new Vector2(-22f, -7f), new Vector2(330f, 34f));
             Image track = UIKit.Image("Track", panel.transform, UIKit.Lib != null ? UIKit.Lib.uiRound : null, new Color(0f, 0f, 0f, 0.55f));
             RectTransform tr = track.rectTransform;
@@ -155,15 +155,15 @@ namespace VerdantSiege.UI
             _intel = p.rectTransform;
             // Sits in the scenery band under the top bars (boss bar / herald slot) so it never covers a lane.
             float intelY = (_sim.Boss != null ? -112f - BarHeight - 10f : -112f) - 72f;
-            UIKit.Place(_intel, new Vector2(0.5f, 1f), new Vector2(BattleHud.RailWidth * 0.5f, intelY), new Vector2(1060f, 110f));
+            UIKit.Place(_intel, new Vector2(0.5f, 1f), new Vector2(BattleHud.RailWidth * 0.5f, intelY), new Vector2(1100f, 124f));
             _intelTitle = UIKit.Text("Title", p.transform, "", 34f, UIPalette.Gold, TextAlignmentOptions.TopLeft, true);
             UIKit.Place(_intelTitle.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -8f), new Vector2(1010f, 42f));
             _intelBody = UIKit.Text("Body", p.transform, "", 27f, UIPalette.Parchment, TextAlignmentOptions.TopLeft);
-            UIKit.Place(_intelBody.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -48f), new Vector2(1010f, 58f));
+            UIKit.Place(_intelBody.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -50f), new Vector2(1050f, 70f));
             _intelBody.textWrappingMode = TextWrappingModes.Normal;
             _intelBody.enableAutoSizing = true;
-            _intelBody.fontSizeMin = 20f;
-            _intelBody.fontSizeMax = 27f;
+            _intelBody.fontSizeMin = MenuKit.TextMin;
+            _intelBody.fontSizeMax = 30f;
             _intelGroup = UIKit.Group(p.gameObject);
             _intelGroup.alpha = 0f;
             _intelGroup.blocksRaycasts = false;

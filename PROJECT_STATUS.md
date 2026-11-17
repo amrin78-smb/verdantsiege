@@ -185,6 +185,27 @@ Scope (master prompt): world map, campaign missions, persistent rewards, researc
 - Autoplay and the editor share the save path `~/.config/unity3d/Nocvault/Verdant Siege/` with every checkout of the project.
 - Version not bumped (owner's call); no Android build made for this milestone.
 
+## Readability pass (0.5.0 playtest feedback; implemented on branch, device validation pending)
+
+Owner feedback (S25 Ultra): fonts and cards too small on the Loadout and Conservatory screens, then mid-battle too. Rules: TD-36.
+
+| Screen | Change |
+|---|---|
+| All menus | Shared minimums in `MenuKit` (text >= 28, body 30-32, headers 44, buttons >= 96 tall, auto-size never below 28); `MenuKit.Scroll` scroll areas with edge fades and a position bar; drag threshold scaled to screen DPI so taps in lists still click |
+| Loadout | Cards 228x280 (deck 212x258) with 140 portraits, names 32, costs 34; deck row scrolls sideways, collection grid scrolls (columns follow the width), intel (all threats with hints + advice) scrolls; intel panel fixed 700 wide |
+| Conservatory / Research | Nodes fill three flexible columns (names 36, descriptions 30, costs 30) in a vertical scroll with sticky branch headers; detail panel 540 wide always shows a node large (name 50, description 36, cost 34, how to earn Seeds/Essence); scroll position kept across taps |
+| Conservatory / Defenders | 224x268 tiles in a scrolling grid; detail 1000 wide: name 52, mastery path rows sized to their text at 30 |
+| World Map + briefing | Node names 32, stars 38, region cards sized to their text and scrolling; briefing panel 1780x980: threats list (32 + hint) scrolls, objectives 32/30, unlock names 28 |
+| Results / boss victory / Sanctuary | Star labels 30, breakdown 30, mastery as full-width rows (names 32, Lv 34) in a scroll; boss chip captions 28; Sanctuary restoration text 30, version 28 |
+| Battle HUD | 6-8 cards: two-column rail of tall cards (name 32, cost 36 bold, bigger portrait), rail 446 and the camera fit follows; up to 5: one column, cards 160-172 tall; notification strip title 38 / body 30 (two lines when needed), evolution chooser descriptions 30 / costs 40, wave label 34, inspect 30, tutorial 32 (min 28), Evolve badge 30 |
+
+### Test results (readability pass, 2026-11-17)
+- `Tools/setup.sh` exit 0 (no generator changed; regenerated scenes only reshuffled file IDs and were not committed). EditMode: **178 total, 176 passed, 0 failed, 2 explicit** (unchanged, incl. bot balance and ShippedContentTests).
+- Linux autoplay, all **PASS, 0 errors**: campaign `VS_GRANT_SEEDS=600` at 2400x1080, 1600x720, 2048x1536 (vh_01 won 5/5 each); campaign with `VS_UNLOCK_ALL=1` at 2400x1080 (full collection, varied mastery, scrolled states captured); direct vh_05 with the 8-card deck at 2400x1080 with a 90 px notch, 1600x720, 2048x1536 (won 5/5, 5/5, 4/5).
+- Screenshots reviewed at real size (Logs/AutoPilot/): sanctuary, research, research_bought, research_scrolled, mastery, worldmap, worldmap_after, mission_brief, loadout, loadout_scrolled, result_rewards (2400x1080, 1600x720, 2048x1536); battle_start/mid, feed_intel, evolve_chooser, pause_menu for the 8-card rail at all three. Fixes from the review: loadout card costs rendered blank (single line taller than its rect is truncated to nothing by TMP Ellipsis), level-up badge text too long for the result row, evolution chooser rows taller than needed, wave bar overlapped the Heartroot pips with the wide rail on 4:3.
+- Not verified: real-device touch (tap vs drag in the scroll lists, DPI-scaled drag threshold), Android back button on the new layouts; the pause-menu screenshot is taken before the overlay renders (pre-existing harness timing), so the pause panel was checked by code only (34-84 text).
+
+
 ## Next actions
 1. Pair the S23 Ultra over wireless debugging, install the APK, run `Docs/ANDROID_TEST_CHECKLIST.md`; TCL Tab 10 after 21:00; Redmi A3 when available.
 2. Milestone 2 (vertical slice polish): environment composition and lighting, Heartroot placement, sunlight pools, proper tutorial, better VFX (hit, armour break, death), damage numbers option, card/HUD polish, tuned quality profiles after device profiling.
