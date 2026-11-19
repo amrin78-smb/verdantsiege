@@ -181,17 +181,18 @@ namespace VerdantSiege.Battle
             if (battleCamera == null) return;
             var rig = battleCamera.GetComponent<BattleCameraRig>();
             if (rig == null) rig = battleCamera.gameObject.AddComponent<BattleCameraRig>();
+            rig.pitch = BattleCameraRig.DefaultPitch; // steeper view: taller rows on wide phones (TD-37)
             Bounds b = Layout.FieldBounds;
             // Include the Heartroot (left), the enemy entry (right) and unit height.
-            b.Encapsulate(new Vector3(-1.6f, 0f, b.center.z)); // keep the Heartroot's glowing core in view
-            b.Encapsulate(new Vector3(Layout.Columns + (Sim.Boss != null ? BossStage.FitMargin : 0.9f), 0f, b.center.z)); // keep the boss's face and pods in view
-            b.Encapsulate(new Vector3(b.center.x, 1.0f, Layout.Lanes * Layout.LaneDepth + 0.15f));
+            b.Encapsulate(new Vector3(-1.1f, 0f, b.center.z)); // Heartroot core just in view; its canopy may tuck under the rail (TD-37)
+            b.Encapsulate(new Vector3(Layout.Columns + (Sim.Boss != null ? BossStage.FitMargin : 0.45f), 0f, b.center.z)); // keep the boss's face and pods in view
+            b.Encapsulate(new Vector3(b.center.x, 0.6f, Layout.Lanes * Layout.LaneDepth + 0.1f)); // back-lane heads may touch the top bar
             b.Encapsulate(new Vector3(b.center.x, 0f, -0.1f));
             // HUD-free viewport: left rail and top bar are excluded (reference 1920x1080 scaled by height).
             float scale = Screen.height / 1080f;
             float left = (BattleHud.RailWidth * scale) / Mathf.Max(1, Screen.width);
             float top = ((BattleHud.TopBarHeight + (Sim.Boss != null ? EncounterAlertsHud.BarHeight : 0f)) * scale) / Mathf.Max(1, Screen.height);
-            rig.Fit(b, new Rect(left + 0.005f, 0.01f, 1f - left - 0.015f, 1f - top - 0.02f));
+            rig.Fit(b, new Rect(left + 0.002f, 0.005f, 1f - left - 0.004f, 1f - top - 0.008f));
         }
 
         // ================================================================ wiring

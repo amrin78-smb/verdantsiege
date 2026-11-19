@@ -137,3 +137,12 @@ Owner feedback on 0.5.0 (S25 Ultra, 20:9): menu cards and text were too small; s
 - TMP truncation hazard: a single-line label whose rect is shorter than the font's line height renders nothing with Ellipsis overflow; short numbers use Overflow.
 - Second pass (0.5.1 feedback "still can make it bigger"): minimums raised ~25%. `TextMin` 34, `TextSmall` 36, `TextBody`/`TextLabel` 38, `TextNumber` 42, `TextHeader` 52, `TextButton` 44, `TouchMin` 110, `ButtonHeight` 116, menu top bar 136, currency chips 100 tall (numbers 52). Battle: card name 38 / cost 44, rail one column 330 wide (up to 5 cards) or two columns of 232-wide cards (rail 498), Vitality 76 in a 120 badge, heart pips 46, wave label 40 (the wave bar now spans from the Heartroot panel to the 120 pause/speed buttons), top bar 140, boss bar 90 tall placed under the top buttons, notification title 44 / body 36, evolution chooser descriptions 36 / costs 48, inspect 36, tutorial 38. Research nodes 340 tall (names 42 wrap to two lines, descriptions 38); detail 580 wide; Defenders detail 960. The rail does not scroll: cards are dragged onto the field, so a scrolling rail would fight drag-to-plant; 8 cards fit two columns of four at 232x221.
 
+
+## TD-37 Battlefield framing beside the larger HUD
+
+After the readability passes (TD-36) widened the card rail and top bar, the board shrank. The camera fit now uses
+tighter margins: Heartroot margin 1.6 -> 1.1 cells (its canopy may tuck under the rail; the glowing core stays visible),
+enemy-entry margin 0.9 -> 0.45 (boss margin unchanged), unit headroom 1.0 -> 0.6 at the back lane, and viewport
+padding cut to under 1%. Pitch 54 -> 60 degrees (`BattleCameraRig.DefaultPitch`) so wide phones, which are
+width-bound, use the spare vertical space for taller rows. Measured at 1600x720: board about 990 -> 1120 px wide and
+440 -> 530 px tall. 4:3 tablets stay width-bound (spare space above and below the board).

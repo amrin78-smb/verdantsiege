@@ -11,7 +11,8 @@ namespace VerdantSiege.Battle.View
     [RequireComponent(typeof(Camera))]
     public sealed class BattleCameraRig : MonoBehaviour
     {
-        public float pitch = 54f;
+        public const float DefaultPitch = 60f;
+        public float pitch = DefaultPitch;
         public float fieldOfView = 32f;
         [Tooltip("Viewport rect (0..1) the battlefield must fit inside, excluding HUD areas.")]
         public Rect safeViewport = new Rect(0.16f, 0.02f, 0.82f, 0.84f);
